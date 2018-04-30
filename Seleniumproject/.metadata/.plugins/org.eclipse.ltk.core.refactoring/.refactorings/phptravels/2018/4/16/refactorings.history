@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename package &apos;net.phptravels.objectRepository&apos; to &apos;net.phptravels.objectRepositoryLib&apos;&#x0D;&#x0A;- Original project: &apos;phptravels&apos;&#x0D;&#x0A;- Original element: &apos;phptravels/src/net.phptravels.objectRepository&apos;&#x0D;&#x0A;- Renamed element: &apos;phptravels/src/net.phptravels.objectRepositoryLib&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename package &apos;net.phptravels.objectRepository&apos;" flags="589830" hierarchical="false" id="org.eclipse.jdt.ui.rename.package" input="/src&lt;net.phptravels.objectRepository" name="net.phptravels.objectRepositoryLib" qualified="false" references="true" stamp="1524126215726" textual="false" version="1.0"/>
+</session>
