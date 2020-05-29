@@ -1,0 +1,87 @@
+*** Settings ***
+Test Teardown     Delete Hash And Index From Redis
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/traveler-preference.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FNC_001 Traveler Preference Is Successfully Retrieved
+    Generate Test Variables For Get Traveler Preference    trv_guid=A:1234
+    Generate Test Data For Traveler Preference    A,A:1234
+    Send GET request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Traveler Preference Is Returned    {"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.0,"cpBoost":0.0,"apBoost":0.0}}
+
+FNC_002 Traveler Preference Is Successfully Retrieved With Single Matching With Multiple Traveler (Same Dataset) and Boost Data
+    Generate Test Variables For Get Traveler Preference    trv_guid=A:1234
+    Generate Test Data For Traveler Preference    A,A:1234|A,B:4567
+    #Single Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_prefix=A    boost_tp=0.1    boost_ap=0.2    boost_cp=0.3
+    #Non-Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_prefix=B    boost_tp=0.4    boost_ap=0.5    boost_cp=0.6
+    Send GET request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Traveler Preference Is Returned    {"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.1,"cpBoost":0.3,"apBoost":0.2,"others":{"Factor1":"test"},"consumer":"${app_id}"}}
+
+FNC_003 Traveler Preference Is Successfully Retrieved With Single Matching With Multiple Traveler (Different Dataset) and Boost Data Using useDataSet Header
+    Generate Test Variables For Get Traveler Preference    trv_guid=B:4567    prefix=B
+    Generate Test Data For Traveler Preference    A,A:1234|B,B:4567
+    #Single Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_prefix=B    boost_tp=0.7    boost_ap=0.8    boost_cp=0.9
+    #Non-Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_prefix=A    boost_tp=0.1    boost_ap=0.2    boost_cp=0.3
+    Send GET request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Traveler Preference Is Returned    {"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.7,"cpBoost":0.9,"apBoost":0.8,"others":{"Factor1":"test"},"consumer":"${app_id}"}}
+
+FNC_004 Traveler Preference Is Successfully Retrieved With Single Matching With Multiple Same Traveler (Different Dataset) And Boost Data Using useDataSet Header
+    Generate Test Variables For Get Traveler Preference    trv_guid=A:1234    prefix=A
+    Generate Test Data For Traveler Preference    A,A:1234|B,A:1234
+    #Single Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_prefix=A    boost_tp=0.5    boost_ap=0.3    boost_cp=0.7
+    #Non-Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_prefix=B    boost_tp=0.6    boost_ap=0.8    boost_cp=0.9
+    Send GET request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Traveler Preference Is Returned    {"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.7,"apBoost":0.3,"others":{"Factor1":"test"},"consumer":"${app_id}"}}
+
+FNC_005 Traveler Preference Is Successfully Retrieved With Single Matching Using appId With Multiple Boost Data
+    Generate Test Variables For Get Traveler Preference    trv_guid=A:1234    app_id=DIGITAL
+    Generate Test Data For Traveler Preference    A,A:1234|A,B:4567
+    #Single Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_app_id=DIGITAL    boost_tp=0.1    boost_ap=0.3    boost_cp=0.2
+    #Non-Matching Traveler And Boost Data
+    Generate Test Variables And Data For Boost    boost_app_id=CWT2GO    boost_tp=0.4    boost_ap=0.6    boost_cp=0.5
+    Send GET request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Traveler Preference Is Returned    {"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.1,"cpBoost":0.2,"apBoost":0.3,"others":{"Factor1":"test"},"consumer":"${app_id}"}}
+
+FNC_006 No Traveler Preference Is Retrieved When Traveler Guid Is Not Available In Redis
+    Generate Test Variables For Get Traveler Preference    trv_guid=B:5678
+    Generate Test Data For Traveler Preference    A,A:1234
+    Send GET request
+    Verify That Correct Status Code Are Returned    204
+    Verify That Response Headers Are Correct
+    Comment    Verify That Error Response Is Returned    error_code=TRAVELER_PREFERENCE_EXCEPTION    error_message=Data not found.
+
+FNC_007 Response Contains A System Generated Transaction ID When Not Supplied In The Request
+    Generate Test Variables For Get Traveler Preference    txn_id=None
+    Generate Test Data For Traveler Preference
+    Send GET request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Traveler Preference Is Returned    {"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.0,"cpBoost":0.0,"apBoost":0.0}}
+
+FNC_008 Response Contains The Same Transaction ID Supplied In The Request
+    Generate Test Variables For Get Traveler Preference    txn_id=ABCD12345
+    Generate Test Data For Traveler Preference
+    Send GET request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Traveler Preference Is Returned    {"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.0,"cpBoost":0.0,"apBoost":0.0}}

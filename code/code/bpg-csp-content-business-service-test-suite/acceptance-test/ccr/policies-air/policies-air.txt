@@ -1,0 +1,32 @@
+*** Settings ***
+Force Tags        functional
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/policies-air.txt
+
+*** Test Cases ***
+FUNC001_Verify That CBS Policies Air Response Is Same With PB Policies Air Response
+    Get Authorization Token For PB
+    Generate Test Variables For Policies Air To Get Request For PB    csuGuid=A:807F6    sourcesysCode=AU1    clientAccNum=U1FVA    systemUserGuid=A:2DD6B    teamId=419    travTypeGuid=A:5B696
+    ...    tripTypeId=1    languageCode=en-GB    ALL=True
+    Send GET Request For PB API
+    Get Authorization Token
+    Generate Test Variables For Policies Air To Get Request For CBS    csuGuid=A:807F6    sourcesysCode=AU1    clientAccNum=U1FVA    systemUserGuid=A:2DD6B    teamId=419    travTypeGuid=A:5B696
+    ...    tripTypeId=1    languageCode=en-GB    ALL=True
+    Send GET Request
+    Comment    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Response Is Same With Powerbase API
+
+FUNC002_Verify That CBS Policies Air Response Is Same With PB Policies Air Response When ClientSubUnitGuid Is Empty
+    Get Authorization Token For PB
+    Generate Test Variables For Policies Air To Get Request For PB    csuGuid=${EMPTY}    sourcesysCode=AU1    clientAccNum=U1FVA    systemUserGuid=A:2DD6B    teamId=419    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    ALL=True
+    Send GET Request For PB API
+    Get Authorization Token
+    Generate Test Variables For Policies Air To Get Request For CBS    csuGuid=${EMPTY}    sourcesysCode=AU1    clientAccNum=U1FVA    systemUserGuid=A:2DD6B    teamId=419    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    ALL=True
+    Send GET Request
+    Comment    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Response Is Same With Powerbase API

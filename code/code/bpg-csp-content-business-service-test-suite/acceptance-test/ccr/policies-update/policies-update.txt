@@ -1,0 +1,17 @@
+*** Settings ***
+Force Tags        functional
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/policies-update.txt
+
+*** Test Cases ***
+FUNC001_Verify That CBS CompositePolicyService Response Is Same With PB Policies Update Response
+    [Tags]    regression
+    Get Current Start Timestamp
+    Get Authorization Token For PB
+    Generate Test Variables For Policies Update To Get Request For PB    startTimeStamp=${start_time_stamp}    endTimeStamp=${end_time_stamp}
+    Send GET Request For PB API
+    Get Authorization Token
+    Generate Test Variables For Policies Update To Get Request For CBS    startTimeStamp=${start_time_stamp}    endTimeStamp=${end_time_stamp}
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200

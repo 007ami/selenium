@@ -1,0 +1,38 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "A",
+	"offlineAlgorithm": "offline_algorithm",
+	"onlineAlgorithm": "online_algorithm",
+	"personalizationApplied": pers_applied,
+	"systemPersonalized": false,
+	"result": {
+		"score": [{
+				"carrierCode": "AA",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "US",
+				"validatingCarrierCode":"AA",
+				"cabinClass":"F",
+				"apValue": 1,
+				"cpValue": 1,
+				"cpPolicyOrder": 1,
+				"cpDerivedPolicyOrder": 1,
+				"apPolicyOrder": 1,
+				"apDerivedPolicyOrder": 1,
+				"apScore": 0.5,
+				"cpScore": 0.8,
+				"totalScore": 1.3
+			}
+		],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"tpBoost": 0.5,
+			"cpBoost": 0.8,
+			"apBoost": 0.5,
+			"priceBoost": price,
+			"durationBoost": duration,
+			"numStopsBoost": num_stops,
+			"flightTimeBoost": flight_time
+		}
+	}
+}

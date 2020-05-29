@@ -1,0 +1,34 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Get Channels
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/channels
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+
+Verify That Correct Channels List Is Returned
+    [Arguments]    ${expected_result}    ${type}=array
+    Set Test Variable    ${expected_result}
+    ${expected_result}    Convert To String    ${expected_result}
+    : FOR    ${actual_response_item}    IN    @{response.json()}
+    \    ${actual_response_item}    Evaluate    json.dumps('''${actual_response_item}''')    json
+    \    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'
+    \    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    \    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    \    Run Keyword And Continue On Failure    Should Contain    ${expected_result}    ${actual_response_item}

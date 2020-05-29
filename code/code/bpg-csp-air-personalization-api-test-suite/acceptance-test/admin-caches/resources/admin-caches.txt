@@ -1,0 +1,36 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Post Clear Caches
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${cache_list}=${default_cache_list}
+    Set Global Variable    ${endpoint}    ${context_path}-admin/caches/clear
+    ${query_param_list}    Create Dictionary
+    Set Global Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${cache_list}    Run Keyword If    "${cache_list}"=="None" or "${cache_list}"=="null"    Set Variable    ${cache_list}
+    ...    ELSE    Split String    ${cache_list}    |
+    ${json_body}    Create Dictionary
+    Run Keyword If    "${cache_list}"=="null"    Set To Dictionary    ${json_body}    caches    ${cache_list}
+    ...    ELSE IF    "${cache_list}"!="None"    Set To Dictionary    ${json_body}    caches=@{cache_list}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    ${json_body}    Replace String    ${json_body}    ""    ${EMPTY}
+    Set Global Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Global Variable    ${cache_list}
+    Set Global Variable    ${txn_id}
+    Set Global Variable    ${token}
+    Set Global Variable    ${app_id}    None
+    Set Global Variable    ${prefix}    None
+
+Verify That Cache Is Cleared Successfully
+    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${response.json()}    result    SUCCESS

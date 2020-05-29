@@ -1,0 +1,68 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Data For Traveler Preference
+    [Arguments]    ${trv_config_list}=${trv_config_version},${trv_guid}
+    ${trv_config_list}    Split String    ${trv_config_list}    |
+    : FOR    ${trv_config_item}    IN    @{trv_config_list}
+    \    ${trv_config_item}    Split String    ${trv_config_item}    ,
+    \    ${hash_name}    Set Variable    ${trv_config_item[0]}::TRAVELER::${trv_config_item[1]}
+    \    ${status}    Set To Redis    ${redis_connection}    ${hash_name}    ${${trv_config_item[1]}_trv_data}
+    \    Append To List    ${hash_list}    ${hash_name}
+    \    Log    ${status}
+    Sleep    2s
+
+Generate Test Variables For Get Traveler Preference
+    [Arguments]    ${trv_guid}=A:1234    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${app_id}=CWT2GO    ${prefix}=A
+    ${endpoint}    Set Variable If    "${trv_guid}"!="None"    ${context_path}/personalization/traveler/${trv_guid}    ${context_path}/personalization/traveler
+    Set Test Variable    ${endpoint}
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${trv_guid}
+    Set Test Variable    ${token}
+    Set Test Variable    ${prefix}
+    Set Test Variable    ${app_id}
+
+Verify That Traveler Preference Is Returned
+    [Arguments]    ${expected_result}
+    Set Test Variable    ${expected_result}
+    ${expected_result}    Evaluate    json.loads('''${expected_result}''')    json
+    ${status}    Run Keyword And Return Status    Run Keyword And Continue On Failure    Dictionaries Should Be Equal    ${response.json()}    ${expected_result}    Actual Value is not equal to the Expected Value
+    Run Keyword If    "${status}" == "False"    Compare 2 JSON response    ${expected_result}    ${response.json()}
+
+Generate Test Data For Traveler Preference 2
+    [Arguments]    ${trv_config_list}=${trv_config_version},${trv_guid}    ${ref_key}=1
+    ${trv_config_list}    Split String    ${trv_config_list}    |
+    : FOR    ${trv_config_item}    IN    @{trv_config_list}
+    \    ${trv_config_item}    Split String    ${trv_config_item}    ,
+    \    Log    ${trv_config_item}
+    \    ${hash_name}    Set Variable If    "${trv_config_item[1]}"!="DEFAULT"    ${trv_config_item[0]}::TRAVELER::${ref_key}::${trv_config_item[1][:-2]}    ${trv_config_item[0]}::TRAVELER::${ref_key}
+    \    Log    ${hash_name}
+    \    Comment    ${status}    Run Keyword And Continue On Failure    Run Keyword If    "${trv_config_item[1]}"!="DEFAULT"    Add Hash Data In Redis
+    \    ...    ${hash_name}    ${last_2_guid_value}=${${trv_config_item[1]}_trv_data}
+    \    ...    ELSE    Add Hash Data In Redis    ${hash_name}    ${trv_config_item[1]}=${${trv_config_item[1]}_trv_data}
+    \    ${status}    Run Keyword And Continue On Failure    Run Keyword If    "${trv_config_item[1]}"!="DEFAULT" and "${trv_config_item[0]}"=="V1"    Add Hash Data In Redis    ${hash_name}
+    \    ...    ${trv_config_item[1][-2:]}=${${trv_config_item[1]}_trv_data}
+    \    ...    ELSE IF    "${trv_config_item[0]}"!="V1" and "${trv_config_item[1]}"!="DEFAULT"    Add Hash Data In Redis    ${hash_name}    ${trv_config_item[1][-2:]}=${${trv_config_item[0]}_${trv_config_item[1]}_trv_data}
+    \    ...    ELSE IF    "${trv_config_item[0]}"!="V1" and "${trv_config_item[1]}"=="DEFAULT"    Add Hash Data In Redis    ${hash_name}    ${trv_config_item[1]}=${${trv_config_item[0]}_${trv_config_item[1]}_trv_data}
+    \    ...    ELSE IF    "${trv_config_item[0]}"=="V1" and "${trv_config_item[1]}"=="DEFAULT"    Add Hash Data In Redis    ${hash_name}    ${trv_config_item[1]}=${${trv_config_item[1]}_trv_data}
+    \    Comment    Set To Redis    ${redis_connection}    ${trv_config_item[0]}::INDEX::TRAVELER::REF    ${ref_key}
+    \    Append To List    ${hash_list}    ${hash_name}
+    \    Log    ${status}
+    Sleep    2s
+
+Update Traveler Hash Data In Redis
+    [Arguments]    ${hash_name}    ${trv_guid}=S:0986
+    Add Hash Data In Redis    ${hash_name}    ${trv_guid[-2:]}=${V2_${trv_guid}_trv_data}

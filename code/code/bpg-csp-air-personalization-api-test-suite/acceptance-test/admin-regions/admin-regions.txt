@@ -1,0 +1,26 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-regions.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FNC_001 All Regions Are Successfully Retrieved
+    Generate Test Variables For Get Regions
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That TravelPort Data Is Correct
+
+FNC_002 Response Contains The Same Transaction ID Supplied In The Request
+    Generate Test Variables For Get Regions    txn_id=ABCD12345
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+
+FNC_003 Response Contains A System Generated Transaction ID When Not Supplied In The Request
+    Generate Test Variables For Get Regions    txn_id=None
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct

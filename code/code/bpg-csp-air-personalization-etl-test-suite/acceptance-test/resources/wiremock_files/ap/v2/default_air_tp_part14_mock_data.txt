@@ -1,0 +1,10 @@
+{"traveler_guid":"41:22D5CABB","carrier":[{"code":"EA","value":0.7}]}
+{"traveler_guid":"42:22D5CA8F","carrier":[{"code":"EB","value":0.5}]}
+{"traveler_guid":"43:241B5FBA","carrier":[{"code":"EC","value":0.2}]}
+{"traveler_guid":"44:2418BF94","carrier":[{"code":"ED","value":0.8}]}
+{"traveler_guid":"45:1EE11131","carrier":[{"code":"EE","value":0.8}]}
+{"traveler_guid":"46:1EDEA74C","carrier":[{"code":"EF","value":0.3}]}
+{"traveler_guid":"47:1EE10F94","carrier":[{"code":"EG","value":0.2}]}
+{"traveler_guid":"48:1CA60FBD","carrier":[{"code":"EH","value":0.4}]}
+{"traveler_guid":"49:1EE10DD2","carrier":[{"code":"EI","value":0.4}]}
+{"traveler_guid":"50:2417FF5E","carrier":[{"code":"EJ","value":0.9}]}

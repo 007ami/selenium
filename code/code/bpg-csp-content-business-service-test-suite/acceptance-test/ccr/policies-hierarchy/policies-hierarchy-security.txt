@@ -1,0 +1,38 @@
+*** Settings ***
+Suite Setup       Get Authorization Token
+Force Tags        security    regression
+Resource          ../../../resources/imports.txt
+Resource          resources/policies-hierarchy.txt
+Resource          ../../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    Generate Test Variables For Policies Hierarchy Get Request For CBS
+    Send GET Request    token=${invalid_token_1}
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is invalid or has expired\",\"error\":\"invalid_token\"}
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    [Tags]    not-ready
+    Generate Test Variables For Policies Hierarchy Get Request For CBS
+    Send GET Request    token=${expired_token}
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is invalid or has expired\",\"error\":\"invalid_token\"}
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    Generate Test Variables For Policies Hierarchy Get Request For CBS
+    Send GET Request    token=${EMPTY}
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is missing\",\"error\":\"invalid_request\"}
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    Generate Test Variables For Policies Hierarchy Get Request For CBS
+    Send GET Request    token=null
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is missing\",\"error\":\"invalid_request\"}
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    Generate Test Variables For Policies Hierarchy Get Request For CBS
+    Send GET Request    token=None
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is missing\",\"error\":\"invalid_request\"}

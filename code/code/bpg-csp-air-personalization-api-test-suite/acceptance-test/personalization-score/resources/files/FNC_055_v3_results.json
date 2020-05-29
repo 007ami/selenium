@@ -1,0 +1,107 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "prefix",
+	"offlineAlgorithm": "offline_algorithm",
+	"onlineAlgorithm": "online_algorithm",
+	"personalizationApplied": pers_applied,
+	"systemPersonalized": false,
+	"result": {
+		"score": [
+		{
+               "marketingCarrierCode": "AB",               
+			   "origin": "JFK",
+                "destination": "LHR",
+                "issuingCountry": "US",
+                "apScore": 0.0,
+                "cpScore": 0.0,
+                "tpScore": 0.1,
+                "totalScore": 0.1,
+                "apValue": 0.0,
+                "cpValue": 0.0,
+                "tpValue": 0.2,
+                "apFlag": false,
+                "cpFlag": false,
+                "tpFlag": true
+            },
+			{
+                
+				
+                "marketingCarrierCode": "AC",
+				"origin": "JFK",
+                "destination": "LHR",
+                "issuingCountry": "US",
+                "apScore": 0.0,
+                "cpScore": 0.0,
+                "tpScore": 0.15,
+                "totalScore": 0.15,
+                "apValue": 0.0,
+                "cpValue": 0.0,
+                "tpValue": 0.3,
+                "apFlag": false,
+                "cpFlag": false,
+                "tpFlag": true
+            },
+			{
+                
+                "marketingCarrierCode": "AD",
+				"origin": "JFK",
+                "destination": "LHR",
+                "issuingCountry": "US",
+                "apScore": 0.0,
+                "cpScore": 0.0,
+                "tpScore": 0.2,
+                "totalScore": 0.2,
+                "apValue": 0.0,
+                "cpValue": 0.0,
+                "tpValue": 0.4,
+                "apFlag": false,
+                "cpFlag": false,
+                "tpFlag": true
+            },
+			{
+                
+                "marketingCarrierCode": "AE",
+				"origin": "JFK",
+                "destination": "LHR",
+                "issuingCountry": "US",
+                "apScore": 0.0,
+                "cpScore": 0.0,
+                "tpScore": 0.25,
+                "totalScore": 0.25,
+                "apValue": 0.0,
+                "cpValue": 0.0,
+                "tpValue": 0.5,
+                "apFlag": false,
+                "cpFlag": false,
+                "tpFlag": true
+            },
+			{
+                
+                "marketingCarrierCode": "A0",
+				"origin": "JFK",
+                "destination": "LHR",
+                "issuingCountry": "US",
+                "apScore": 0.0,
+                "cpScore": 0.0,
+                "tpScore": 0.3,
+                "totalScore": 0.3,
+                "apValue": 0.0,
+                "cpValue": 0.0,
+                "tpValue": 0.6,
+                "apFlag": false,
+                "cpFlag": false,
+                "tpFlag": true
+            }
+			],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"tpBoost": 0.5,
+			"cpBoost": 0.7,
+			"apBoost": 0.3,
+			"priceBoost": price,
+			"durationBoost": duration,
+			"numStopsBoost": num_stops,
+			"flightTimeBoost": flight_time
+		}
+	}
+}

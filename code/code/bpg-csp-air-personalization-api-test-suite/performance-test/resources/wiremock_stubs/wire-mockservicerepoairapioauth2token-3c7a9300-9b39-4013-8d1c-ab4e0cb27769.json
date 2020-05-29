@@ -1,0 +1,16 @@
+{
+  "id" : "3c7a9300-9b39-4013-8d1c-ab4e0cb27769",
+  "request" : {
+    "url" : "/wire-mock/service/repo/airapi/oauth2/token",
+    "method" : "POST"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"token_type\":\"bearer\",\"access_token\":\"9HlYXZd3TdmeCAnouIH96jk0ox4GIGXR\",\"expires_in\":900}",
+    "headers" : {
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "3c7a9300-9b39-4013-8d1c-ab4e0cb27769",
+  "insertionIndex" : 64379
+}

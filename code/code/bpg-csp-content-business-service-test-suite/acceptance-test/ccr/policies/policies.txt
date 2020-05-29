@@ -1,0 +1,30 @@
+*** Settings ***
+Force Tags        functional
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/policies.txt
+
+*** Test Cases ***
+FUNC001_Verify That Policies Response Is Same With PB Policies Response
+    Get Authorization Token For PB
+    Generate Test Variables For Policies To Get Request For PB    csuGuid=A:807F6    cityCode=NYC    systemUserGuid=B:630    teamId=299    clientAccNum=112    travTypeGuid=14:2BB7
+    ...    tripTypeId=1    languageCode=en-GB    ALL=True
+    Send GET Request For PB API
+    Get Authorization Token
+    Generate Test Variables For Policies To Get Request For CBS    csuGuid=A:807F6    cityCode=NYC    systemUserGuid=B:630    teamId=299    clientAccNum=112    travTypeGuid=14:2BB7
+    ...    tripTypeId=1    languageCode=en-GB    ALL=True
+    Send GET Request
+    Comment    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Response Is Same With Powerbase API
+
+FUNC002_Verify That Policies Response Is Same With PB Policies Response When ClientSubGuid Is Empty
+    Get Authorization Token For PB
+    Generate Test Variables For Policies To Get Request For PB    csuGuid=${EMPTY}
+    Send GET Request For PB API
+    Get Authorization Token
+    Generate Test Variables For Policies To Get Request For CBS    csuGuid=${EMPTY}
+    Send GET Request
+    Comment    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Response Is Same With Powerbase API

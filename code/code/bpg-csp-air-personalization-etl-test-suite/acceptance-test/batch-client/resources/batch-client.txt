@@ -1,0 +1,495 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          ../../../resources/environment-variables.txt
+
+*** Keywords ***
+Create Success Stub For Powerbase API
+    [Arguments]    ${request}    ${response}
+    Create Session    wm    ${wiremock_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":${request}
+    ${response_body}    Set Variable    "response":{"status":200,"headers":{"Content-Type":"application/json"},"jsonBody": ${response}
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Get Stub ID And Append To Stub List
+
+Generate Agency Preference Keys
+    [Arguments]    ${agency_pref_keys_list}
+    ${agency_pref_keys_list}    Split String    ${agency_pref_keys_list}    ,
+    ${agency_pref_keys_list_items}    Split String    ${agency_pref_keys_list[1]}    |
+    Set Test Variable    ${${agency_pref_keys_list[0]}::AGENCY_PREFERENCE_KEYS_data}    ${agency_pref_keys_list_items}
+
+Generate Client Preference Keys
+    [Arguments]    ${client_pref_keys_list}
+    ${client_pref_keys_list}    Split String    ${client_pref_keys_list}    ,
+    ${client_pref_keys_list_items}    Split String    ${client_pref_keys_list[1]}    |
+    Set Test Variable    ${${client_pref_keys_list[0]}::CLIENT_PREFERENCE_KEYS_data}    ${client_pref_keys_list_items}
+
+Get All ClientSubUnits
+    [Arguments]    ${client_hash_list}=${default_cp_hash}
+    ${client_hash_list}    Split String    ${client_hash_list}    |
+    @{client_sub_guid}    Create List
+    : FOR    ${client_hash_item}    IN    @{client_hash_list}
+    \    ${client_hash_item}    Split String    ${client_hash_item}    ::
+    \    Append To List    ${client_sub_guid}    ${client_hash_item[2]}
+    Set Test Variable    ${client_sub_guid}
+
+Get Current Time With Pattern
+    ${current_date}    Get Time
+    ${current_date}    Fetch From Left    ${current_date}    :
+    Set Test Variable    ${current_date_data}    ^${current_date}:[0-9]{2}:[0-9]{2}.[0-9]{3}$
+    ${current_date_stub}    Replace String    ${current_date_data}    ${SPACE}    \\\\+
+    ${current_date_stub}    Replace String    ${current_date_stub}    :    %3A
+    Set Test Variable    ${current_date_stub}
+
+Send GET Request For Admin Channels
+    [Arguments]    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/channels
+    Set Test Variable    ${token}
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    Send GET Request
+
+Send GET Request For Admin Clients
+    [Arguments]    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/clients
+    Set Test Variable    ${token}
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    Send GET Request
+
+Send GET Request For Admin Regions
+    [Arguments]    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/regions
+    Set Test Variable    ${token}
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    Send GET Request
+
+Subtract num_of_clients From csu_count
+    ${csu_count}    Evaluate    ${csu_count}-${num_of_clients}
+    Set Test Variable    ${csu_count}
+
+Update Last Modified Date In Redis
+    [Arguments]    ${last_modified_timestamp}
+    ${status}    Set To Redis    ${redis_connection}    CONFIG::CLIENT::LASTMODIFIED    ${last_modified_timestamp}
+    Log    ${status}
+    Set Test Variable    ${last_modified_timestamp}
+
+Verify Client List
+    : FOR    ${actual_response_item}    IN    @{response.json()}
+    \    ${actual_response_item}    Evaluate    json.dumps('''${actual_response_item}''')    json
+    \    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    \    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    \    Run Keyword And Continue On Failure    Should Contain    ${expected_result}    ${actual_response_item}
+
+Verify ETL Data
+    : FOR    ${redis_actual_data_items}    IN    @{redis_actual_data}
+    \    ${redis_actual_data_items}    evaluate    json.loads('''${redis_actual_data_items}''')    json
+    \    ${actual_etl_keys}    Get Dictionary Keys    ${redis_actual_data_items}
+    \    ${type}    Get From Dictionary    ${redis_actual_data_items}    type
+    \    ${type}    Run Keyword If    "${type}"=="BOOST"    Set Variable    Boost
+    \    ...    ELSE IF    "${type}"=="TRAVELPORT"    Set Variable    TravelPort
+    \    ...    ELSE    Set Variable    ${type}
+    \    ${complete}    Run Keyword And Return Status    Dictionary Should Contain Item    ${redis_actual_data_items}    status    COMPLETE
+    \    ${ETL_Keys_list_updated}    Run Keyword And Continue On Failure    Run Keyword If    "${complete}"=="True"    Remove string    ${ETL_Keys_list}
+    \    ...    errorReason|
+    \    ...    ELSE    Set Variable    ${ETL_Keys_list}
+    \    Comment    ${ETL_Keys_list_updated}    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"=="LATEST" and "${type}"=="METADATA"    Remove string
+    \    ...    ${ETL_Keys_list_updated}    |alias
+    \    ...    ELSE IF    "${lambda_version}"=="LATEST" and "${type}"=="TravelPort"    Remove string    ${ETL_Keys_list_updated}    |alias
+    \    ...    ELSE    Set Variable    ${ETL_Keys_list_updated}
+    \    ${ETL_Keys_list_updated}    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"=="LATEST"    Remove string    ${ETL_Keys_list_updated}
+    \    ...    |alias
+    \    ...    ELSE    Set Variable    ${ETL_Keys_list_updated}
+    \    ${ETL_Keys_list_updated}    Split String    ${ETL_Keys_list_updated}    |
+    \    Log    ${ETL_Keys_list_updated}
+    \    Sort List    ${actual_etl_keys}
+    \    Sort List    ${ETL_Keys_list_updated}
+    \    Run Keyword And Continue On Failure    Lists Should Be Equal    ${ETL_Keys_list_updated}    ${actual_etl_keys}
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${complete}"=="False" and "${type}"!="CLIENTCONFIG"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item
+    \    ...    ${redis_actual_data_items}    status    FAILED
+    \    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}    errorReason
+    \    ...    Invalid ${type} Data.
+    \    ...    ELSE IF    "${complete}"=="False" and "${type}"=="CLIENTCONFIG"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item
+    \    ...    ${redis_actual_data_items}    status    FAILED
+    \    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}    errorReason
+    \    ...    Failed ETL execution
+    \    ...    ELSE    Run Keyword And Continue On Failure    Dictionary Should Not Contain Key    ${redis_actual_data_items}    errorReason
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${ETL_name_item}"=="ETL::AGENCY"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}
+    \    ...    type    AP
+    \    ...    ELSE IF    "${ETL_name_item}"=="ETL::CLIENT"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}
+    \    ...    type    CP
+    \    ...    ELSE IF    "${ETL_name_item}"=="ETL::TP"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}
+    \    ...    type    TP
+    \    ...    ELSE IF    "${ETL_name_item}"=="ETL::BOOST"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}
+    \    ...    type    BOOST
+    \    ...    ELSE IF    "${ETL_name_item}"=="ETL::CLIENTCONFIG"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item
+    \    ...    ${redis_actual_data_items}    type    CLIENTCONFIG
+    \    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}    status
+    \    ...    COMPLETE
+    \    ...    ELSE IF    "${ETL_name_item}"=="ETL::METADATA"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data_items}
+    \    ...    type    METADATA
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"=="LATEST" and "${type}"=="METADATA"    Dictionary Should Contain Item    ${redis_actual_data_items}    version
+    \    ...    \$LATEST
+    \    ...    ELSE IF    "${lambda_version}"=="LATEST" and "${type}"=="TravelPort"    Dictionary Should Contain Item    ${redis_actual_data_items}    version
+    \    ...    \$LATEST
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"!="LATEST"    Dictionary Should Contain Item    ${redis_actual_data_items}    alias
+    \    ...    ${lambda_version}    #ELSE IF    "${type}"=="AP" or "${type}"=="CP" or "${type}"=="Boost" or "${type}"=="TP" or "${type}"=="CLIENTCONFIG"    Dictionary Should Contain Item    ${redis_actual_data_items}
+    \    ...    # alias    ${latest_lambda_version}
+
+Verify List Values
+    [Arguments]    ${actual_list}    ${expected_list}
+    ${length_1}    Get Length    ${expected_list}
+    ${length_2}    Get Length    ${actual_list}
+    Run Keyword And Continue On Failure    Should Be Equal    ${length_1}    ${length_2}
+    : FOR    ${list_items}    IN    @{expected_list}
+    \    Run Keyword And Continue On Failure    List Should Contain Value    ${actual_list}    ${list_items}
+
+Verify Mongo DB Keys
+    [Arguments]    ${mongo_data}
+    Get All ClientSubUnits
+    ${ctr}    Set Variable    0
+    ${count}    Set Variable    0
+    : FOR    ${actual_list_items}    IN    @{response.json()}
+    \    Set Test Variable    ${actual_list_items}
+    \    Log    ${actual_list_items}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain key    ${actual_list_items}    id
+    \    ${response.json()}    Convert To String    ${response.json()}
+    \    ${response.json()}    Remove String Using Regexp    ${response.json()}    'id': '.*?',\\s
+    \    Comment    ${mongo_data}    Set Variable    {'ClientTopUnitGuid': '${count}:${count}', 'ClientTopUnitName': 'ClientTop-test-${count}-${count}', 'ClientSubUnits': [{'ClientSubUnitGuid': '${client_sub_guid[${ctr}]}', 'ClientSubUnitName': 'CSU-Test_${count}-${count}', 'Country': {'CountryCode': 'US', 'CountryName': 'United States'}}]}
+    \    Run Keyword And Continue On Failure    Should Contain    ${response.json()}    ${mongo_data}
+    \    Set Test Variable    ${actual_list_items}
+    \    ${ctr}    Evaluate    ${ctr}+1
+    \    ${count}    Evaluate    ${count}+1
+    \    Set Test Variable    ${ctr}
+    \    Set Test Variable    ${count}
+
+Verify Redis Hash Data
+    [Arguments]    ${hash_name_list}
+    Create Redis Cluster Connection
+    ${a_index_agent_exists}    Run Keyword And Return Status    Variable Should Exist    @{A_INDEX_AGENT}
+    Run Keyword If    "${a_index_agent_exists}"=="False"    Set Test Variable    @{A_INDEX_AGENT}    ${EMPTY}
+    ${hash_name_list}    Split String    ${hash_name_list}    |
+    ${A_INDEX_AGENT_SUB}    Get Matches    ${hash_name_list}    regexp=A::AGENT.*
+    Set Test Variable    ${A_INDEX_AGENT_SUB}
+    ${A_INDEX_AGENT}    Combine Lists    ${A_INDEX_AGENT}    ${A_INDEX_AGENT_SUB}
+    Remove Values From List    ${A_INDEX_AGENT}    ${EMPTY}
+    ${A_INDEX_AGENT}    Remove Duplicates    ${A_INDEX_AGENT}
+    Set Test Variable    ${A_INDEX_AGENT}
+    Log    ${A_INDEX_AGENT}
+    ${B_INDEX_AGENT}    Get Matches    ${hash_name_list}    regexp=B::AGENT.*
+    Set Test Variable    ${B_INDEX_AGENT}
+    ${CLIENT}    Get Matches    ${hash_name_list}    regexp=.*CLIENT.*
+    : FOR    ${client_item}    IN    @{CLIENT}
+    \    ${client_item}    Split String    ${client_item}    ::
+    \    ${client_list_name}    Create List
+    \    ${exists}    Run Keyword And Return Status    Variable Should Exist    @{${client_item[0]}_INDEX_${client_item[1]}_${client_item[2]}}
+    \    Run Keyword If    "${exists}"=="False"    Set Test Variable    @{${client_item[0]}_INDEX_${client_item[1]}_${client_item[2]}}    @{client_list_name}
+    \    ...    ELSE    Set Test Variable    @{${client_item[0]}_INDEX_${client_item[1]}_${client_item[2]}}
+    : FOR    ${client_item}    IN    @{CLIENT}
+    \    ${client_item_index}    Split String    ${client_item}    ::
+    \    Append To List    ${${client_item_index[0]}_INDEX_${client_item_index[1]}_${client_item_index[2]}}    ${client_item}
+    \    ${updated_client_index_list}    Remove Duplicates    ${${client_item_index[0]}_INDEX_${client_item_index[1]}_${client_item_index[2]}}
+    \    Set Test Variable    ${${client_item_index[0]}_INDEX_${client_item_index[1]}_${client_item_index[2]}}    ${updated_client_index_list}
+    \    Log    ${${client_item_index[0]}_INDEX_${client_item_index[1]}_${client_item_index[2]}}
+    : FOR    ${hash_name_item}    IN    @{hash_name_list}
+    \    ${isConfigClient}    Run Keyword And Return Status    Should Contain    ${hash_name_item}    CONFIG::CLIENT::MAPPINGS
+    \    ${CONFIG::CLIENT::MAPPINGS_data}    Set Variable If    "${isConfigClient}"=="True"    ${${hash_name_item}_data}    ${CONFIG::CLIENT::MAPPINGS_data}
+    \    ${hash_name_item}    Run Keyword If    "${isConfigClient}"=="True"    Fetch From Left    ${hash_name_item}    _
+    \    ...    ELSE    Set Variable    ${hash_name_item}
+    \    ${redis_actual_data}    Get Dictionary From Redis Hash    ${redis_connection}    ${hash_name_item}
+    \    Log    ${${hash_name_item}_data}
+    \    Log    ${redis_actual_data}
+    \    ${redis_expected_data}    To Json    ${${hash_name_item}_data}
+    \    ${redis_actual_data}    Evaluate    json.dumps('''${redis_actual_data}''')    json
+    \    ${redis_actual_data}    Remove String Using Regexp    ${redis_actual_data}    ^\"
+    \    ${redis_actual_data}    Remove String Using Regexp    ${redis_actual_data}    \"$
+    \    ${redis_actual_data}    Replace String    ${redis_actual_data}    \\\\\\    \\
+    \    ${redis_actual_data}    Replace String    ${redis_actual_data}    '    "
+    \    ${redis_actual_data}    To Json    ${redis_actual_data}
+    \    Log    ${redis_actual_data}
+    \    Run Keyword And Continue On Failure    Dictionaries Should Be Equal    ${redis_expected_data}    ${redis_actual_data}
+
+Verify Redis List Data
+    [Arguments]    ${ETL_name_list}    ${etl_response}=${EMPTY}    ${index}=0
+    Set Test Variable    ${etl_response}
+    Comment    Set Test Variable    ${ingestion_etl_response}
+    ${ETL_name_list}    Split String    ${ETL_name_list}    |
+    : FOR    ${ETL_name_item}    IN    @{ETL_name_list}
+    \    ${ETL_name_item}    Split String    ${ETL_name_item}    ,
+    \    Set Test Variable    ${ETL_name_item}
+    \    ${redis_actual_data}    Get All List Values    ${redis_connection}    ${ETL_name_item[0]}
+    \    Log    ${redis_actual_data}
+    \    ${redis_actual_data}    Convert To String    ${redis_actual_data}
+    \    ${redis_actual_data}    Remove String    ${redis_actual_data}    '
+    \    Set Test Variable    ${redis_actual_data}
+    \    Set Test Variable    ${status}    ${ETL_name_item[1]}
+    \    Run Keyword And Continue On Failure    Verify ETL Data 2    ${index}
+
+Verify Redis Set Data
+    [Arguments]    ${set_name_list}
+    ${set_name_list}    Split String    ${set_name_list}    |
+    : FOR    ${set_name_item}    IN    @{set_name_list}
+    \    ${redis_actual_data}    Get All Set Members    ${redis_connection}    ${set_name_item}
+    \    Log    ${redis_actual_data}
+    \    ${redis_expected_data}    Run Keyword If    "${set_name_item.__contains__('BOOST')}"=="True" or "${set_name_item.__contains__('TVLPORT')}"=="True"    Split String    ${${set_name_item}_data}    |
+    \    ...    ELSE    Set Variable    ${${set_name_item}_data}
+    \    Run Keyword And Continue On Failure    Verify List Values    ${redis_actual_data}    ${redis_expected_data}
+    \    Run Keyword If    "${set_name_item.__contains__('INDEX::BOOST')}"!="True"    Set Test Variable    ${${set_name_item}_data}    ${EMPTY}
+
+Verify Redis String Data
+    [Arguments]    ${string_name_list}    ${pattern}=${EMPTY}
+    ${string_name_list}    Split String    ${string_name_list}    |
+    : FOR    ${string_name_item}    IN    @{string_name_list}
+    \    ${redis_actual_data}    Get From Redis    ${redis_connection}    ${string_name_item}
+    \    Log    ${redis_actual_data}
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${pattern}"=="${EMPTY}"    Should Be Equal    ${redis_actual_data}    ${${string_name_item}_data}
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${pattern}"!="${EMPTY}"    Should Match Regexp    ${redis_actual_data}    ${pattern}
+
+Verify Redis Zset Data
+    [Arguments]    ${zset_name_list}
+    ${client_sub_guid_list}    Create List
+    ${zset_name_list}    Split String    ${zset_name_list}    |
+    : FOR    ${zset_name_item}    IN    @{zset_name_list}
+    \    ${redis_actual_data}    Get All Index Values    ${redis_connection}    ${zset_name_item}
+    \    Log    ${redis_actual_data}
+    \    ${zset_name_item}    Split String    ${zset_name_item}    ::
+    \    Sort List    ${redis_actual_data}
+    \    Run Keyword If    "${zset_name_item[1]}"=="CLIENTSUB"    Run Keywords    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}
+    \    ...    ${client_sub_guid_list}
+    \    ...    AND    Continue For Loop
+    \    Run Keyword If    "${zset_name_item[2]}"=="CLIENT"    Run Keywords    Run Keyword And Continue On Failure    Sort List    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}_${zset_name_item[3]}}
+    \    ...    AND    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}_${zset_name_item[3]}}
+    \    ...    AND    Append To List    ${client_sub_guid_list}    ${zset_name_item[3]}
+    \    ...    ELSE IF    "${zset_name_item[2]}"=="AGENT"    Run Keywords    Sort List    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}}
+    \    ...    AND    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}}
+
+Verify Specific Client Data
+    ${actual_response_item}    Evaluate    json.dumps('''${response.json()}''')    json
+    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'    1
+    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    Run Keyword And Continue On Failure    Should Be Equal    ${expected_result}    ${actual_response_item}
+
+Verify Specific TravelPort Data
+    ${actual_response_item}    Evaluate    json.dumps('''${response.json()}''')    json
+    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'    1
+    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    Run Keyword And Continue On Failure    Should Be Equal    ${expected_result}    ${actual_response_item}
+
+Verify That Correct Channel Data Is Returned
+    [Arguments]    ${expected_channels}
+    ${expected_channels}    Evaluate    json.loads('''${expected_channels}''')    json
+    ${actual_channels}    Evaluate    json.loads('''${response.content}''')    json
+    Run Keyword And Continue On Failure    Lists Should Be Equal    ${actual_channels}    ${expected_channels}
+
+Verify That Correct Client Data Is Returned
+    [Arguments]    ${expected_result}    ${type}=array
+    Set Test Variable    ${expected_result}
+    ${expected_result}    Convert To String    ${expected_result}
+    Run Keyword And Continue On Failure    Run Keyword If    "${type}"=="array"    Verify Client List
+    ...    ELSE    Verify Specific Client Data
+
+Verify That Correct TravelPort Data Is Returned
+    [Arguments]    ${expected_result}    ${type}=array
+    Set Test Variable    ${expected_result}
+    ${expected_result}    Convert To String    ${expected_result}
+    Run Keyword And Continue On Failure    Run Keyword If    "${type}"=="array"    Verify TravelPort Data
+    ...    ELSE    Verify Specific TravelPort Data
+
+Verify That Redis Is Empty
+    ${keys}    Get All Keys    ${redis_connection}
+    Log    ${keys}
+    Run Keyword And Continue On Failure    Should Be Empty    ${keys}
+
+Verify That Redis Keys Are Correct
+    [Arguments]    ${keys_list}
+    ${keys}    Get All Keys    ${redis_connection}
+    Log    ${keys}
+    ${keys_list}    Split String    ${keys_list}    |
+    Log    ${keys_list}
+    Verify List Values    ${keys}    ${keys_list}
+
+Verify TravelPort Data
+    : FOR    ${actual_response_item}    IN    @{response.json()}
+    \    ${actual_response_item}    Evaluate    json.dumps('''${actual_response_item}''')    json
+    \    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'
+    \    ...    1
+    \    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    \    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    \    Log    ${actual_response_item}
+    \    Run Keyword And Continue On Failure    Should Contain    ${expected_result}    ${actual_response_item}
+
+Verify ETL Data 2
+    [Arguments]    ${index}=0
+    ${redis_actual_data}    evaluate    json.loads('''${redis_actual_data}''')    json
+    ${actual_etl_keys}    Get Dictionary Keys    ${redis_actual_data[${index}]}
+    Set Test Variable    ${redis_actual_data}    ${redis_actual_data[${index}]}
+    ${type}    Get From Dictionary    ${redis_actual_data}    type
+    ${type}    Run Keyword If    "${type}"=="BOOST"    Set Variable    Boost
+    ...    ELSE IF    "${type}"=="TRAVELPORT"    Set Variable    TravelPort
+    ...    ELSE    Set Variable    ${type}
+    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    status    ${status}
+    ${ETL_Keys_list_updated}    Run Keyword And Continue On Failure    Run Keyword If    "${status}"=="COMPLETE"    Remove string    ${ETL_Keys_list}    errorReason|
+    ...    ELSE    Set Variable    ${ETL_Keys_list}
+    ${ETL_Keys_list_updated}    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"=="LATEST"    Remove string    ${ETL_Keys_list_updated}    |alias
+    ...    ELSE    Set Variable    ${ETL_Keys_list_updated}
+    ${ETL_Keys_list_updated}    Run Keyword And Continue On Failure    Run Keyword If    "${type}"=="TP" and "${status}"!="COMPLETE"    Remove string    ${ETL_Keys_list_updated}    |etlResponse
+    ...    ELSE IF    "${type}"=="AP" or "${type}"=="CP" or "${type}"=="Boost" or "${type}"=="CLEANUP" or "${type}"=="CLIENTCONFIG" or "${type}"=="TravelPort" or "${type}"=="CARRIERS"    Remove string    ${ETL_Keys_list_updated}    |etlResponse
+    ...    ELSE IF    "${type}"=="METADATA" and $etl_response==""    Remove string    ${ETL_Keys_list_updated}    |etlResponse
+    ...    ELSE    Set Variable    ${ETL_Keys_list_updated}
+    ${ETL_Keys_list_updated}    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"=="LATEST" and "${type}"=="CARRIERS"    Remove string    ${ETL_Keys_list_updated}    |version
+    ...    ELSE    Set Variable    ${ETL_Keys_list_updated}
+    ${ETL_Keys_list_updated}    Split String    ${ETL_Keys_list_updated}    |
+    Log    ${ETL_Keys_list_updated}
+    Sort List    ${actual_etl_keys}
+    Sort List    ${ETL_Keys_list_updated}
+    Run Keyword And Continue On Failure    Lists Should Be Equal    ${ETL_Keys_list_updated}    ${actual_etl_keys}
+    Run Keyword And Continue On Failure    Run Keyword If    "${status}"=="FAILED" and "${type}"!="CLIENTCONFIG" and "${type}"!="METADATA" and "${type}"!="CARRIERS"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}
+    ...    status    FAILED
+    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    errorReason    Invalid ${type} Data.
+    ...    ELSE IF    "${status}"=="FAILED" and "${type}"=="CLIENTCONFIG"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}
+    ...    status    FAILED
+    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    errorReason    Exception occured calling endpoint
+    ...    ELSE IF    "${status}"=="FAILED" and "${type}"=="METADATA"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}
+    ...    status    FAILED
+    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    errorReason    Metadata unsuccessful
+    ...    ELSE IF    "${status}"=="FAILED" and "${type}"=="CARRIERS"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}
+    ...    status    FAILED
+    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    errorReason    Failed ETL execution
+    ...    ELSE    Run Keyword And Continue On Failure    Dictionary Should Not Contain Key    ${redis_actual_data}    errorReason
+    Run Keyword And Continue On Failure    Run Keyword If    "${ETL_name_item}"=="ETL::AGENCY"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    type
+    ...    AP
+    ...    ELSE IF    "${ETL_name_item}"=="ETL::CLIENT"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    type
+    ...    CP
+    ...    ELSE IF    "${ETL_name_item}"=="ETL::TP"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    type
+    ...    TP
+    ...    ELSE IF    "${ETL_name_item}"=="ETL::BOOST"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    type
+    ...    BOOST
+    ...    ELSE IF    "${ETL_name_item}"=="ETL::CLIENTCONFIG"    Run Keywords    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}
+    ...    type    CLIENTCONFIG
+    ...    AND    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    status    COMPLETE
+    ...    ELSE IF    "${ETL_name_item}"=="ETL::METADATA"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    type
+    ...    METADATA
+    ...    ELSE IF    "${ETL_name_item}"=="ETL::CLEANUP"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    type
+    ...    CLEANUP
+    ...    ELSE IF    "${ETL_name_item}"=="ETL::CARRIERS"    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${redis_actual_data}    type
+    ...    CARRIERS
+    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"=="LATEST" and "${type}"=="METADATA"    Dictionary Should Contain Item    ${redis_actual_data}    version    \$LATEST
+    ...    ELSE IF    "${lambda_version}"=="LATEST" and "${type}"=="TravelPort"    Dictionary Should Contain Item    ${redis_actual_data}    version    \$LATEST
+    Run Keyword And Continue On Failure    Run Keyword If    "${lambda_version}"!="LATEST"    Dictionary Should Contain Item    ${redis_actual_data}    alias    ${lambda_version}
+    Run Keyword And Continue On Failure    Run Keyword If    "${type}"=="INGESTION"    Dictionary Should Contain Item    ${redis_actual_data}    etlResponse    ${etl_response}
+    ...    ELSE IF    "${type}"=="TP" and"${status}"=="COMPLETE"    Dictionary Should Contain Item    ${redis_actual_data}    etlResponse    ${etl_response}
+    ...    ELSE IF    "${type}"=="METADATA" and $etl_response!=""    Dictionary Should Contain Item    ${redis_actual_data}    etlResponse    ${etl_response}
+
+Verify Redis Hash Data 2
+    [Arguments]    ${hash_name_list}
+    Create Redis Cluster Connection
+    ${hash_name_list}    Split String    ${hash_name_list}    |
+    ${INDEX_AGENT}    Get Matches    ${hash_name_list}    regexp=.*AGENT.*
+    ${INDEX_AGENT}    Remove Duplicates    ${INDEX_AGENT}
+    Set Test Variable    ${INDEX_AGENT}
+    Log    ${INDEX_AGENT}
+    : FOR    ${agent_item}    IN    @{INDEX_AGENT}
+    \    ${agent_item}    Split String    ${agent_item}    _    1
+    \    ${agent_version}    Fetch From Left    ${agent_item[1]}    ::
+    \    ${index_agent_list_exists}    Run Keyword And Return Status    Variable Should Exist    @{${agent_version}_INDEX_AGENT_${agent_item[0]}}
+    \    Run Keyword If    "${index_agent_list_exists}"=="False"    Set Test Variable    @{${agent_version}_INDEX_AGENT_${agent_item[0]}}    ${EMPTY}
+    \    Remove Values From List    ${${agent_version}_INDEX_AGENT_${agent_item[0]}}    ${EMPTY}
+    \    Append To List    ${${agent_version}_INDEX_AGENT_${agent_item[0]}}    ${agent_item[1]}
+    \    Remove Duplicates    ${${agent_version}_INDEX_AGENT_${agent_item[0]}}
+    ${INDEX_CLIENT}    Get Matches    ${hash_name_list}    regexp=.*CLIENT.*
+    : FOR    ${client_item}    IN    @{INDEX_CLIENT}
+    \    ${client_item}    Split String    ${client_item}    _    1
+    \    ${client_version}    Fetch From Left    ${client_item[1]}    ::
+    \    ${exists}    Run Keyword And Return Status    Variable Should Exist    @{${client_version}_INDEX_CLIENT_${client_item[0]}}
+    \    Run Keyword If    "${exists}"=="False"    Set Test Variable    @{${client_version}_INDEX_CLIENT_${client_item[0]}}    ${EMPTY}
+    \    Remove Values From List    ${${client_version}_INDEX_CLIENT_${client_item[0]}}    ${EMPTY}
+    \    Append To List    ${${client_version}_INDEX_CLIENT_${client_item[0]}}    ${client_item[1]}
+    \    Remove Duplicates    ${${client_version}_INDEX_CLIENT_${client_item[0]}}
+    ${INDEX_ALGORITHM}    Get Matches    ${hash_name_list}    regexp=ALGORITHM::.*
+    : FOR    ${algorithm_item}    IN    @{INDEX_ALGORITHM}
+    \    ${exists}    Run Keyword And Return Status    Variable Should Exist    @{INDEX::ALGORITHM_data}
+    \    Run Keyword If    "${exists}"=="False"    Set Test Variable    @{INDEX::ALGORITHM_data}    ${EMPTY}
+    \    Remove Values From List    ${INDEX::ALGORITHM_data}    ${EMPTY}
+    \    Append To List    ${INDEX::ALGORITHM_data}    ${algorithm_item}
+    \    Remove Duplicates    ${INDEX::ALGORITHM_data}
+    : FOR    ${hash_name_item}    IN    @{hash_name_list}
+    \    ${hash_name_item}    Run Keyword If    "${hash_name_item.__contains__('AGENT')}"=="True" or "${hash_name_item.__contains__('CLIENT')}"=="True"    Remove String Using Regexp    ${hash_name_item}    ^._
+    \    ...    ELSE    Set Variable    ${hash_name_item}
+    \    ${isConfigClient}    Run Keyword And Return Status    Should Contain    ${hash_name_item}    CONFIG::CLIENT::MAPPINGS
+    \    ${CONFIG::CLIENT::MAPPINGS_data}    Set Variable If    "${isConfigClient}"=="True"    ${${hash_name_item}_data}    ${CONFIG::CLIENT::MAPPINGS_data}
+    \    ${hash_name_item}    Run Keyword If    "${isConfigClient}"=="True"    Fetch From Left    ${hash_name_item}    _
+    \    ...    ELSE    Set Variable    ${hash_name_item}
+    \    ${redis_actual_data}    Get Dictionary From Redis Hash    ${redis_connection}    ${hash_name_item}
+    \    Log    ${${hash_name_item}_data}
+    \    Log    ${redis_actual_data}
+    \    Comment    ${redis_expected_data}    To Json    ${${hash_name_item}_data}
+    \    ${redis_expected_data}    Evaluate    json.loads('''${${hash_name_item}_data}''')    json
+    \    Comment    ${redis_actual_data}    Evaluate    json.dumps('''${redis_actual_data}''')    json
+    \    Comment    ${redis_actual_data}    Remove String Using Regexp    ${redis_actual_data}    ^\"
+    \    Comment    ${redis_actual_data}    Remove String Using Regexp    ${redis_actual_data}    \"$
+    \    Comment    ${redis_actual_data}    Replace String    ${redis_actual_data}    \\\\\\    \\
+    \    Comment    ${redis_actual_data}    Replace String    ${redis_actual_data}    '    "
+    \    Comment    ${redis_actual_data}    To Json    ${redis_actual_data}
+    \    Comment    ${redis_actual_data}    Evaluate    json.loads('''${redis_actual_data}''')    json
+    \    Log    ${redis_actual_data}
+    \    Run Keyword And Continue On Failure    Dictionaries Should Be Equal    ${redis_expected_data}    ${redis_actual_data}
+
+Verify Redis Zset Data 2
+    [Arguments]    ${zset_name_list}
+    ${client_sub_guid_list}    Create List
+    ${zset_name_list}    Split String    ${zset_name_list}    |
+    : FOR    ${zset_name_item}    IN    @{zset_name_list}
+    \    ${redis_actual_data}    Get All Index Values    ${redis_connection}    ${zset_name_item}
+    \    Log    ${redis_actual_data}
+    \    ${zset_name_item}    Split String    ${zset_name_item}    ::
+    \    Sort List    ${redis_actual_data}
+    \    Run Keyword If    "${zset_name_item[1]}"=="CLIENTSUB"    Run Keywords    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}
+    \    ...    ${client_sub_guid_list}
+    \    ...    AND    Continue For Loop
+    \    Comment    Run Keyword If    "${zset_name_item[2]}"=="CLIENT"    Run Keywords    Run Keyword And Continue On Failure    Sort List
+    \    ...    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}_${zset_name_item[3]}}
+    \    ...    AND    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}_${zset_name_item[3]}}
+    \    ...    AND    Append To List    ${client_sub_guid_list}    ${zset_name_item[3]}
+    \    ...    ELSE IF    "${zset_name_item[2]}"=="AGENT"    Run Keywords    Sort List    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}}
+    \    ...    AND    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}}
+    \    Run Keywords    Sort List    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}_${zset_name_item[3]}}
+    \    ...    AND    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}_${zset_name_item[3]}}
+    \    Set Test Variable    ${${zset_name_item[0]}_${zset_name_item[1]}_${zset_name_item[2]}_${zset_name_item[3]}}    ${EMPTY}
+
+Verify Redis Zset Data For OAG
+    [Arguments]    ${zset_name_list}
+    ${zset_name_list}    Split String    ${zset_name_list}    |
+    : FOR    ${zset_name_item}    IN    @{zset_name_list}
+    \    ${redis_actual_data}    Get All Index Values    ${redis_connection}    ${zset_name_item}
+    \    Log    ${redis_actual_data}
+    \    Set Test Variable    ${zset_item}    ${${zset_name_item}}
+    \    Log    ${zset_item}
+    \    ${zset_item}    Split String    ${zset_item}    ,
+    \    Sort List    ${redis_actual_data}
+    \    Sort List    ${zset_item}
+    \    Run Keyword And Continue On Failure    Lists Should Be Equal    ${redis_actual_data}    ${zset_item}
+
+Create Generic Wiremock Stub
+    [Arguments]    ${json_body}
+    Create Session    wm    ${wiremock_url}    verify=True
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Get Stub ID And Append To Stub List

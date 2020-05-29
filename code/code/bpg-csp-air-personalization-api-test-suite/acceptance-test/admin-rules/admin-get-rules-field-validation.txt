@@ -1,0 +1,595 @@
+*** Settings ***
+Suite Setup       Send Authenticate Post Request And Get Token
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-rules.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_021 Verify That sequence Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    sequence=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    sequence=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    sequence=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    sequence=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_001 Verify That id Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    rule_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    rule_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    rule_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    rule_id=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_002 Verify That name Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    rule_name=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    rule_name=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    rule_name=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    rule_name=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_003 Verify That clientTopGUID Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    ctu_guid=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    ctu_guid=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    ctu_guid=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    ctu_guid=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_004 Verify That clientTopName Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    ctu_name=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    ctu_name=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    ctu_name=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    ctu_name=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_005 Verify That clientSubGUID Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    csu_guid=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    csu_guid=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    csu_guid=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    csu_guid=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_006 Verify That clientSubName Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    csu_name=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    csu_name=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    csu_name=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    csu_name=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_007 Verify That channel Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    csu_name=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    csu_name=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    csu_name=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    csu_name=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_022 Verify That posRegion Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    pos_region=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    pos_region=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    pos_region=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    pos_region=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_023 Verify That posCountry Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    pos_country=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    pos_country=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    pos_country=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    pos_country=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_008 Verify That originRegion Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    origin_region=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    origin_region=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    origin_region=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    origin_region=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_009 Verify That originCountry Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    origin_country=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    origin_country=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    origin_country=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    origin_country=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_024 Verify That originAirport Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    origin_airport=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    origin_airport=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    origin_airport=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    origin_airport=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_010 Verify That destinationRegion Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    destination_region=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    destination_region=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    destination_region=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    destination_region=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_011 Verify That destinationCountry Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    destination_country=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    destination_country=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    destination_country=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    destination_country=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_025 Verify That destinationAirport Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    destination_airport=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    destination_airport=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    destination_airport=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    destination_airport=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_026 Verify That direction Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    direction=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    direction=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    direction=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    direction=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_012 Verify That isActive Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters (Strings)
+    Generate Test Variables For Get Rules    active=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    active=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    active=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    active=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_013 Verify That onOffInd Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters (Strings)
+    Generate Test Variables For Get Rules    on_off_ind=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    on_off_ind=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    on_off_ind=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    on_off_ind=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_014 Verify That createdBy Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    create_user=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    create_user=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    create_user=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    create_user=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_015 Verify That updatedBy Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    update_user=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    update_user=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    update_user=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    update_user=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_016 Verify That sort Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    sort=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    sort=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    sort=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    sort=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_017 Verify That order Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    order=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    order=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    order=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    order=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_018 Verify That limit Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    limit=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_response="limit: should be a valid number"
+    # Blank
+    Generate Test Variables For Get Rules    limit=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    limit=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    limit=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_response="limit: should be a valid number"
+
+FV_019 Verify That offset Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    offset=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_response="offset: should be a valid number"
+    # Blank
+    Generate Test Variables For Get Rules    offset=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    offset=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    offset=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_response="offset: should be a valid number"
+
+FV_020 Verify That txnId Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    txn_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Rules    txn_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    txn_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_027 Verify That pcc Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules    pcc=1234    channel=DESKTOP_AMADEUS
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    pcc=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    pcc=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    pcc=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    pcc=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_028 Verify That agentId Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules    agent_id=1234    channel=DESKTOP_AMADEUS
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Rules    agent_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Rules    agent_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Rules    agent_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Get Rules    agent_id=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    204

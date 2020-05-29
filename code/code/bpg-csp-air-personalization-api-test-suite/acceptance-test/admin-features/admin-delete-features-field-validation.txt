@@ -1,0 +1,48 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-features.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That id Is Required When Sending Delete Feature Delete Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Delete Features    features_id_list=ABC 123 !@# $%^
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.not.valid.id"]}
+    # None
+    Generate Test Variables For Delete Features    features_id_list=None
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    405
+
+FV_002 Verify That txnId Is Not Required When Sending A Delete Feature Delete Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Get Feature ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Delete Features    txn_id=ABC 123 !@# $%^
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Get Feature ID
+    # Blank
+    Generate Test Variables For Delete Features    txn_id=${EMPTY}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Get Feature ID
+    # None
+    Generate Test Variables For Delete Features    txn_id=None
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200

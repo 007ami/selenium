@@ -1,0 +1,314 @@
+*** Settings ***
+Library           String
+Library           JSONLibrary
+Library           Collections
+Library           RequestsLibrary
+Library           Selenium2Library
+Library           AngularJSLibrary
+
+*** Keywords ***
+Delete Stubs
+    Log    ${stub_list}
+    Create Session    sa    ${${env}_base_url}    verify=True
+    FOR    ${stubs}    IN    @{stub_list}
+        ${response}    Delete Request    sa    /__admin/mappings/${stubs}
+        Log    ${response.content}
+    Set Suite Variable    @{stub_list}    ${EMPTY}
+    Remove From List    ${stub_list}    0
+
+Escape The Special Characters Of A String
+    [Arguments]    ${string}
+    ${string}    Replace String    ${string}    \\    \\\\
+    ${string}    Replace String    ${string}    "    \\"
+    [Return]    ${string}
+
+Generate Stub List
+    @{stub_list}    Create List
+    Set Suite Variable    @{stub_list}
+
+Generate UUID
+    ${uuid}    Evaluate    uuid.uuid4()    uuid
+    ${uuid}    Convert To String    ${uuid}
+    [Return]    ${uuid}
+
+Get Json Value
+    [Arguments]    ${json_object}    ${json_path}
+    ${res_content}    To Json    ${json_object}
+    ${actual_value}    Get Value From Json    ${res_content}    ${json_path}
+    ${actual_value}    Convert JSON To String    ${actual_value}
+    ${actual_value}    Remove String    ${actual_value}    [    "    ]
+    Comment    ${res_content}=    evaluate    json.dumps(${response.content})    json
+    [Return]    ${actual_value}
+
+Get Random Value From List
+    [Arguments]    ${list}
+    [Documentation]    Please use sample format: 'A','B','C','D'
+    ${value}    Evaluate    random.choice([${list}])    random
+    [Return]    ${value}
+
+Get Stub ID And Append To Stub List
+    ${stub_id}    Get Json Value    ${response.content}    $.id
+    ${stub_id}    Remove String    ${stub_id}    "
+    Append To List    ${stub_list}    ${stub_id}
+    Log List    ${stub_list}
+
+Verify Json Value Is Correct
+    [Arguments]    ${json_object}    ${json_path}    ${expected_value}    ${is_list}=false
+    ${res_content}=    evaluate    json.loads('''${json_object}''')    json
+    ${actual_value}    Get Value From Json    ${res_content}    ${json_path}
+    ${actual_value}    Convert JSON To String    ${actual_value}
+    ${actual_value}    Run Keyword IF    "${is_list}"=="false"    Remove String    ${actual_value}    [    ]
+    ...    ELSE    Get Substring    ${actual_value}    2    -2
+    ${actual_value}    Remove String    ${actual_value}    "
+    LOG    ${actual_value}
+    LOG    ${expected_value}
+    Run Keyword IF    "${is_list}"=="false"    Run Keyword And Continue On Failure    Should Be Equal As Strings    ${actual_value}    ${expected_value}
+    ...    ELSE    Verify That List Contains Correct Values    ${actual_value}    ${expected_value}
+    Comment    ${res_content}=    evaluate    json.dumps(${response.content})    json
+
+Verify That Actual Value Matches Expected Value
+    [Arguments]    ${actual_value}    ${expected_value}    ${custom_error}=Actual value "${actual_value}" does not match expected value "${expected_value}"
+    Log    Actual Value: ${actual_value}
+    Log    Expected Value: ${expected_value}
+    ${actual_value}    Convert To String    ${actual_value}
+    ${expected_value}    Convert To String    ${expected_value}
+    ${actual_value}    Replace String Using Regexp    ${actual_value}    \\n    ${EMPTY}
+    ${expected_value}    Replace String Using Regexp    ${expected_value}    \\n    ${EMPTY}
+    Run Keyword And Continue On Failure    Should Be Equal    ${actual_value}    ${expected_value}    ${custom_error}
+
+Verify That Json Value Matches Pattern
+    [Arguments]    ${json_object}    ${expected_pattern}
+    Log    Json Object: ${json_object}
+    Log    Expected Pattern: ${expected_pattern}
+    ${actual_value}    Get Json Value    ${response.content}    ${json_object}
+    Verify That String Matches Pattern    ${actual_value}    ${expected_pattern}
+
+Verify That List Contains Correct Values
+    [Arguments]    ${list}    ${expected_value}
+    @{actual_list}    Split String    ${list}    ,
+    @{expected_list}    Split String    ${expected_value}    ,
+    ${actual_list_count}    Get Length    ${actual_list}
+    ${expected_list_count}    Get Length    ${expected_list}
+    Run Keyword If    ${actual_list_count}!=${expected_list_count}    FAIL    Actual: ${actual_list_count} did not match Expected: ${expected_list_count}
+    FOR    ${each}    IN    @{expected_list}
+        Should Contain    ${list}    ${each}
+
+Verify That Response Status Code Is Correct
+    [Arguments]    ${status_code}
+    Verify That Actual Value Matches Expected Value    ${response.status_code}    ${status_code}
+
+Verify That String Contains Substring
+    [Arguments]    ${string}    ${substring}
+    Log    Actual String: ${string}
+    Log    Expected Substring: ${substring}
+    ${string}    Convert To String    ${string}
+    ${string}    Escape The Special Characters Of A String    ${string}
+    Run Keyword And Continue On Failure    Should Contain    ${string}    ${substring}    String "${string}" does not contain substring "${substring}"    FALSE
+
+Verify That String Does Not Contain Substring
+    [Arguments]    ${string}    ${substring}
+    Log    Actual String: ${string}
+    Log    Expected Substring: ${substring}
+    ${string}    Decode Bytes To String    ${string}    UTF8
+    Run Keyword And Continue On Failure    Should Not Contain    ${string}    ${substring}    String "${string}" contains substring "${substring}"    FALSE
+
+Verify That String Does Not Match Pattern
+    [Arguments]    ${string}    ${pattern}
+    Log    Actual String: ${string}
+    Log    Expected Pattern: ${pattern}
+    Run Keyword And Continue On Failure    Should Not Match RegExp    ${string}    ${pattern}    String "${string}" matches pattern "${pattern}"    FALSE
+
+Verify That String Matches Pattern
+    [Arguments]    ${string}    ${pattern}
+    Log    Actual String: ${string}
+    Log    Expected Pattern: ${pattern}
+    ${string}    Convert To String    ${string}
+    Run Keyword And Continue On Failure    Should Match RegExp    ${string}    ${pattern}    String "${string}" does not match pattern "${pattern}"    FALSE
+
+Clear Object Text
+    [Arguments]    ${obj_id}
+    #PRESS CTRL+A
+    Press Key    ${obj_id}    \\1
+    #PRESS DELETE
+    Press Key    ${obj_id}    \\127
+
+Click Object
+    [Arguments]    ${obj_id}    ${timeout}=2    ${simulate}=true    ${obj_type}=element
+    Run Keyword If    "${obj_type}" == "element"    Wait Until Page Contains Element    ${obj_id}    ${timeout}
+    Run Keyword If    "${simulate}" == "true"    Simulate    ${obj_id}    click
+    ...    ELSE    Click ${obj_type}    ${obj_id}
+    [Teardown]    #Capture Page Screenshot
+
+Delete Stubs And Close All Browsers
+    Run Keyword If    "${server.lower()}" == "mock"    Delete Stubs
+    Close All Browsers
+
+Generate Login Token
+    [Arguments]    ${username}=${${env}_username}    ${password}=${${env}_password}    ${uid}=SvcAcctInsight    ${guid}=14:442DB    ${first_name}=Pamela    ${middle_name}=Test    ${last_name}=Gaviola    ${job_title}=Senior Travel Counselor    ${email}=pgaviola@carlsonwagonlit.com    ${phone_number}=63-2-1231231    ${mobile_number}=63-2-2342342    ${language_code}=en-US    ${region_code}=NORAM    ${sub_region_code}=NAMER    ${country_code}=USA    ${location}=US Head Office
+    Create Session    ins    ${${env}_base_url}    verify=True
+    ${headers}    Create Dictionary    Content-Type=application/json
+    ${data}    Set Variable    {"username":"${username}","password":"${password}","user":{"guid":"${guid}","uid":"${uid}","firstName":"${first_name}","middleName":"${middle_name}","lastName":"${last_name}","jobTitle":"${job_title}","email":"${email}","phoneNumber":"${phone_number}","mobileNumber":"${mobile_number}","languageCode":"${language_code}","regionCode":"${region_code}","subRegionCode":"${sub_region_code}","countryCode":"${country_code}","location":"${location}"}}
+    ${data}    Replace String    ${data}    "null"    null
+    ${response}    Post Request    ins    /insight-rest/api/login    data=${data}    headers=${headers}
+    ${token}    Get Json Value    ${response.content}    /token
+    ${token}    Remove String    ${token}    "
+    Set Suite Variable    ${token}
+
+Get Index Of Object With Text
+    [Arguments]    ${obj_id}    ${expected_text}
+    FOR    ${index}    IN RANGE    0    51
+        ${actual_text}    Get Text    ${obj_id}${index}
+        Exit For Loop If    "${actual_text}" == "${expected_text}"
+        Run Keyword And Continue On Failure    Run Keyword If    ${index} == 50    FAIL    Object "${obj_id}" with text "${expected_text}" is not found
+    [Return]    ${index}
+
+Get Stub ID And Append To Stub List
+    ${stub_id}    Get Json Value    ${response.content}    /id
+    ${stub_id}    Remove String    ${stub_id}    "
+    Append To List    ${stub_list}    ${stub_id}
+
+Open Browser And Navigate To Air Personalization Dashboard Page
+    [Arguments]    ${browser}=gc    ${dc}=${EMPTY}
+    Run Keyword If    "${dc}"=="${EMPTY}"    Open Browser    ${${env}_base_url}/portal/airapi/    ${browser}
+    ...    ELSE    Open Browser    ${${env}_base_url}/portal/airapi/    ${browser}    \    ${EMPTY}    ${dc}
+    Maximize Browser Window
+    Sleep    3
+
+Set Object Text
+    [Arguments]    ${obj_id}    ${text}
+    Comment    Clear Object Text    ${obj_id}
+    Press Key    ${obj_id}    ${text}
+
+Take A Screenshot
+    Run Keyword If    "${screenshot_flag}" == "true"    Take Screenshot
+    ...    ELSE    No Operation
+
+Verify That CSS Property Value Is Correct Using Javascript
+    [Arguments]    ${obj_id}=${EMPTY}    ${css_element}=:before    ${css_property}=content    ${expected_text}=${EMPTY}
+    ${actual_text}    Run Keyword If    "${css_element}"!="${EMPTY}"    Execute Javascript    return window.getComputedStyle( document.querySelector('#${obj_id}'), '${css_element}' ).getPropertyValue("${css_property}")
+    ...    ELSE    Execute Javascript    return window.getComputedStyle( document.querySelector('#${obj_id}') ).getPropertyValue("${css_property}")
+    Verify That Actual Value Matches Expected Value    ${actual_text}    ${expected_text}
+
+Verify That Child Object Attribute Is Correct
+    [Arguments]    ${parent_obj_id}    ${child_obj_id}    ${attribute}    ${expected_value}
+    ${actual_value}    Execute Javascript    return document.querySelector("${parent_obj_id} ${child_obj_id}").${attribute}
+    Verify That Actual Value Matches Expected Value    ${actual_value}    ${expected_value}
+
+Verify That Child Object Text Is Correct
+    [Arguments]    ${parent_obj_id}    ${child_obj_id}    ${expected_text}
+    ${actual_text}    Execute Javascript    return document.querySelector("${parent_obj_id} ${child_obj_id}").textContent
+    Verify That Actual Value Matches Expected Value    ${actual_text}    ${expected_text}
+
+Verify That Child Object Exists
+    [Arguments]    ${parent_obj_id}    ${child_obj_id}
+    ${exists}    Execute Javascript    return document.querySelector("${parent_obj_id} ${child_obj_id}")
+    Verify That Actual Value Does Not Match Expected Value    ${exists}    null
+
+Verify That Child Object Does Not Exist
+    [Arguments]    ${parent_obj_id}    ${child_obj_id}
+    ${exists}    Execute Javascript    return document.querySelector("${parent_obj_id} ${child_obj_id}")
+    Verify That Actual Value Matches Expected Value    ${exists}    None
+
+Verify That Object Attribute Contains String
+    [Arguments]    ${obj_id}    ${attribute}    ${expected_value}
+    ${actual_value}    Run Keyword And Continue On Failure    Get Element Attribute    ${obj_id}@${attribute}
+    Verify That String Contains Substring    ${actual_value}    ${expected_value}
+
+Verify That Object Attribute Is Correct
+    [Arguments]    ${obj_id}    ${attribute}    ${expected_value}    ${method}=default
+    Comment    ${actual_value}    Run Keyword And Continue On Failure    Run Keyword If    "${method.lower()}" == "default"    Get Element Attribute    ${obj_id}@${attribute}
+    ...    ELSE    Execute Javascript    return document.querySelector("${obj_id}").${attribute}
+    ${actual_value}    Run Keyword And Continue On Failure    Run Keyword If    "${method.lower()}" == "default"    Get Element Attribute    ${obj_id}    ${attribute}
+    ...    ELSE    Execute Javascript    return document.querySelector("${obj_id}").${attribute}
+    Verify That Actual Value Matches Expected Value    ${actual_value}    ${expected_value}
+
+Verify That Object CSS Property Is Correct
+    [Arguments]    ${obj_id}    ${css_property}    ${expected_value}
+    ${element}    Run Keyword And Continue On Failure    Get WebElement    ${obj_id}
+    ${actual_value}    Run Keyword And Continue On Failure    Call Method    ${element}    value_of_css_property    ${css_property}
+    Verify That Actual Value Matches Expected Value    ${actual_value}    ${expected_value}
+
+Verify That Object Count Is Correct
+    [Arguments]    ${obj_id}    ${obj_name}    ${expected_count}
+    FOR    ${index}    IN RANGE    1    ${expected_count}+3
+        ${object_exists}    Run Keyword And Return Status    Verify That Object Exists    ${obj_id}${index}    ${obj_name}
+        Run Keyword If    ${object_exists} == False    Set Test Variable    ${actual_count}    ${index-1}
+        Exit For Loop If    ${object_exists} == False
+    Verify That Actual Value Matches Expected Value    ${actual_count}    ${expected_count}
+
+Verify That Object Does Not Exist
+    [Arguments]    ${obj_id}    ${obj_name}
+    [Documentation]    Supports following object types:
+    ...
+    ...    Button, Checkbox, Element, Image, Link, List, Radio Button, Textfield
+    ...
+    ...    Sample usage:
+    ...
+    ...    obj_id = username | obj_name = Username textfield
+    ${obj_type}    Fetch From Right    ${obj_name}    ${SPACE}
+    Run Keyword And Continue On Failure    Page Should Not Contain ${obj_type}    ${obj_id}    ${obj_name} exists
+
+Verify That Object Exists
+    [Arguments]    ${obj_id}    ${obj_name}
+    [Documentation]    Supports following object types:
+    ...
+    ...    Button, Checkbox, Element, Image, Link, List, Radio Button, Textfield
+    ...
+    ...    Sample usage:
+    ...
+    ...    obj_id = username | obj_name = Username textfield
+    ${obj_type}    Fetch From Right    ${obj_name}    ${SPACE}
+    Run Keyword And Continue On Failure    Page Should Contain ${obj_type}    ${obj_id}    ${obj_name} does not exist
+
+Verify That Object Location Is Correct
+    [Arguments]    ${obj_id}    ${expected_x}    ${expected_y}
+    ${expected_x}    Convert To Number    ${expected_x}
+    ${expected_y}    Convert To Number    ${expected_y}
+    ${actual_x}    Run Keyword And Continue On Failure    Get Horizontal Position    ${obj_id}
+    ${actual_y}    Run Keyword And Continue On Failure    Get Vertical Position    ${obj_id}
+    Verify That Actual Value Matches Expected Value    ${actual_x}    ${expected_x}
+    Verify That Actual Value Matches Expected Value    ${actual_y}    ${expected_y}
+
+Verify That Object Size Is Correct
+    [Arguments]    ${obj_id}    ${expected_width}=${EMPTY}    ${expected_height}=${EMPTY}
+    ${expected_width}    Run Keyword If    "${expected_width}" != "${EMPTY}"    Convert To Integer    ${expected_width}
+    ${expected_height}    Run Keyword If    "${expected_height}" != "${EMPTY}"    Convert To Integer    ${expected_height}
+    ${actual_width}    ${actual_height}    Run Keyword And Continue On Failure    Get Element Size    ${obj_id}
+    Run Keyword If    "${expected_width}" != "${EMPTY}"    Verify That Actual Value Matches Expected Value    ${actual_width}    ${expected_width}
+    Run Keyword If    "${expected_height}" != "${EMPTY}"    Verify That Actual Value Matches Expected Value    ${actual_height}    ${expected_height}
+
+Verify That Object Text Is Correct
+    [Arguments]    ${obj_id}    ${expected_text}    ${method}=default    ${sleep}=3
+    Sleep    ${sleep}
+    ${actual_text}    Run Keyword And Continue On Failure    Run Keyword If    "${method.lower()}" == "default"    Get Text    ${obj_id}
+    ...    ELSE    Execute Javascript    return document.getElementById('${obj_id}').textContent
+    Verify That Actual Value Matches Expected Value    ${actual_text}    ${expected_text}
+
+Verify That Object Text Matches Pattern
+    [Arguments]    ${obj_id}    ${expected_pattern}
+    ${actual_text}    Run Keyword And Continue On Failure    Get Text    ${obj_id}
+    Verify That String Matches Pattern    ${actual_text}    ${expected_pattern}
+
+Verify That Window Size Is Correct
+    [Arguments]    ${expected_width}    ${expected_height}
+    ${expected_width}    Convert To Integer    ${expected_width}
+    ${expected_height}    Convert To Integer    ${expected_height}
+    ${actual_width}    ${actual_height}    Get Window Size
+    Verify That Actual Value Matches Expected Value    ${actual_width}    ${expected_width}
+    Verify That Actual Value Matches Expected Value    ${actual_height}    ${expected_height}
+
+Wait For Loader To Disappear
+    Wait For Angular
+    Sleep    2
+
+Verify That Button Color Changes Upon Hover
+    [Arguments]    ${obj_id}    ${color}    ${bgcolor}
+    Simulate    ${obj_id}    mouseenter
+    Verify That Object CSS Property Is Correct    ${obj_id}    color    ${color}
+    Verify That Object CSS Property Is Correct    ${obj_id}    background-color    ${bgcolor}
+
+Verify That Button Color Changes Upon Unhover
+    [Arguments]    ${obj_id}    ${color}    ${bgcolor}
+    Simulate    ${obj_id}    mouseleave
+    Verify That Object CSS Property Is Correct    ${obj_id}    color    ${color}
+    Verify That Object CSS Property Is Correct    ${obj_id}    background-color    ${bgcolor}

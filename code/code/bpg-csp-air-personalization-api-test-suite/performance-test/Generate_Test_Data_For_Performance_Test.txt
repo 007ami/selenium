@@ -1,0 +1,54 @@
+*** Settings ***
+Resource          ../acceptance-test/resources/common.txt
+Resource          ../resources/imports.txt
+Resource          ../acceptance-test/personalization-score/resources/personalization-score.txt
+Resource          ../resources/utilities.txt
+Resource          ../acceptance-test/admin-upload/resources/admin-upload.txt
+
+*** Test Cases ***
+Add Test Data
+    [Tags]    perf_test_data
+    [Setup]    #Flush All Redis Keys
+    Comment    Generate Hash List
+    Comment    Generate Agent Index List
+    Comment    Generate Stub List
+    Comment    Update Lambda Function Environment Variable    ${meta_data_lambda_func}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Update Lambda Function Environment Variable    ${ap_lambda_func}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Update Lambda Function Environment Variable    ${cp_lambda_func}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Update Lambda Function Environment Variable    ${tp_lambda_func}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Update Lambda Function Environment Variable    ${boost_lambda_func}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Update Lambda Function Environment Variable    ${travelport_lambda_func}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Update Lambda Function Environment Variable    ${travelport_lambda_func}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Update Lambda Function Environment Variable    ${client_config_lambda}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Comment    Update Lambda Function Environment Variable    ${oag_lambda}    SPRING_PROFILES_ACTIVE    perf
+    Comment    Trigger Lambda Function    ${meta_data_lambda_func}    ETL::AGENCY|ETL::CLIENT|ETL::TRAVELER|ETL::BOOST    payload={"invokedBy":"cloud watch","trigger":"INGESTION"}
+    Comment    Trigger Lambda Function    ${client_config_lambda}    payload={"startTimestamp":"1970-01-01 00:00:00.000","endPage":500}
+    Comment    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Comment    Comment    Trigger Lambda Function    ${oag_lambda}
+    Comment    Trigger Lambda Function    ${meta_data_lambda_func}    payload={"invokedBy":"cloud watch","trigger":"METADATA"}
+    Comment    Trigger Lambda Function    ${client_config_lambda}    payload={"startTimestamp":"1970-01-01 00:00:00.000","startPage":501}
+    Comment    Update Lambda Function Environment Variable    ${meta_data_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Update Lambda Function Environment Variable    ${ap_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Update Lambda Function Environment Variable    ${cp_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Update Lambda Function Environment Variable    ${tp_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Update Lambda Function Environment Variable    ${boost_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Update Lambda Function Environment Variable    ${travelport_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Update Lambda Function Environment Variable    ${travelport_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Update Lambda Function Environment Variable    ${client_config_lambda}    SPRING_PROFILES_ACTIVE    dev
+    Comment    Comment    Update Lambda Function Environment Variable    ${oag_lambda}    SPRING_PROFILES_ACTIVE    dev
+    Create Redis Cluster Connection
+    Generate Test Data For Features    app_id=MyCWT_Mobile    api_version_feature=V1    oag_value=false    cp_pass=false    default_tp=false
+    Generate Test Data For Features    app_id=MyCWT_Web    api_version_feature=V1    oag_value=false    cp_pass=false    default_tp=false
+    Generate Test Data For Features    app_id=Desktop_Amadeus    api_version_feature=V1    oag_value=false    cp_pass=false    default_tp=false
+    Generate Test Data For Features    app_id=Desktop_Sabre    api_version_feature=V1    oag_value=false    cp_pass=false    default_tp=false
+    Generate Test Data For Features    app_id=MyCWT_Mobile    api_version_feature=V2    oag_value=false    cp_pass=true    default_tp=true
+    Generate Test Data For Features    app_id=MyCWT_Web    api_version_feature=V2    oag_value=false    cp_pass=true    default_tp=true
+    Generate Test Data For Features    app_id=Desktop_Amadeus    api_version_feature=V2    oag_value=false    cp_pass=true    default_tp=true
+    Generate Test Data For Features    app_id=Desktop_Sabre    api_version_feature=V2    oag_value=false    cp_pass=true    default_tp=true
+    Generate Test Data For Features    app_id=MyCWT_Mobile    api_version_feature=V2.2    oag_value=false    cp_pass=true    default_tp=true
+    Generate Test Data For Features    app_id=MyCWT_Web    api_version_feature=V2.2    oag_value=false    cp_pass=true    default_tp=true
+    Generate Test Data For Features    app_id=Desktop_Amadeus    api_version_feature=V2.2    oag_value=false    cp_pass=true    default_tp=true
+    Generate Test Data For Features    app_id=Desktop_Sabre    api_version_feature=V2.2    oag_value=false    cp_pass=true    default_tp=true
+    Comment    Send Authenticate Post Request And Get Token
+    Comment    Generate Test Variables For Upload    file=perf_1000_rules.csv
+    Comment    Send POST Request For Upload

@@ -1,0 +1,1 @@
+client_subunit_guid|policy_valid_from_date|policy_valid_to_date|origin|destination|carrier|cp_value|policy_order|origin_type|destination_type|B_D

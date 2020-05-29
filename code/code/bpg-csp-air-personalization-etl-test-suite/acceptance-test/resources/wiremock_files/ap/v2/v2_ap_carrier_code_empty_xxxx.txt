@@ -1,0 +1,5 @@
+row_id|departure_start_date|departure_end_date|origin|destination|origin_type|destination_type|point_of_sale_code|point_of_sale_type|marketing_carrier_code|direction_type|policy_order|cabin_class|booking_start_date|booking_end_date|validating_carrier_code
+0|01/01/2018|01/01/2999|JFK|LHR|Airport|Airport|US|Country|AA|D|1|F|01/01/1900|31/08/2018|AA
+2|01/01/2018|01/01/2999|JFK|EUR|Airport|Region|US|Country|DL|D|2|Y|01/01/1900|31/08/2018|XXXX
+3|01/01/2018|01/01/2999|US|LHR|Country|Airport|US|Country|XXXX|D|1|F|01/01/1900|31/08/2018|AY
+3|01/01/2018|01/01/2999|US|GB|Country|Country|US|Country|XXXX|D|2|C|01/01/1900|31/08/2018|XXXX

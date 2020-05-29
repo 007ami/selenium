@@ -1,0 +1,43 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-caches.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That caches Is Required When Sending Clear Cache Post Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Clear Caches    cache_list=ABC 123 !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=caches[0]: must match any of the following: tpMeta,posRegion,clientMappings,travelPortByAirport,travelPortByCity,personalizationConfig
+    # Blank
+    Generate Test Variables For Post Clear Caches    cache_list=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=caches: must not be empty
+    # None
+    Generate Test Variables For Post Clear Caches    cache_list=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=caches: must not be empty
+    # Null
+    Generate Test Variables For Post Clear Caches    cache_list=null
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=caches: must not be empty
+
+FV_002 Verify That txnId Is Not Required When Clearing Cache
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Clear Caches    txn_id=ABC 123 !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Post Clear Caches    txn_id=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Post Clear Caches    txn_id=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    200

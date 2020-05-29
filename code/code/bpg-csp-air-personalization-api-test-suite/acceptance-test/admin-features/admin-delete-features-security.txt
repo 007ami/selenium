@@ -1,0 +1,110 @@
+*** Settings ***
+Suite Setup       Delete Features Collecton In MongoDB And Redis
+Force Tags        security    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-features.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Generate Test Variables For Get Features
+    Send GET Request
+    Get Feature ID
+    Generate Test Variables For Delete Features    token=${invalid_token_1}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Generate Test Variables For Get Features
+    Send GET Request
+    Get Feature ID
+    Generate Test Variables For Delete Features    token=${expired_token}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Generate Test Variables For Get Features
+    Send GET Request
+    Get Feature ID
+    Generate Test Variables For Delete Features    token=${EMPTY}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Generate Test Variables For Get Features
+    Send GET Request
+    Get Feature ID
+    Generate Test Variables For Delete Features    token=null
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    #Add New Feature
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Generate Test Variables For Get Features
+    Send GET Request
+    Get Feature ID
+    Generate Test Variables For Delete Features    token=None
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_006 Verify That SUPER_ADMIN User Roles Are Given Access
+    [Setup]    Send Authenticate Post Request And Get Token    ${${env}_sadmin_username}    ${${env}_sadmin_password}
+    Delete Features Collecton In MongoDB And Redis
+    Generate Feature Id List
+    Generate Features List
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Get Feature ID
+    #SUPER_ADMIN
+    Send Authenticate Post Request And Get Token    ${${env}_sadmin_username}    ${${env}_sadmin_password}
+    Generate Test Variables For Delete Features
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200
+    #ADMIN
+    Delete Features Collecton In MongoDB And Redis
+    Generate Feature Id List
+    Send Authenticate Post Request And Get Token    ${${env}_sadmin_username}    ${${env}_sadmin_password}
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Get Feature ID
+    Send Authenticate Post Request And Get Token    ${${env}_gsmadmin_username}    ${${env}_gsmadmin_password}
+    Generate Test Variables For Delete Features
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    403
+    Verify That Error Response Is Returned    403    Access is Denied
+    #USER
+    Delete Features Collecton In MongoDB And Redis
+    Generate Feature Id List
+    Send Authenticate Post Request And Get Token    ${${env}_sadmin_username}    ${${env}_sadmin_password}
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    Get Feature ID
+    Send Authenticate Post Request And Get Token    ${${env}_user_username}    ${${env}_user_password}
+    Generate Test Variables For Delete Features
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    403
+    Verify That Error Response Is Returned    403    Access is Denied

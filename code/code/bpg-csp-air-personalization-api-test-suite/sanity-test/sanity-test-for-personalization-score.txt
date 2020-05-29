@@ -1,0 +1,147 @@
+*** Settings ***
+Force Tags        sanity
+Resource          ../acceptance-test/personalization-score/resources/personalization-score.txt
+Resource          ../acceptance-test/admin-score/resources/admin-score.txt
+Resource          ../acceptance-test/admin-upload/resources/admin-upload.txt
+
+*** Test Cases ***
+FNC_001 Personalization Score
+    [Tags]    personalization_score
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    trv_guid=A:1000034    csu_guid=A:BDE73    iss_country=US    origin=JFK    destination=LHR    origin_code_type=A
+    ...    destination_code_type=A    app_id=${${version}_app_id}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    experimentGroupTypeCode|result|version
+    Verify That Response Keys And Values Are Not Empty    boost|meta|score|travelerPreference    ['result']
+    Verify That Response Keys And Values Are Not Empty    ${score_keys}    ['result']['score'][0]
+
+FNC_001 Personalization Score (City x City)
+    [Tags]    personalization_score
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    trv_guid=A:1000034    csu_guid=A:BDE73    iss_country=US    origin=NYC    destination=LON    origin_code_type=C
+    ...    destination_code_type=C    app_id=${${version}_app_id}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    experimentGroupTypeCode|result|version
+    Verify That Response Keys And Values Are Not Empty    boost|meta|score|travelerPreference    ['result']
+    Verify That Response Keys And Values Are Not Empty    ${score_keys}    ['result']['score'][0]
+
+FNC_002 Admin Score
+    [Tags]    not-ready
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Get Personalization Admin Score    trv_guid=A:4076C2B1    csu_guid=A:BDE73    iss_country=US    origin=MNL    destination=LHR    origin_code_type=A
+    ...    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    scoreAPI|adhoc
+    Verify That Response Keys And Values Are Not Empty    experimentGroupTypeCode|result|version    ['scoreAPI']
+    Verify That Response Keys And Values Are Not Empty    boost|meta|score|travelerPreference    ['scoreAPI']['result']
+    Verify That Response Keys And Values Are Not Empty    carrierCode|origin|destination|issuingCountry|apScore|cpScore|totalScore    ['scoreAPI']['result']['score'][0]
+    Verify That Response Keys And Values Are Not Empty    experimentGroupTypeCode|result|version    ['adhoc']
+    Verify That Response Keys And Values Are Not Empty    score    ['adhoc']['result']
+    Verify That Response Keys And Values Are Not Empty    carrierCode|origin|destination|issuingCountry|apScore|cpScore|totalScore    ['adhoc']['result']['score'][0]
+
+FNC_003 Admin Clients
+    Send Authenticate Post Request And Get Token
+    #All
+    Run Keyword If    "${env}"!="dev"    Generate Test Variables For Get Clients
+    Run Keyword If    "${env}"!="dev"    Send GET Request
+    Run Keyword If    "${env}"!="dev"    Verify That Response Status Code Is Correct    200
+    Run Keyword If    "${env}"!="dev"    Verify That Response Keys And Values Are Not Empty    id|clientTopGUID|clientTopName|subunits    [0]
+    Run Keyword If    "${env}"!="dev"    Verify That Response Keys And Values Are Not Empty    clientSubGUID|clientSubName|country    [0]['subunits'][0]
+    Run Keyword If    "${env}"!="dev"    Verify That Response Keys And Values Are Not Empty    countryCode|countryName    [0]['subunits'][0]['country']
+    #CTU
+    Generate Test Variables For Get Clients    ctu_guid=${${env}_ctu_guid}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    id|clientTopGUID|clientTopName|subunits
+    Verify That Response Keys And Values Are Not Empty    clientSubGUID|clientSubName|country    ['subunits'][0]
+    Verify That Response Keys And Values Are Not Empty    countryCode|countryName    ['subunits'][0]['country']
+    #CSU
+    Generate Test Variables For Get Clients    ctu_guid=${${env}_ctu_guid}    csu_guid=${${env}_csu_guid}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    clientSubGUID|clientSubName|country
+    Verify That Response Keys And Values Are Not Empty    countryCode|countryName    ['country']
+
+FNC_004 Admin Regions
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Get Regions
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    regionCode|regionName|countries    [0]
+    Verify That Response Keys And Values Are Not Empty    countryCode|countryName    [0]['countries'][0]
+
+FNC_005 Admin Rules
+    Generate Rule Id List
+    Send Authenticate Post Request And Get Token
+    #Add
+    Comment    Generate Test Variables For Post Rules    rule_name=Rule Test1    ctu_guid=A:123    ctu_name=CTU Test1    csu_guid=B:456    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    origin_region=NORAM    origin_country=US    destination_region=EMEA    destination_country=UK    active=True
+    ...    on_off_ind=True    create_user=User Test1
+    Comment    Send POST Request
+    Comment    Verify That Response Status Code Is Correct    200
+    Comment    Get Rule ID
+    Comment    Verify That Response Keys And Values Are Not Empty    id|name|clientTopGUID|clientTopName|clientSubGUID|clientSubName|originRegion|originCountry|destinationRegion|destinationCountry|channel|onOffInd|isActive|auditLog
+    Comment    Verify That Response Keys And Values Are Not Empty    createdBy|createdTimestamp    ['auditLog']
+    #Edit
+    Comment    Generate Test Variables For Put Rules    rule_name=Rule Test2    ctu_guid=A:123x    ctu_name=CTU Test2    csu_guid=B:456x    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobilex    origin_region=NORAMx    origin_country=USx    destination_region=EMEAx    destination_country=UKx    active=True
+    ...    on_off_ind=False    update_user=User Test2
+    Comment    Send PUT Request
+    Comment    Verify That Response Status Code Is Correct    200
+    Comment    Verify That Response Keys And Values Are Not Empty    id|name|clientTopGUID|clientTopName|clientSubGUID|clientSubName|originRegion|originCountry|destinationRegion|destinationCountry|channel|onOffInd|isActive|auditLog
+    Comment    Verify That Response Keys And Values Are Not Empty    updatedBy|createdTimestamp    ['auditLog']
+    #Delete
+    Comment    Generate Test Variables For Delete Rules
+    Comment    Send DELETE Request
+    Comment    Verify That Response Status Code Is Correct    200
+    #Get
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    totalCount|rules
+    Comment    Verify That Response Keys And Values Are Not Empty    id|name|clientTopGUID|clientTopName|clientSubGUID|clientSubName|originRegion|originCountry|originAirport|destinationRegion|destinationCountry|destinationAirport|channel|onOffInd|isActive|direction|sequence|posCountry|posRegion|auditLog    ['rules'][0]
+    Comment    Verify That Response Keys And Values Are Not Empty    createdBy|createdTimestamp    ['rules'][0]['auditLog']
+
+FNC_006 Admin Upload
+    [Tags]    not-ready
+    Generate Rule Id List
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Upload    file=${env}_rules.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That Response Keys And Values Are Not Empty    msg|total
+
+*** Keywords ***
+Verify Response Keys
+    [Arguments]    ${expected_keys}
+    ${keys}    Get Dictionary Keys    ${response.json()}
+    ${keys}    Convert To List    ${keys}
+    ${expected_keys}    Split String    ${expected_keys}    |
+    : FOR    ${expected_keys_items}    IN    @{expected_keys}
+    \    Lists Should Be Equal    ${expected_keys_items}    ${keys}
+
+Verify That Response Keys And Values Are Not Empty
+    [Arguments]    ${keys}    ${json_obj}=${EMPTY}
+    [Documentation]    ${json_obj} - ["key1"]["key2"]...
+    ${keys}    Split String    ${keys}    |
+    Set Test Variable    ${keys}
+    Run Keyword If    "${version}"!="v1" or "${version}"!="${EMPTY}"    Remove Values From List    ${keys}    meta
+    Run Keyword If    "${version}"!="v3"    Remove Values From List    ${keys}    marketingCarrierCode    tpScore    tpValue
+    ...    apFlag    cpFlag    tpFlag
+    Run Keyword If    "${version}"=="v1" or "${version}"=="${EMPTY}" or "${version}"== "v2"    Remove Values From List    ${keys}    validatingCarrierCode    cabinClass
+    Comment    Run Keyword If    "${version}"=="v2"    Remove Values From List    ${keys}    validatingCarrierCode    cabinClass
+    Run Keyword If    "${version}"=="v3"    Remove Values From List    ${keys}    carrierCode    validatingCarrierCode    cabinClass
+    Log    ${keys}
+    ${actual_response}    Run Keyword If    "${json_obj}"!="${EMPTY}"    Set Variable    ${response.json()${json_obj}}
+    ...    ELSE    Set Variable    ${response.json()}
+    Set Test Variable    ${json_obj}
+    : FOR    ${keys_item}    IN    @{keys}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${actual_response}    ${keys_item}
+    \    ${key_value}    Run Keyword And Continue On Failure    Get From Dictionary    ${actual_response}    ${keys_item}
+    \    ${key_value}    Run Keyword If    "${keys_item}"=="apScore" or "${keys_item}"=="cpScore" or "${keys_item}"=="totalScore" or "${keys_item}"=="isActive" or "${keys_item}"=="onOffInd" or "${keys_item}"=="total" or "${keys_item}"=="tpScore" or "${keys_item}"=="tpValue" or "${keys_item}"=="apFlag" or "${keys_item}"=="cpFlag" or "${keys_item}"=="tpFlag" or "${keys_item}"=="cpValue" or "${keys_item}"=="apValue"    Convert To String    ${key_value}
+    \    ...    ELSE    Set Variable    ${key_value}
+    \    Continue For Loop If    "${endpoint}"=="/service/repo/airapi-admin/rules"
+    \    Run Keyword And Continue On Failure    Should Not Be Empty    ${key_value}    ${keys_item} is missing

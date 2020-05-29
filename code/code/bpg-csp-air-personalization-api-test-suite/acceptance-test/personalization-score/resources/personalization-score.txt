@@ -1,0 +1,152 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Add Redis Carrier Zset
+    [Arguments]    ${carrier_zset}=${carrier_zset}    ${carrier_list}=${carrier_list}
+    ${carrier_list}    Split String    ${carrier_list}    ;
+    : FOR    ${carrier_list_item}    IN    @{carrier_list}
+    \    Set To Redis Carriers Zset    ${redis_connection}    ${carrier_zset}    ${carrier_list_item}
+
+Generate Carriers OAG Data
+    [Arguments]    ${oag_data_list}
+    ${oag_data_list}    Split String    ${oag_data_list}    |
+    : FOR    ${oag_data_list_item}    IN    @{oag_data_list}
+    \    ${oag_data_list_item}    Split String    ${oag_data_list_item}    ,
+    \    Set Test Variable    ${carrier_zset}    ${oag_data_list_item[0]}
+    \    Set Test Variable    ${carrier_list}    ${oag_data_list_item[1]}
+    \    Add Redis Carrier Zset
+
+Generate Test Variables For Get Personalization Score
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A    ${version}=${version}    ${pcc}=None    ${booking_date}=None    ${agent_id}=None
+    ${endpoint}    Set Variable If    "${version}"!="${EMPTY}"    ${context_path}/personalization/score/${version}    ${context_path}/personalization/score
+    Set Test Variable    ${endpoint}
+    ${query_param_list}    Create Dictionary
+    Run Keyword If    "${trv_guid}"!="None"    Set To Dictionary    ${query_param_list}    travelerGUID    ${trv_guid}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${query_param_list}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${iss_country}"!="None"    Set To Dictionary    ${query_param_list}    issuingCountry    ${iss_country}
+    Run Keyword If    "${dep_date}"!="None"    Set To Dictionary    ${query_param_list}    departureDate    ${dep_date}
+    Run Keyword If    "${arr_date}"!="None"    Set To Dictionary    ${query_param_list}    arrivalDate    ${arr_date}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${query_param_list}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${query_param_list}    destination    ${destination}
+    Run Keyword If    "${origin_code_type}"!="None"    Set To Dictionary    ${query_param_list}    originCodeType    ${origin_code_type}
+    Run Keyword If    "${destination_code_type}"!="None"    Set To Dictionary    ${query_param_list}    destinationCodeType    ${destination_code_type}
+    Run Keyword If    "${version}"!="v1" and "${version}"!="${EMPTY}" and "${prefix}"!="None"    Set To Dictionary    ${query_param_list}    experimentGroupTypeCode    ${prefix}
+    Run Keyword If    "${version}"!="v1" and "${version}"!="${EMPTY}" and "${app_id}" != "None"    Set To Dictionary    ${query_param_list}    appId    ${app_id}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${query_param_list}    pcc    ${pcc}
+    Run Keyword If    "${booking_date}"!="None"    Set To Dictionary    ${query_param_list}    bookingDate    ${booking_date}
+    Run Keyword If    "${agent_id}"!="None"    Set To Dictionary    ${query_param_list}    agentId    ${agent_id}
+    Set Test Variable    ${query_param_list}
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${trv_guid}
+    Set Test Variable    ${csu_guid}
+    Set Test Variable    ${iss_country}
+    Set Test Variable    ${dep_date}
+    Set Test Variable    ${arr_date}
+    Set Test Variable    ${origin}
+    Set Test Variable    ${destination}
+    Set Test Variable    ${origin_code_type}
+    Set Test Variable    ${destination_code_type}
+    Set Test Variable    ${token}
+    Set Test Variable    ${prefix}
+    Set Test Variable    ${app_id}
+    Run Keyword If    "${version}"=="${EMPTY}"    Set Test Variable    ${exp_version}    V1
+    ...    ELSE IF    "${version}"!="${EMPTY}"    Set Test Variable    ${exp_version}    ${version.upper()}
+    Set Test Variable    ${pcc}
+    Set Test Variable    ${booking_date}
+    Set Test Variable    ${agent_id}
+
+Send Personalization Score Request
+    Run keyword If    "${version}"=="v3"    Send POST Request
+    ...    ELSE    Send GET Request
+
+Verify That Personalization Score Is Returned
+    [Arguments]    ${expected_result}    ${isfile}=True
+    Run Keyword If    "${isfile}"=="True"    Get Expected Result From File    ${expected_result}
+    ${expected_result}    Evaluate    json.loads('''${expected_result}''')    json
+    ${status}    Run Keyword And Return Status    Run Keyword And Continue On Failure    Dictionaries Should Be Equal    ${response.json()}    ${expected_result}    Actual Value is not equal to the Expected Value
+    Run Keyword If    "${status}" == "False"    Compare 2 JSON response    ${expected_result}    ${response.json()}
+
+Generate Test Variables For Post Personalization Score
+    [Arguments]    ${gds_profile_id}=123456    ${trv_guid}=S:0986    ${origin}=JFK    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A
+    ...    ${cabin_class}=F    ${dep_date}=20180912    ${dep_time}=18:00    ${arr_date}=20180913    ${arr_time}=18:00    ${booking_date}=20191001
+    ...    ${iss_country}=US    ${booking_platform}=AMADEUS    ${booking_platform_version}=v1    ${csu_guid}=B:456    ${app_id}=MyCWT_Mobile    ${prefix}=A
+    ...    ${pcc}=1234    ${agent_id}=agent1    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}/personalization/score/v3
+    Set Suite Variable    ${query_param_list}    None
+    ${json_body}    Create Dictionary
+    Comment    Run Keyword If    "${gds_profile_id}"!="None"    Set To Dictionary    ${json_body}    gdsProfileId    ${gds_profile_id}
+    Run Keyword If    "${trv_guid}"!="None"    Set To Dictionary    ${json_body}    travelerGUID    ${trv_guid}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${json_body}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${json_body}    destination    ${destination}
+    Run Keyword If    "${origin_code_type}"!="None"    Set To Dictionary    ${json_body}    originCodeType    ${origin_code_type}
+    Run Keyword If    "${destination_code_type}"!="None"    Set To Dictionary    ${json_body}    destinationCodeType    ${destination_code_type}
+    Comment    Run Keyword If    "${cabin_class}"!="None"    Set To Dictionary    ${json_body}    cabinClass    ${cabin_class}
+    Run Keyword If    "${dep_date}"!="None"    Set To Dictionary    ${json_body}    departureDate    ${dep_date}
+    Run Keyword If    "${dep_time}"!="None"    Set To Dictionary    ${json_body}    departureTime    ${dep_time}
+    Comment    Run Keyword If    "${arr_date}"!="None"    Set To Dictionary    ${json_body}    arrivalDate    ${arr_date}
+    Comment    Run Keyword If    "${arr_time}"!="None"    Set To Dictionary    ${json_body}    arrivalTime    ${arr_time}
+    Comment    Run Keyword If    "${booking_date}"!="None"    Set To Dictionary    ${json_body}    bookingDate    ${booking_date}
+    Run Keyword If    "${iss_country}"!="None"    Set To Dictionary    ${json_body}    ticketIssuingCountry    ${iss_country}
+    Run Keyword If    "${booking_platform}"!="None"    Set To Dictionary    ${json_body}    bookingPlatform    ${booking_platform}
+    Run Keyword If    "${booking_platform_version}"!="None"    Set To Dictionary    ${json_body}    bookingPlatformVersion    ${booking_platform_version}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${json_body}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${app_id}"!="None"    Set To Dictionary    ${json_body}    appId    ${app_id}
+    Run Keyword If    "${prefix}"!="None"    Set To Dictionary    ${json_body}    experimentGroupTypeCode    ${prefix}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${json_body}    pcc    ${pcc}
+    Run Keyword If    "${agent_id}"!="None"    Set To Dictionary    ${json_body}    agentId    ${agent_id}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    Set Suite Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}
+    Set Suite Variable    ${gds_profile_id}
+    Set Suite Variable    ${trv_guid}
+    Set Suite Variable    ${origin}
+    Set Suite Variable    ${destination}
+    Set Suite Variable    ${origin_code_type}
+    Set Suite Variable    ${destination_code_type}
+    Set Suite Variable    ${cabin_class}
+    Set Suite Variable    ${dep_date}
+    Set Suite Variable    ${dep_time}
+    Set Suite Variable    ${arr_date}
+    Set Suite Variable    ${arr_time}
+    Set Suite Variable    ${booking_date}
+    Set Suite Variable    ${iss_country}
+    Set Suite Variable    ${booking_platform}
+    Set Suite Variable    ${booking_platform_version}
+    Set Suite Variable    ${csu_guid}
+    Set Suite Variable    ${app_id}
+    Set Suite Variable    ${prefix}
+    Set Suite Variable    ${pcc}
+    Set Suite Variable    ${agent_id}
+    Run Keyword If    "${version}"=="${EMPTY}"    Set Test Variable    ${exp_version}    V1
+    ...    ELSE IF    "${version}"!="${EMPTY}"    Set Test Variable    ${exp_version}    ${version.upper()}
+
+Generate Test Variables For Personalization Score
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A    ${version}=${version}    ${pcc}=1234    ${booking_date}=None    ${gds_profile_id}=123456    ${cabin_class}=F
+    ...    ${dep_time}=18:00    ${arr_time}=18:00    ${booking_platform}=MyCWT_Mobile    ${booking_platform_version}=v1    ${agent_id}=agent1
+    Run keyword If    "${version}"=="v3"    Generate Test Variables For Post Personalization Score    ${gds_profile_id}    ${trv_guid}    ${origin}    ${destination}
+    ...    ${origin_code_type}    ${destination_code_type}    ${cabin_class}    ${dep_date}    ${dep_time}    ${arr_date}
+    ...    ${arr_time}    ${booking_date}    ${iss_country}    ${booking_platform}    ${booking_platform_version}    ${csu_guid}
+    ...    ${app_id}    ${prefix}    ${pcc}    ${agent_id}
+    ...    ELSE    Generate Test Variables For Get Personalization Score    ${trv_guid}    ${csu_guid}    ${iss_country}    ${dep_date}
+    ...    ${arr_date}    ${origin}    ${destination}    ${origin_code_type}    ${destination_code_type}    ${app_id}
+    ...    ${txn_id}    ${token}    ${prefix}    ${version}    ${pcc}    ${booking_date}
+    ...    ${agent_id}

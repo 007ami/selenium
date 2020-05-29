@@ -1,0 +1,2 @@
+*** Settings ***
+Force Tags        lambda-cache-evict

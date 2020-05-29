@@ -1,0 +1,122 @@
+*** Settings ***
+Library           String
+Library           JSONLibrary
+Library           Collections
+Library           RequestsLibrary
+
+*** Keywords ***
+Delete Stubs
+    Log    ${stub_list}
+    Create Session    sa    ${wiremock_url}    verify=True
+    : FOR    ${stubs}    IN    @{stub_list}
+    \    ${response}    Delete Request    sa    /__admin/mappings/${stubs}
+    \    Log    ${response.content}
+    Set Suite Variable    @{stub_list}    ${EMPTY}
+    Remove From List    ${stub_list}    0
+
+Escape The Special Characters Of A String
+    [Arguments]    ${string}
+    ${string}    Replace String    ${string}    \\    \\\\
+    ${string}    Replace String    ${string}    "    \\"
+    [Return]    ${string}
+
+Generate Stub List
+    @{stub_list}    Create List
+    Set Global Variable    @{stub_list}
+
+Generate UUID
+    ${uuid}    Evaluate    uuid.uuid4()    uuid
+    ${uuid}    Convert To String    ${uuid}
+    [Return]    ${uuid}
+
+Get Json Value
+    [Arguments]    ${json_object}    ${json_path}
+    ${res_content}    To Json    ${json_object}
+    ${actual_value}    Get Value From Json    ${res_content}    ${json_path}
+    ${actual_value}    Convert JSON To String    ${actual_value}
+    ${actual_value}    Remove String    ${actual_value}    [    "    ]
+    Comment    ${res_content}=    evaluate    json.dumps(${response.content})    json
+    [Return]    ${actual_value}
+
+Get Random Value From List
+    [Arguments]    ${list}
+    [Documentation]    Please use sample format: 'A','B','C','D'
+    ${value}    Evaluate    random.choice([${list}])    random
+    [Return]    ${value}
+
+Get Stub ID And Append To Stub List
+    ${stub_id}    Get Json Value    ${response.content}    $.id
+    ${stub_id}    Remove String    ${stub_id}    "
+    Append To List    ${stub_list}    ${stub_id}
+    Log List    ${stub_list}
+
+Verify Json Value Is Correct
+    [Arguments]    ${json_object}    ${json_path}    ${expected_value}    ${is_list}=false
+    ${res_content}=    evaluate    json.loads('''${response.content}''')    json
+    ${actual_value}    Get Value From Json    ${res_content}    ${json_path}
+    ${actual_value}    Convert JSON To String    ${actual_value}
+    ${actual_value}    Run Keyword IF    "${is_list}"=="false"    Remove String    ${actual_value}    [    ]
+    ...    ELSE    Get Substring    ${actual_value}    2    -2
+    ${actual_value}    Remove String    ${actual_value}    "
+    LOG    ${actual_value}
+    LOG    ${expected_value}
+    Run Keyword IF    "${is_list}"=="false"    Run Keyword And Continue On Failure    Should Be Equal As Strings    ${actual_value}    ${expected_value}
+    ...    ELSE    Verify That List Contains Correct Values    ${actual_value}    ${expected_value}
+    ${res_content}=    evaluate    json.dumps(${response.content})    json
+
+Verify That Actual Value Matches Expected Value
+    [Arguments]    ${actual_value}    ${expected_value}    ${custom_error}=Actual value "${actual_value}" does not match expected value "${expected_value}"
+    Log    Actual Value: ${actual_value}
+    Log    Expected Value: ${expected_value}
+    ${actual_value}    Convert To String    ${actual_value}
+    ${expected_value}    Convert To String    ${expected_value}
+    Run Keyword And Continue On Failure    Should Be Equal    ${actual_value}    ${expected_value}    ${custom_error}
+
+Verify That Json Value Matches Pattern
+    [Arguments]    ${json_object}    ${expected_pattern}
+    Log    Json Object: ${json_object}
+    Log    Expected Pattern: ${expected_pattern}
+    ${actual_value}    Get Json Value    ${response.content}    ${json_object}
+    Verify That String Matches Pattern    ${actual_value}    ${expected_pattern}
+
+Verify That List Contains Correct Values
+    [Arguments]    ${list}    ${expected_value}
+    @{actual_list}    Split String    ${list}    ,
+    @{expected_list}    Split String    ${expected_value}    ,
+    ${actual_list_count}    Get Length    ${actual_list}
+    ${expected_list_count}    Get Length    ${expected_list}
+    Run Keyword If    ${actual_list_count}!=${expected_list_count}    FAIL    Actual: ${actual_list_count} did not match Expected: ${expected_list_count}
+    : FOR    ${each}    IN    @{expected_list}
+    \    Should Contain    ${list}    ${each}
+
+Verify That Response Status Code Is Correct
+    [Arguments]    ${status_code}
+    Verify That Actual Value Matches Expected Value    ${response.status_code}    ${status_code}
+
+Verify That String Contains Substring
+    [Arguments]    ${string}    ${substring}
+    Log    Actual String: ${string}
+    Log    Expected Substring: ${substring}
+    ${string}    Convert To String    ${string}
+    ${string}    Escape The Special Characters Of A String    ${string}
+    Run Keyword And Continue On Failure    Should Contain    ${string}    ${substring}    String "${string}" does not contain substring "${substring}"    FALSE
+
+Verify That String Does Not Contain Substring
+    [Arguments]    ${string}    ${substring}
+    Log    Actual String: ${string}
+    Log    Expected Substring: ${substring}
+    ${string}    Decode Bytes To String    ${string}    UTF8
+    Run Keyword And Continue On Failure    Should Not Contain    ${string}    ${substring}    String "${string}" contains substring "${substring}"    FALSE
+
+Verify That String Does Not Match Pattern
+    [Arguments]    ${string}    ${pattern}
+    Log    Actual String: ${string}
+    Log    Expected Pattern: ${pattern}
+    Run Keyword And Continue On Failure    Should Not Match RegExp    ${string}    ${pattern}    String "${string}" matches pattern "${pattern}"    FALSE
+
+Verify That String Matches Pattern
+    [Arguments]    ${string}    ${pattern}
+    Log    Actual String: ${string}
+    Log    Expected Pattern: ${pattern}
+    ${string}    Convert To String    ${string}
+    Run Keyword And Continue On Failure    Should Match RegExp    ${string}    ${pattern}    String "${string}" does not match pattern "${pattern}"    FALSE

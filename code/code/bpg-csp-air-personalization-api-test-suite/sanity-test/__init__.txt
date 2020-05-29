@@ -1,0 +1,3 @@
+*** Settings ***
+Resource          ../acceptance-test/resources/common.txt
+Resource          ../resources/imports.txt

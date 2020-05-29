@@ -1,0 +1,31 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../../resource/imports.txt
+Resource          ../../../resource/common.txt
+
+*** Keywords ***
+Generate Test Variables For Policies Hierarchy Get Request For CBS
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}/ccr/policies/hierarchy
+    ${query_param_list}    Create Dictionary
+    ${txn_id}    Run Keyword If    "${txn_id}"=="auto"    Generate UUID
+    ...    ELSE    Set Variable    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${query_param_list}
+    Log    ${query_param_list}
+    Set Test Variable    ${token}
+
+Generate Test Variables For Policies Hierarchy Get Request For PB
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}/Policies/Hierarchy
+    ${query_param_list}    Create Dictionary
+    ${txn_id}    Run Keyword If    "${txn_id}"!="auto"    Generate UUID
+    ...    ELSE    Set Variable    auto
+    Set Test Variable    ${query_param_list}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}

@@ -1,0 +1,33 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DEFAULT",
+	"offlineAlgorithm": "offline_algorithm",
+	"onlineAlgorithm": "online_algorithm",
+	"personalizationApplied": pers_applied,
+	"systemPersonalized": true,
+	"result": {
+		"score": [{
+				"carrierCode": "BA",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 0.0,
+				"cpValue": 1.0,
+				"cpPolicyOrder": 1,
+				"cpDerivedPolicyOrder": 1,
+				"apScore": 0.0,
+				"cpScore": 1.0,
+				"totalScore": 1.0
+			}
+		],
+		"boost": {
+			"tpBoost": 0.5,
+			"cpBoost": 1.0,
+			"apBoost": 0.7,
+			"priceBoost": price,
+			"durationBoost": duration,
+			"numStopsBoost": num_stops,
+			"flightTimeBoost": flight_time
+		}
+	}
+}

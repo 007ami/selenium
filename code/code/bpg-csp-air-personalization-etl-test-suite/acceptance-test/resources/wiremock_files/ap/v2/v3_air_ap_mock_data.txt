@@ -1,0 +1,10 @@
+rowId|departure_start_date|departure_end_date|origin|destination|origin_type|destination_type|point_of_sale_code|point_of_sale_code_type|marketing_carrier_code|direction_type|policy_order|cabin_class|booking_start_date|booking_end_date|validating_carrier_code
+1|01/01/2018|01/01/2999|MNL|JP|Airport|Country|GB|Country|IB|D|1|F|01/01/1900|31/08/2018|IB
+2|01/01/2018|01/01/2999|MNL|ASA|Airport|Region|GB|Country|DL|D|1|F|01/01/1900|31/08/2018|DL
+2|01/01/2018|01/01/2999|MNL|YYYY|Airport|Global|US|Country|AB|D|2|F|01/01/1900|31/08/2018|AB
+3|01/01/2018|01/01/2999|PH|NRT|Country|Airport|GB|Country|AY|D|1|F|01/01/1900|31/08/2018|AY
+3|01/01/2018|01/01/2999|PH|ASA|Country|Region|GB|Country|BA|D|2|F|01/01/1900|31/08/2018|BA
+3|01/01/2018|01/01/2999|PH|YYYY|Country|Global|US|Country|AC|D|2|F|01/01/1900|31/08/2018|AC
+4|01/01/2018|01/01/2999|ASA|NRT|Region|Airport|GB|Country|VS|D|2|F|01/01/1900|31/08/2018|VS
+4|01/01/2018|01/01/2999|ASA|JP|Region|Country|GB|Country|AA|D|2|F|01/01/1900|31/08/2018|AA
+4|01/01/2018|01/01/2999|ASA|YYYY|Region|Global|US|Country|AD|D|1|F|01/01/1900|31/08/2018|AD

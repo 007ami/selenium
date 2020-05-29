@@ -1,0 +1,156 @@
+*** Settings ***
+Suite Setup       Get Authorization Token
+Force Tags        field_validation    regression
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/ccr-composite-policy-service.txt
+
+*** Test Cases ***
+FV_001 Verify That Field Validation Works When GDSCode Filter Is Used
+    # Format Check
+    Generate Test Variables For Composite Policy Service Get Request For CBS    GDSCode=ABC 123 !@ $%^ 1234567789    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'GDSCode'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Composite Policy Service Get Request For CBS    GDSCode=${EMPTY}    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Code": 302, "Error": "BAD_REQUEST", "Description": "Invalid GDS Code"}
+    ##None
+    Generate Test Variables For Composite Policy Service Get Request For CBS    GDSCode=None    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'GDSCode' is not present"}
+    #Invalid GDS Code
+    Generate Test Variables For Composite Policy Service Get Request For CBS    GDSCode=XX    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Code": 302, "Error": "BAD_REQUEST", "Description": "Invalid GDS Code"}
+
+FV_002 Verify That Field Validation Works When Origin Filter Is Used
+    # Format Check
+    Generate Test Variables For Composite Policy Service Get Request For CBS    origin=ABC 123 !@ $%^ 1234567789    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'Origin'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Composite Policy Service Get Request For CBS    origin=${EMPTY}    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    206
+    ##None
+    Generate Test Variables For Composite Policy Service Get Request For CBS    origin=None    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'Origin' is not present"}
+
+FV_003 Verify That Field Validation Works When Destination Filter Is Used
+    # Format Check
+    Generate Test Variables For Composite Policy Service Get Request For CBS    destination=ABC 123 !@ $%^ 1234567789    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'Destination'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Composite Policy Service Get Request For CBS    destination=${EMPTY}    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    206
+    ##None
+    Generate Test Variables For Composite Policy Service Get Request For CBS    destination=None    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'Destination' is not present"}
+
+FV_004 Verify That Field Validation Works When TravelDate Filter Is Used
+    # Format Check
+    Generate Test Variables For Composite Policy Service Get Request For CBS    departure_date=ABC%20123%20!%40%20%24%25%5E1234567789    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    destination=SIN    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value '' for 'TravelDate'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Composite Policy Service Get Request For CBS    departure_date=${EMPTY}    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    destination=SIN    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value '' for 'TravelDate'"}
+    ##None
+    Generate Test Variables For Composite Policy Service Get Request For CBS    departure_date=None    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    destination=SIN    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'TravelDate' is not present"}
+
+FV_010 Verify That Field Validation Works When ClientSubUnitGuid Filter Is Used
+    # Format Check
+    Generate Test Variables For Composite Policy Service Get Request For CBS    csuGuid=ABC 123 !@ $%^ 1234567789    GDSCode=1G    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'ClientSubUnitGuid'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Composite Policy Service Get Request For CBS    csuGuid=${EMPTY}    GDSCode=1G    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    206
+    ##None
+    Generate Test Variables For Composite Policy Service Get Request For CBS    csuGuid=None    GDSCode=1G    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'ClientSubUnitGuid' is not present"}
+
+FV_011 Verify That Field Validation Works When ClientAccountNumber Filter Is Used
+    # Format Check
+    Generate Test Variables For Composite Policy Service Get Request For CBS    clientAccNum=ABC 123 !@ $%^ 1234567789    GDSCode=1G    csuGuid=A:85A03    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'ClientAccountNumber'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Composite Policy Service Get Request For CBS    clientAccNum=${EMPTY}    GDSCode=1G    csuGuid=A:85A03    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021
+    Send GET Request
+    Verify That Response Status Code Is Correct    206
+    ##None
+    Generate Test Variables For Composite Policy Service Get Request For CBS    clientAccNum=None    GDSCode=1G    csuGuid=A:85A03    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    departure_date=20181021
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'ClientAccountNumber' is not present"}
+
+FV_012 Verify That Field Validation Works When TravelerTypeGuid Filter Is Used
+    # Format Check
+    Generate Test Variables For Composite Policy Service Get Request For CBS    travTypeGuid=ABC 123 !@ $%^ 1234567789    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    origin=NYC    destination=SIN
+    ...    departure_date=20181021
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'TravelerTypeGuid'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Composite Policy Service Get Request For CBS    travTypeGuid=${EMPTY}    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    origin=NYC    destination=SIN
+    ...    departure_date=20181021
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Code": 304, "Error": "BAD_REQUEST", "Description": "No Traveller Identified"}
+    ##None
+    Generate Test Variables For Composite Policy Service Get Request For CBS    travTypeGuid=None    GDSCode=1G    csuGuid=A:85A03    clientAccNum=U1FVA    origin=NYC    destination=SIN
+    ...    departure_date=20181021
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'TravelerTypeGuid' is not present"}

@@ -1,0 +1,53 @@
+*** Settings ***
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/traveler-preference.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That travelerGUID Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Traveler Preference    trv_guid=ABC 123 !@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    204
+    Comment    Verify That Error Response Is Returned    error_code=TRAVELER_PREFERENCE_EXCEPTION    error_message=Data not found.
+    # Blank
+    Generate Test Variables For Get Traveler Preference    trv_guid=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    404
+    Comment    Verify That Error Response Is Returned    error_response="error":"Not Found","message":"No message available","path":"${endpoint}"
+    # None
+    Generate Test Variables For Get Traveler Preference    trv_guid=None
+    Send GET request
+    Verify That Response Status Code Is Correct    404
+    Comment    Verify That Error Response Is Returned    error_response="error":"Not Found","message":"No message available","path":"${endpoint}"
+
+FV_002 Verify That txnId Is Not Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Traveler Preference    txn_id=ABC 123 !@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Traveler Preference    txn_id=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    204
+    # None
+    Generate Test Variables For Get Traveler Preference    txn_id=None
+    Send GET request
+    Verify That Response Status Code Is Correct    204
+
+FV_003 Verify That appId Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Traveler Preference    app_id=ABC 123 !@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Traveler Preference    app_id=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=getTravelerPreference.appId: must not be blank
+    # None
+    Generate Test Variables For Get Traveler Preference    app_id=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=Missing request header 'appId' for method parameter of type String

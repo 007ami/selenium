@@ -1,0 +1,18 @@
+client_subunit_guid,policy_valid_from_date,policy_valid_to_date,origin,destination,carrier,cp_value,policy_order,origin_type,destination_type,B_D
+A:1234,01/01/2018,31/12/2020,JFK,LHR,AA,0.2,1,Airport,Airport,D
+A:1234,01/01/2018,31/12/2020,JFK,LON,AA,0.2,2,Airport,City,D
+A:1234,01/01/2018,31/12/2020,JFK,LON,AB,0.2,2,Airport,City,D
+A:1234,01/01/2018,31/12/2020,NYC,LHR,AB,0.2,2,City,Airport,D
+A:1234,01/01/2018,31/12/2020,NYC,LHR,AC,0.2,3,City,Airport,D
+A:1234,01/01/2018,31/12/2020,JFK,GB,AD,0.2,4,Airport,Country,D
+A:1234,01/01/2018,31/12/2020,US,LHR,AE,0.2,5,Country,Airport,D
+A:1234,01/01/2018,31/12/2020,JFK,EUROP,AF,0.2,6,Airport,Global Sub-Region,D
+A:1234,01/01/2018,31/12/2020,US,LHR,AE,0.2,6,Country,Airport,D
+A:1234,01/01/2018,31/12/2020,JFK,EUROP,AF,0.2,7,Airport,Global Sub-Region,D
+A:1234,01/01/2018,31/12/2020,NAMER,LHR,AG,0.2,7,Global Sub-Region,Airport,D
+A:1234,01/01/2018,31/12/2020,JFK,EMEA,AH,0.2,8,Airport,Global Region,D
+A:1234,01/01/2018,31/12/2020,NORAM,LHR,AI,0.2,9,Global Region,Airport,D
+A:1234,01/01/2018,31/12/2020,JFK,YYYY,AJ,0.2,10,Airport,Global,D
+B:1234,01/01/2018,31/12/2020,JFK,EMEA,AH,0.2,11,Airport,Global Region,D
+B:1234,01/01/2018,31/12/2020,NORAM,LHR,AI,0.2,11,Global Region,Airport,D
+B:1234,01/01/2018,31/12/2020,JFK,YYYY,AJ,0.2,11,Airport,Global,D

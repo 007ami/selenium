@@ -1,0 +1,55 @@
+*** Settings ***
+Test Setup        Reset Account Lockout In MongoDB    ${${env}_sadmin_username}
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/authenticate.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That Username Is Required When Sending A Post Authenticate Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Authenticate    username=ABC 123 !@#%
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    # Blank
+    Generate Test Variables For Post Authenticate    username=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=authenticate.loginDto.username: username cannot be blank
+    # None
+    Generate Test Variables For Post Authenticate    username=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=authenticate.loginDto.username: must not be null;authenticate.loginDto.username: username cannot be blank
+
+FV_002 Verify That Password Is Required When Sending A Post Authenticate Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Authenticate    password=ABC 123 !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    # Blank
+    Generate Test Variables For Post Authenticate    password=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=authenticate.loginDto.password: password cannot be blank
+    # None
+    Generate Test Variables For Post Authenticate    password=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=authenticate.loginDto.password: must not be null;authenticate.loginDto.password: password cannot be blank
+
+FV_003 Verify That txnId Is Not Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Authenticate    txn_id=ABC 123 !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Post Authenticate    txn_id=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Post Authenticate    txn_id=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    200

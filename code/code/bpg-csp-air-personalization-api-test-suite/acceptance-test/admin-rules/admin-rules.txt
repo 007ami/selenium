@@ -1,0 +1,1152 @@
+*** Settings ***
+Suite Setup       Send Authenticate Post Request And Get Token
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-rules.txt
+Resource          ../resources/common.txt
+Resource          ../admin-upload/resources/admin-upload.txt
+
+*** Test Cases ***
+FNC_001 Rule Is Successfully Added With All Fields Available
+    Generate Rule Id List
+    Generate Rules List
+    #VALID
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #ALL
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=ALL    ctu_name=CTU Test2    csu_guid=ALL    csu_name=CSU Test2
+    ...    channel=ALL    pos_region=ALL    pos_country=ALL    origin_region=ALL    origin_country=ALL    origin_airport=ALL
+    ...    destination_region=ALL    destination_country=ALL    destination_airport=ALL    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test2    pcc=ALL    agent_id=ALL
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #BLANK
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=${EMPTY}    ctu_name=CTU Test2    csu_guid=${EMPTY}    csu_name=CSU Test2
+    ...    channel=${EMPTY}    pos_region=${EMPTY}    pos_country=${EMPTY}    origin_region=${EMPTY}    origin_country=${EMPTY}    origin_airport=${EMPTY}
+    ...    destination_region=${EMPTY}    destination_country=${EMPTY}    destination_airport=${EMPTY}    direction=${EMPTY}    active=True    on_off_ind=True
+    ...    create_user=User Test3    pcc=${EMPTY}    agent_id=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_002 Rule Is Successfully Added With Only Mandatory Fields Available
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=None    ctu_name=None    csu_guid=None    csu_name=None
+    ...    channel=None    pos_region=None    pos_country=None    origin_region=None    origin_country=None    origin_airport=None
+    ...    destination_region=None    destination_country=None    destination_airport=None    direction=None    active=None    on_off_ind=None
+    ...    create_user=User Test1    pcc=None    agent_id=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_015 Rules Is Added With Duplicate Sequence Number
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    csu_guid=14:3B67    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test2    ctu_guid=1:1    csu_guid=15:3C68    create_user=User Test2
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Update Rules In Rules List Manually    rule_index=0    key=sequence    value=${2}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_003 Rules Is Added With Duplicate Rule Name
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test1    ctu_guid=1:1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_004 Rules Is Added With Duplicate Rule Criterias
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_005 Rule Is Successfully Edited With All Fields Available
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID
+    #ALL
+    Generate Test Variables For Put Rules    seq_num=1    rule_name=Rule Test2    ctu_guid=ALL    ctu_name=CTU Test2    csu_guid=ALL    csu_name=CSU Test2
+    ...    channel=ALL    pos_region=ALL    pos_country=ALL    origin_region=ALL    origin_country=ALL    origin_airport=ALL
+    ...    destination_region=ALL    destination_country=ALL    destination_airport=ALL    direction=B    active=True    on_off_ind=False
+    ...    update_user=User Test2    pcc=ALL    agent_id=ALL
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Put Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #BLANK
+    Generate Rules List
+    Generate Test Variables For Put Rules    seq_num=1    rule_name=Rule Test3    ctu_guid=${EMPTY}    ctu_name=CTU Test2    csu_guid=${EMPTY}    csu_name=CSU Test2
+    ...    channel=${EMPTY}    pos_region=${EMPTY}    pos_country=${EMPTY}    origin_region=${EMPTY}    origin_country=${EMPTY}    origin_airport=${EMPTY}
+    ...    destination_region=${EMPTY}    destination_country=${EMPTY}    destination_airport=${EMPTY}    direction=${EMPTY}    active=True    on_off_ind=True
+    ...    update_user=User Test3    pcc=${EMPTY}    agent_id=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Put Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #VALID
+    Generate Rules List
+    Generate Test Variables For Put Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    update_user=User Test3    pcc=9101    agent_id=agent3
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Put Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_006 Rule Is Successfully Edited With Only Mandatory Fields Available
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID
+    Generate Test Variables For Put Rules    seq_num=1    rule_name=Rule Test2    ctu_guid=None    update_user=User Test2
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Put Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_016 Rule Is Edited With Duplicate Sequence Number
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID
+    Generate Test Variables For Put Rules    seq_num=1    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=False
+    ...    update_user=User Test2
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Put Request Is Correct
+    Update Rules In Rules List Manually    rule_index=0    key=sequence    value=${2}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_007 Rule Is Edited With Duplicate Rule Name
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID
+    Generate Test Variables For Put Rules    seq_num=2    rule_name=Rule Test1    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=False
+    ...    update_user=User Test2
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Put Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_008 Rule Is Edited With Duplicate Rule Criteria
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID
+    Generate Test Variables For Put Rules    seq_num=2    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    update_user=User Test2    pcc=1234    agent_id=agent1
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Put Request Is Correct
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_009 Rule Is Successfully Deleted One Rule (Single Rule)
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Get Rule ID
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Delete Rules
+    Send Delete Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_010 Rules Are Successfully Deleted (Multiple Rules)
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0
+    Send POST Request
+    Get Rule ID
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2
+    Send POST Request
+    Get Rule ID
+    Generate Test Variables For Delete Rules
+    Send Delete Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_011 Rules Are Not Deleted When Not Existing ID Is Included
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Get Rule ID
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Get Rule ID
+    Generate Test Variables For Delete Rules    rule_id_list=${rule_id_list},abc123
+    Send Delete Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4004    error_message=No Rule Exists.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_012 Rules Are Successfully Retrieved Based From Correct Sort And Order
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    #Sort By sequence Ascending
+    Generate Test Variables For Get Rules    sort=sequence    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Sort By name Descending
+    Generate Test Variables For Get Rules    sort=name    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,1,0
+    Verify Rules List Is Correct
+    #Sort By clientTopGUID Ascending
+    Generate Test Variables For Get Rules    sort=clientTopGUID    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,1,0
+    Verify Rules List Is Correct
+    #Sort By clientTopName Descending
+    Generate Test Variables For Get Rules    sort=clientTopName    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,1,0
+    Verify Rules List Is Correct
+    #Sort By clientSubGUID Ascending
+    Generate Test Variables For Get Rules    sort=clientSubGUID    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,1,0
+    Verify Rules List Is Correct
+    #Sort By clientSubName Descending
+    Generate Test Variables For Get Rules    sort=clientSubName    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,1,0
+    Verify Rules List Is Correct
+    #Sort By channel Ascending
+    Generate Test Variables For Get Rules    sort=channel    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    0,2,1
+    Verify Rules List Is Correct
+    #Sort By posRegion Descending
+    Generate Test Variables For Get Rules    sort=posRegion    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    1,0,2
+    Verify Rules List Is Correct
+    #Sort By posCountry Ascending
+    Generate Test Variables For Get Rules    sort=posCountry    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,0,1
+    Verify Rules List Is Correct
+    #Sort By originRegion Descending
+    Generate Test Variables For Get Rules    sort=originRegion    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    1,2,0
+    Verify Rules List Is Correct
+    #Sort By originCountry Ascending
+    Generate Test Variables For Get Rules    sort=originCountry    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,0,1
+    Verify Rules List Is Correct
+    #Sort By originAirport Ascending
+    Generate Test Variables For Get Rules    sort=originAirport    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    1,2,0
+    Verify Rules List Is Correct
+    #Sort By destinationRegion Descending
+    Generate Test Variables For Get Rules    sort=destinationRegion    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,0,1
+    Verify Rules List Is Correct
+    #Sort By destinationCountry Ascending
+    Generate Test Variables For Get Rules    sort=destinationCountry    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    1,2,0
+    Verify Rules List Is Correct
+    #Sort By destinationAirport Descending
+    Generate Test Variables For Get Rules    sort=destinationAirport    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Comment    Sort Rules List    2,1,0
+    Verify Rules List Is Correct
+    #Sort By direction Ascending
+    Generate Test Variables For Get Rules    sort=direction    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,0,1
+    Verify Rules List Is Correct
+    #Sort By pcc Descending
+    Generate Test Variables For Get Rules    sort=pcc    order=desc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    2,1,0
+    Verify Rules List Is Correct
+    #Sort By agentId Ascending
+    Generate Test Variables For Get Rules    sort=agentId    order=asc
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Rules List    1,2,0
+    Verify Rules List Is Correct
+
+FNC_013 Rules Are Successfully Retrieved Based From Limit And Offset
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=4    rule_name=Rule Test4    ctu_guid=3:3    ctu_name=CTU Test4    csu_guid=17:3E61    csu_name=CSU Test4
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test4
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=5    rule_name=Rule Test5    ctu_guid=4:4    ctu_name=CTU Test5    csu_guid=18:3F62    csu_name=CSU Test5
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test5
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=6    rule_name=Rule Test6    ctu_guid=5:5    ctu_name=CTU Test6    csu_guid=19:3G63    csu_name=CSU Test6
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test6
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    limit=5
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    Generate Test Variables For Get Rules    limit=5    offset=5
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    limit=5    offset=5
+
+FNC_014 Rules Are Successfully Filtered Based From Any Criteria
+    Generate Rule Id List
+    Generate Rules List
+    #Sequence
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=22    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    seq_num=2
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Rule Name
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    rule_name=Rule Test3
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #CTU Guid
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    ctu_guid=1:1
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #CTU Name
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    ctu_name=CTU Test1
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #CSU Guid
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    csu_guid=16:3D69
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #CSU Name
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    csu_name=CSU Test2
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Channel
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    channel=MyCWT_Mobile
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #POS Region
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=EUR    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    pos_region=EUR
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #POS Country
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=EUR    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    pos_country=GB
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Origin Region
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=EUR    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    origin_region=NAM
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Origin Country
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=EUR    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    origin_country=US
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Origin Airport
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=EUR    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    origin_airport=LHR
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Destination Region
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    destination_region=NAM
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Destination Country
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=US    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    destination_country=US
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Destination Airport
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    destination_airport=LHR
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Direction
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    direction=D
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #Personalization
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    on_off_ind=Off
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #pcc Rules
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=Desktop_Sabre    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2    pcc=5678    agent_id=agent2
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Get Rules    pcc=9101
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+    #agentId Rules
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=1234    agent_id=agent1
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=Desktop_Sabre    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2    pcc=5678    agent_id=agent2
+    Send POST Request
+    Verify That Rules Response For Post Request Is Correct
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3    pcc=9101    agent_id=agent3
+    Send POST Request
+    Generate Test Variables For Get Rules    agent_id=agent2
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_017 Rules Are Successfully Uploaded When Rules Are Added, Edited And Deleted
+    Generate Rule Id List
+    Generate Rules List
+    #Add
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Web    pos_region=EUR    pos_country=GB    origin_region=EUR    origin_country=GB    origin_airport=LHR
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=B    active=True    on_off_ind=False
+    ...    create_user=User Test2
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID
+    #Edit
+    Generate Test Variables For Put Rules    seq_num=2    rule_name=Rule Test2x    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=2:2    ctu_name=CTU Test3    csu_guid=16:3D69    csu_name=CSU Test3
+    ...    channel=Desktop_Amadeus    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=LGA
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test3
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID
+    Generate Test Variables For Delete Rules
+    Send Delete Request
+    Verify That Response Status Code Is Correct    200
+    #Upload
+    Generate Test Variables For Upload    file=default_rules.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=default_rules.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::ABC1234567890::AGENT1::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::A23D::AGENT2::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_018 Rules Are Successfully Downloaded After Uploading/Adding/Editing/Deleting
+    Generate Rule Id List
+    Generate Rules List
+    Generate Test Variables For Upload    file=default_rules.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    #Download
+    Generate Test Variables For Download Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Downloaded Rules File Is Correct    file=default_rules.csv
+    #Add
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Add    ctu_guid=${EMPTY}    ctu_name=${EMPTY}    csu_guid=${EMPTY}    csu_name=${EMPTY}
+    ...    channel=${EMPTY}    pos_region=${EMPTY}    pos_country=${EMPTY}    origin_region=${EMPTY}    origin_country=${EMPTY}    origin_airport=${EMPTY}
+    ...    destination_region=${EMPTY}    destination_country=${EMPTY}    destination_airport=${EMPTY}    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    #Edit
+    Generate Rule Id List
+    Generate Test Variables For Get Rules    sort=sequence
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID    rule_index=0
+    Generate Test Variables For Put Rules    seq_num=1    rule_name=Rule Test1 Edit    ctu_guid=1:1    ctu_name=CTU Test2    csu_guid=15:3C68    csu_name=CSU Test2
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=NAM    destination_country=US    destination_airport=JFK    direction=D    active=True    on_off_ind=True
+    ...    update_user=User Test1
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    #DELETE
+    Generate Rule Id List
+    Generate Test Variables For Get Rules    sort=sequence
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Get Rule ID    rule_index=4
+    Generate Test Variables For Delete Rules
+    Send Delete Request
+    Verify That Response Status Code Is Correct    200
+    #Download
+    Generate Test Variables For Download Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Downloaded Rules File Is Correct    file=default_rules_add_edit_delete.csv
+
+FNC_019 Rule Is Successfully Added With pcc and Channel
+    Generate Rule Id List
+    Generate Rules List
+    #VALID (pcc with Desktop Amadeus)
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=DESKTOP_AMADEUS    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    pcc=A1234
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #ALL(pcc with Channel_All)
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=ALL    ctu_name=CTU Test2    csu_guid=ALL    csu_name=CSU Test2
+    ...    channel=ALL    pos_region=ALL    pos_country=ALL    origin_region=ALL    origin_country=ALL    origin_airport=ALL
+    ...    destination_region=ALL    destination_country=ALL    destination_airport=ALL    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test2    pcc=ALL
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #BLANK(pcc with Channel_empty)
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=${EMPTY}    ctu_name=CTU Test2    csu_guid=${EMPTY}    csu_name=CSU Test2
+    ...    channel=${EMPTY}    pos_region=${EMPTY}    pos_country=${EMPTY}    origin_region=${EMPTY}    origin_country=${EMPTY}    origin_airport=${EMPTY}
+    ...    destination_region=${EMPTY}    destination_country=${EMPTY}    destination_airport=${EMPTY}    direction=${EMPTY}    active=True    on_off_ind=True
+    ...    create_user=User Test3    pcc=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #INVALID (pcc with Channel_MyCWT_Mobile)
+    Generate Test Variables For Post Rules    seq_num=4    rule_name=Rule Test4    ctu_guid=4:4    ctu_name=CTU Test4    csu_guid=15:3C68    csu_name=CSU Test4
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test4    pcc=A1234
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    #INVALID (pcc with Channel_MyCWT_WEB)
+    Generate Test Variables For Post Rules    seq_num=5    rule_name=Rule Test5    ctu_guid=5:5    ctu_name=CTU Test5    csu_guid=16:3D69    csu_name=CSU Test5
+    ...    channel=MyCWT_Web    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test5    pcc=A1234
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    #VALID (pcc with Desktop Sabre)
+    Generate Test Variables For Post Rules    seq_num=6    rule_name=Rule Test6    ctu_guid=6:6    ctu_name=CTU Test6    csu_guid=17:3E61    csu_name=CSU Test6
+    ...    channel=DESKTOP_Sabre    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test6    pcc=A1234
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #Get Rules
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct
+
+FNC_020 Rule Is Successfully Added With agentId and Channel
+    Generate Rule Id List
+    Generate Rules List
+    #VALID (agentId with Desktop Amadeus)
+    Generate Test Variables For Post Rules    seq_num=1    rule_name=Rule Test1    ctu_guid=0:0    ctu_name=CTU Test1    csu_guid=14:3B67    csu_name=CSU Test1
+    ...    channel=DESKTOP_AMADEUS    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test1    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #ALL(agentId with Channel_All)
+    Generate Test Variables For Post Rules    seq_num=2    rule_name=Rule Test2    ctu_guid=ALL    ctu_name=CTU Test2    csu_guid=ALL    csu_name=CSU Test2
+    ...    channel=ALL    pos_region=ALL    pos_country=ALL    origin_region=ALL    origin_country=ALL    origin_airport=ALL
+    ...    destination_region=ALL    destination_country=ALL    destination_airport=ALL    direction=D    active=True    on_off_ind=False
+    ...    create_user=User Test2    agent_id=ALL
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #BLANK(agentId with Channel_empty)
+    Generate Test Variables For Post Rules    seq_num=3    rule_name=Rule Test3    ctu_guid=${EMPTY}    ctu_name=CTU Test2    csu_guid=${EMPTY}    csu_name=CSU Test2
+    ...    channel=${EMPTY}    pos_region=${EMPTY}    pos_country=${EMPTY}    origin_region=${EMPTY}    origin_country=${EMPTY}    origin_airport=${EMPTY}
+    ...    destination_region=${EMPTY}    destination_country=${EMPTY}    destination_airport=${EMPTY}    direction=${EMPTY}    active=True    on_off_ind=True
+    ...    create_user=User Test3    agent_id=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #INVALID (agentId with Channel_MyCWT_Mobile)
+    Generate Test Variables For Post Rules    seq_num=4    rule_name=Rule Test4    ctu_guid=4:4    ctu_name=CTU Test4    csu_guid=15:3C68    csu_name=CSU Test4
+    ...    channel=MyCWT_Mobile    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test4    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    #INVALID (agentId with Channel_MyCWT_WEB)
+    Generate Test Variables For Post Rules    seq_num=5    rule_name=Rule Test5    ctu_guid=5:5    ctu_name=CTU Test5    csu_guid=16:3D69    csu_name=CSU Test5
+    ...    channel=MyCWT_Web    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test5    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    #VALID (agentId with Desktop Sabre)
+    Generate Test Variables For Post Rules    seq_num=6    rule_name=Rule Test6    ctu_guid=6:6    ctu_name=CTU Test6    csu_guid=17:3E61    csu_name=CSU Test6
+    ...    channel=DESKTOP_Sabre    pos_region=NAM    pos_country=US    origin_region=NAM    origin_country=US    origin_airport=JFK
+    ...    destination_region=EUR    destination_country=GB    destination_airport=LHR    direction=D    active=True    on_off_ind=True
+    ...    create_user=User Test6    agent_id=agent1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Rules Response For Post Request Is Correct
+    #Get Rules
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct

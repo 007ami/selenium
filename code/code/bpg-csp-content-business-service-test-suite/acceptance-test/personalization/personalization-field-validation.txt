@@ -1,0 +1,610 @@
+*** Settings ***
+Suite Setup       Get Authorization Token For Content Personalization
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          ../resources/common.txt
+Resource          resources/personalization.txt
+
+*** Test Cases ***
+FV_001 Verify That travelerGUID Is Correct When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    Delete All Redis Keys Using Pattern    V1::TRAVELER::${v1_tp_ref_key}
+    Delete All Redis Keys Using Pattern    V2::TRAVELER::${v2_tp_ref_key}
+    Generate Test Data For Features
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    trv_guid=ABC 123 !@#%$^
+    Generate Test Variables And Data For Boost
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    trv_guid=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.travelerGUID
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.travelerGUID
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.travelerGUID
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    # None
+    Generate Test Variables For Content Personalization Score    trv_guid=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.travelerGUID
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.travelerGUID
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.travelerGUID
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    # Null
+    Generate Test Variables For Content Personalization Score    trv_guid=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    Generate Test Data For Traveler Preference    V1,DEFAULT
+    Generate Test Data For Traveler Preference    V2,DEFAULT
+
+FV_002 Verify That clientSubGUID Is Correct When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Data For Features
+    Generate Test Variables For Content Personalization Score    csu_guid=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    csu_guid=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.clientSubGUID
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.clientSubGUID
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.clientSubGUID
+    Verify The Personalization Score When Version Is V3    True
+    # None
+    Generate Test Variables For Content Personalization Score    csu_guid=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.clientSubGUID
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.clientSubGUID
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.clientSubGUID
+    Verify The Personalization Score When Version Is V3    True
+    # Null
+    Generate Test Variables For Content Personalization Score    csu_guid=null
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V3    True
+
+FV_003 Verify That issuingCountry/ticketIssuingCountry Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    iss_country=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    iss_country=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.issuingCountry
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.issuingCountry
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.issuingCountry
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"ticketIssuingCountry: must not be blank"}
+    # None
+    Generate Test Variables For Content Personalization Score    iss_country=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.issuingCountry
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.issuingCountry
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.issuingCountry
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"ticketIssuingCountry: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    iss_country=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"ticketIssuingCountry: must not be blank"}
+
+FV_004 Verify That departureDate Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    dep_date=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.departureDate
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.departureDate
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.departureDate
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureDate: should be a valid date format - yyyyMMdd"}
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    dep_date=12/12/2018
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.departureDate
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.departureDate
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.departureDate
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureDate: should be a valid date format - yyyyMMdd"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    dep_date=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.departureDate
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.departureDate
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.departureDate
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureDate: should be a valid date format - yyyyMMdd"}
+    # None
+    Generate Test Variables For Content Personalization Score    dep_date=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.departureDate
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.departureDate
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.departureDate
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureDate: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    dep_date=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureDate: must not be blank"}
+
+FV_027 Verify That arrivalDate Is Correct When Sending A Content Personalization Score Request
+    [Documentation]    >> Not Required For Get Request
+    ...
+    ...    >> Required For Post Request
+    [Tags]    V1    V2    V2.2
+    # Letters/Numbers/Special Characters (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    arr_date=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V1    True
+    Verify The Personalization Score When Version Is V2    True
+    Verify The Personalization Score When Version Is V2.2    True
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalDate: should be a valid date format - yyyyMMdd"}
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    arr_date=12/12/2018
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V1    True
+    Verify The Personalization Score When Version Is V2    True
+    Verify The Personalization Score When Version Is V2.2    True
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalDate: should be a valid date format - yyyyMMdd"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    arr_date=${EMPTY}
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V1    True
+    Verify The Personalization Score When Version Is V2    True
+    Verify The Personalization Score When Version Is V2.2    True
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalDate: should be a valid date format - yyyyMMdd"}
+    # None
+    Generate Test Variables For Content Personalization Score    arr_date=None
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V1    True
+    Verify The Personalization Score When Version Is V2    True
+    Verify The Personalization Score When Version Is V2.2    True
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalDate: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    arr_date=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalDate: must not be blank"}
+
+FV_007 Verify That origin Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    origin=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"4020","errorMsg":"No matching travel ports for origin in request"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    origin=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.origin
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.origin
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.origin
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"origin: must not be blank"}
+    # None
+    Generate Test Variables For Content Personalization Score    origin=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.origin
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.origin
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.origin
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"origin: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    origin=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"origin: must not be blank"}
+
+FV_008 Verify That destination Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    destination=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"4021","errorMsg":"No matching travel ports for destination in request"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    destination=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destination
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destination
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destination
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destination: must not be blank"}
+    # None
+    Generate Test Variables For Content Personalization Score    destination=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destination
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destination
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destination
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destination: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    destination=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destination: must not be blank"}
+
+FV_010 Verify That originCodeType Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    origin_code_type=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"originCodeType: should be 'A' when origin is an airport code, 'C' when city code"}
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Content Personalization Score    origin_code_type=B
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"originCodeType: should be 'A' when origin is an airport code, 'C' when city code"}
+    #Numbers
+    Generate Test Variables For Content Personalization Score    origin_code_type=123
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"originCodeType: should be 'A' when origin is an airport code, 'C' when city code"}
+    #Special Characters
+    Generate Test Variables For Content Personalization Score    origin_code_type=!
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"originCodeType: should be 'A' when origin is an airport code, 'C' when city code"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    origin_code_type=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.originCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.originCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.originCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.originCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"originCodeType: must not be blank"}
+    # None
+    Generate Test Variables For Content Personalization Score    origin_code_type=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.originCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.originCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.originCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"originCodeType: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    origin_code_type=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"originCodeType: must not be blank"}
+
+FV_011 Verify That destinationCodeType Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    destination_code_type=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code"}
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Content Personalization Score    destination_code_type=B
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code"}
+    #Numbers
+    Generate Test Variables For Content Personalization Score    destination_code_type=123
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code"}
+    #Special Characters
+    Generate Test Variables For Content Personalization Score    destination_code_type=!
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    destination_code_type=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destinationCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destinationCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.destinationCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destinationCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destinationCodeType: must not be blank"}
+    # None
+    Generate Test Variables For Content Personalization Score    destination_code_type=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destinationCodeType
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destinationCodeType
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.destinationCodeType
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destinationCodeType: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    destination_code_type=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"destinationCodeType: must not be blank"}
+
+FV_012 Verify That txnId Is Not Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    txn_id=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    txn_id=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Content Personalization Score    txn_id=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_013 Verify That appId Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    app_id=ABC 123 !@# $%^
+    Create Test Data For Metadata    app_id=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"4018","errorMsg":"No Personalization configuration found"}
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"4018","errorMsg":"No Personalization configuration found"}
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"4018","errorMsg":"No Personalization configuration found"}
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"4018","errorMsg":"No Personalization configuration found"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    app_id=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.appId
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.appId
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.appId
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"appId: must not be blank"}
+    # None
+    Generate Test Variables For Content Personalization Score    app_id=None
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.appId
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.appId
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.appId
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"appId: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    app_id=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"appId: must not be blank"}
+
+FV_014 Verify That experimentGroupTypeCode Is Not Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    prefix=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    prefix=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Content Personalization Score    prefix=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Content Personalization Score    prefix=null
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V3    True
+
+FV_015 Verify That version Is Required When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    #Lowercase
+    Generate Test Variables For Content Personalization Score    version=${version.lower()}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    #Uppercase
+    Generate Test Variables For Content Personalization Score    version=${version.upper()}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Letters/Numbers
+    Generate Test Variables For Content Personalization Score    version=ABC 123
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=Invalid version requested.
+    # Blank
+    Generate Test Variables For Content Personalization Score    version=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.version
+    # None
+    Generate Test Variables For Content Personalization Score    version=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.required.version
+    # Null
+    Generate Test Variables For Content Personalization Score    version=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"version: must not be blank"}
+
+FV_016 Verify That pcc Is Correct When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    pcc=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    pcc=${EMPTY}
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V1    True
+    Verify The Personalization Score When Version Is V2    True
+    Verify The Personalization Score When Version Is V2.2    True
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"pcc: must not be blank"}
+    # None
+    Generate Test Variables For Content Personalization Score    pcc=None
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V1    True
+    Verify The Personalization Score When Version Is V2    True
+    Verify The Personalization Score When Version Is V2.2    True
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"pcc: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    pcc=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"pcc: must not be blank"}
+
+FV_017 Verify That bookingDate Is Correct When Sending A Content Personalization Score Request
+    [Tags]    V1    V2    V2.2
+    # Letters/Numbers/Special Characters (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    booking_date=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"bookingDate: should be a valid date format - yyyyMMdd"}
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    booking_date=12/12/2018
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"bookingDate: should be a valid date format - yyyyMMdd"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    booking_date=${EMPTY}
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V1    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V2.2    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_response=param.invalid.bookingDate
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"bookingDate: should be a valid date format - yyyyMMdd"}
+    # None
+    Generate Test Variables For Content Personalization Score    booking_date=None
+    Send Content Personalization Score Request
+    Verify The Personalization Score When Version Is V1    True
+    Verify The Personalization Score When Version Is V2    True
+    Verify The Personalization Score When Version Is V2.2    True
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"bookingDate: must not be blank"}
+    # Null
+    Generate Test Variables For Content Personalization Score    booking_date=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"bookingDate: must not be blank"}
+
+FV_020 Verify That gdsProfileId Is Not Required When Sending A Content Personalization Score Request
+    [Tags]    V3    not-ready
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    gds_profile_id=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    gds_profile_id=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Content Personalization Score    gds_profile_id=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Content Personalization Score    gds_profile_id=null
+    Send Content Personalization Score Request
+    Verify Error Message When Version Is V3    error_status_code=400    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"gdsProfileId: must not be null"}
+
+FV_021 Verify That cabinClass Is Not Required When Sending A Content Personalization Score Request
+    [Tags]    V3    not-ready
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Content Personalization Score    cabin_class=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    cabin_class=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Content Personalization Score    cabin_class=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Content Personalization Score    cabin_class=null
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_022 Verify That departureTime Is Not Required When Sending A Content Personalization Score Request
+    [Tags]    V3
+    # Letters/Numbers/Special Characters (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    dep_time=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureTime: should be a valid 24HR time format - HH:mm"}
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    dep_time=06:00PM
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureTime: should be a valid 24HR time format - HH:mm"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    dep_time=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"departureTime: should be a valid 24HR time format - HH:mm"}
+    # None
+    Generate Test Variables For Content Personalization Score    dep_time=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Content Personalization Score    dep_time=null
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_023 Verify That arrivalTime Is Not Required When Sending A Content Personalization Score Request
+    [Tags]    V3    not-ready
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    arr_time=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalTime: should be a valid 24HR time format - HH:mm"}
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    arr_time=04:00PM
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalTime: should be a valid 24HR time format - HH:mm"}
+    # Blank
+    Generate Test Variables For Content Personalization Score    arr_time=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode":"INPUT_VALIDATION_ERROR","errorMsg":"arrivalTime: should be a valid 24HR time format - HH:mm"}
+    # None
+    Generate Test Variables For Content Personalization Score    arr_date=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Content Personalization Score    arr_date=null
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_024 Verify That bookingPlatform Is Required When Sending A Content Personalization Score Request
+    [Tags]    V3
+    Get Authorization Token
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    booking_platform=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    booking_platform=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Content Personalization Score    booking_platform=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Content Personalization Score    booking_platform=null
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_025 Verify That bookingPlatformVersion Is Not Required When Sending A Content Personalization Score Request
+    [Tags]    V3
+    Get Authorization Token
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Content Personalization Score    booking_platform_version=ABC 123 !@# $%^
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Content Personalization Score    booking_platform_version=${EMPTY}
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Content Personalization Score    booking_platform_version=None
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Content Personalization Score    booking_platform_version=null
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    200

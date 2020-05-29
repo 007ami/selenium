@@ -1,0 +1,297 @@
+*** Settings ***
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Content Personalization Score
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${origin}=JFK    ${destination}=LHR
+    ...    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${prefix}=A
+    ...    ${version}=${version}    ${pcc}=1234    ${booking_date}=None    ${gds_profile_id}=123456    ${cabin_class}=F    ${dep_time}=18:00
+    ...    ${arr_time}=18:00    ${booking_platform}=MyCWT_Mobile    ${booking_platform_version}=v1    ${arr_date}=20180913
+    Run Keyword And Continue On Failure    Run Keyword If    "${version.lower()}"=="v3"    Generate Test Variables For Post Content Personalization Score    ${gds_profile_id}    ${trv_guid}    ${origin}
+    ...    ${destination}    ${origin_code_type}    ${destination_code_type}    ${cabin_class}    ${dep_date}    ${dep_time}
+    ...    ${arr_date}    ${arr_time}    ${booking_date}    ${iss_country}    ${booking_platform}    ${booking_platform_version}
+    ...    ${csu_guid}    ${app_id}    ${version}    ${pcc}    ${prefix}    ${txn_id}
+    ...    ${token}
+    ...    ELSE    Generate Test Variables For Get Content Personalization Score    ${trv_guid}    ${csu_guid}    ${iss_country}    ${dep_date}
+    ...    ${origin}    ${destination}    ${origin_code_type}    ${destination_code_type}    ${app_id}    ${txn_id}
+    ...    ${token}    ${prefix}    ${version}    ${pcc}    ${booking_date}
+
+Generate Test Variables For Get Content Personalization Score
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${origin}=JFK    ${destination}=LHR
+    ...    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${prefix}=A
+    ...    ${version}=${version}    ${pcc}=None    ${booking_date}=None
+    Set Test Variable    ${endpoint}    ${context_path_cbs}/personalization
+    Set Test Variable    ${endpoint}
+    ${query_param_list}    Create Dictionary
+    Run Keyword If    "${trv_guid}"!="None"    Set To Dictionary    ${query_param_list}    travelerGUID    ${trv_guid}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${query_param_list}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${iss_country}"!="None"    Set To Dictionary    ${query_param_list}    issuingCountry    ${iss_country}
+    Run Keyword If    "${dep_date}"!="None"    Set To Dictionary    ${query_param_list}    departureDate    ${dep_date}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${query_param_list}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${query_param_list}    destination    ${destination}
+    Run Keyword If    "${origin_code_type}"!="None"    Set To Dictionary    ${query_param_list}    originCodeType    ${origin_code_type}
+    Run Keyword If    "${destination_code_type}"!="None"    Set To Dictionary    ${query_param_list}    destinationCodeType    ${destination_code_type}
+    Run Keyword If    "${app_id}" != "None"    Set To Dictionary    ${query_param_list}    appId    ${app_id}
+    Run Keyword If    "${version}"!="None"    Set To Dictionary    ${query_param_list}    version    ${version}
+    Run Keyword If    "${prefix}"!="None"    Set To Dictionary    ${query_param_list}    experimentGroupTypeCode    ${prefix}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${query_param_list}    pcc    ${pcc}
+    Run Keyword If    "${booking_date}"!="None"    Set To Dictionary    ${query_param_list}    bookingDate    ${booking_date}
+    Set Test Variable    ${query_param_list}
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${trv_guid}
+    Set Test Variable    ${csu_guid}
+    Set Test Variable    ${iss_country}
+    Set Test Variable    ${dep_date}
+    Set Test Variable    ${origin}
+    Set Test Variable    ${destination}
+    Set Test Variable    ${origin_code_type}
+    Set Test Variable    ${destination_code_type}
+    Set Test Variable    ${token}
+    Set Test Variable    ${prefix}
+    Set Test Variable    ${app_id}
+    Set Test Variable    ${context_path}    ${context_path_cbs}
+    Set Test Variable    ${version}
+    Set Test Variable    ${pcc}
+    Set Test Variable    ${booking_date}
+
+Generate Test Variables For Get Personalization Score
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A    ${version}=${version}    ${pcc}=None    ${booking_date}=None
+    ${score_endpoint}    Set Variable If    "${version}"!="${EMPTY}"    ${context_path}/personalization/score/${version}    ${context_path}/personalization/score
+    Set Test Variable    ${score_endpoint}
+    ${query_param_list}    Create Dictionary
+    Run Keyword If    "${trv_guid}"!="None"    Set To Dictionary    ${query_param_list}    travelerGUID    ${trv_guid}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${query_param_list}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${iss_country}"!="None"    Set To Dictionary    ${query_param_list}    issuingCountry    ${iss_country}
+    Run Keyword If    "${dep_date}"!="None"    Set To Dictionary    ${query_param_list}    departureDate    ${dep_date}
+    Run Keyword If    "${arr_date}"!="None"    Set To Dictionary    ${query_param_list}    arrivalDate    ${arr_date}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${query_param_list}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${query_param_list}    destination    ${destination}
+    Run Keyword If    "${origin_code_type}"!="None"    Set To Dictionary    ${query_param_list}    originCodeType    ${origin_code_type}
+    Run Keyword If    "${destination_code_type}"!="None"    Set To Dictionary    ${query_param_list}    destinationCodeType    ${destination_code_type}
+    Run Keyword If    "${version}"!="v1" and "${version}"!="${EMPTY}" and "${prefix}"!="None"    Set To Dictionary    ${query_param_list}    experimentGroupTypeCode    ${prefix}
+    Run Keyword If    "${version}"!="v1" and "${version}"!="${EMPTY}" and "${app_id}" != "None"    Set To Dictionary    ${query_param_list}    appId    ${app_id}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${query_param_list}    pcc    ${pcc}
+    Run Keyword If    "${booking_date}"!="None"    Set To Dictionary    ${query_param_list}    bookingDate    ${booking_date}
+    Set Test Variable    ${query_param_list}
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${trv_guid}
+    Set Test Variable    ${csu_guid}
+    Set Test Variable    ${iss_country}
+    Set Test Variable    ${dep_date}
+    Set Test Variable    ${arr_date}
+    Set Test Variable    ${origin}
+    Set Test Variable    ${destination}
+    Set Test Variable    ${origin_code_type}
+    Set Test Variable    ${destination_code_type}
+    Set Test Variable    ${token}
+    Set Test Variable    ${prefix}
+    Set Test Variable    ${app_id}
+    Run Keyword If    "${version}"=="${EMPTY}"    Set Test Variable    ${exp_version}    V1
+    ...    ELSE IF    "${version}"!="${EMPTY}"    Set Test Variable    ${exp_version}    ${version.upper()}
+    Set Test Variable    ${pcc}
+    Set Test Variable    ${booking_date}
+
+Generate Test Variables For Personalization Score
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A    ${version}=${version}    ${pcc}=1234    ${booking_date}=None    ${gds_profile_id}=123456    ${cabin_class}=F
+    ...    ${dep_time}=18:00    ${arr_time}=18:00    ${booking_platform}=MyCWT_Mobile    ${booking_platform_version}=v1
+    Run keyword If    "${version}"=="v3"    Generate Test Variables For Post Personalization Score    ${gds_profile_id}    ${trv_guid}    ${origin}    ${destination}
+    ...    ${origin_code_type}    ${destination_code_type}    ${cabin_class}    ${dep_date}    ${dep_time}    ${arr_date}
+    ...    ${arr_time}    ${booking_date}    ${iss_country}    ${booking_platform}    ${booking_platform_version}    ${csu_guid}
+    ...    ${app_id}    ${prefix}    ${pcc}
+    ...    ELSE    Generate Test Variables For Get Personalization Score    ${trv_guid}    ${csu_guid}    ${iss_country}    ${dep_date}
+    ...    ${arr_date}    ${origin}    ${destination}    ${origin_code_type}    ${destination_code_type}    ${app_id}
+    ...    ${txn_id}    ${token}    ${prefix}    ${version}    ${pcc}    ${booking_date}
+
+Generate Test Variables For Post Content Personalization Score
+    [Arguments]    ${gds_profile_id}=123456    ${trv_guid}=S:0986    ${origin}=JFK    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A
+    ...    ${cabin_class}=F    ${dep_date}=20180912    ${dep_time}=18:00    ${arr_date}=20180913    ${arr_time}=18:00    ${booking_date}=20191001
+    ...    ${iss_country}=US    ${booking_platform}=AMADEUS    ${booking_platform_version}=v1    ${csu_guid}=B:456    ${app_id}=MyCWT_Mobile    ${version}=${version}
+    ...    ${pcc}=1234    ${prefix}=A    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path_cbs}/personalization
+    ${query_param_list}    Create Dictionary
+    ${json_body}    Create Dictionary
+    Comment    Run Keyword If    "${gds_profile_id}"!="None"    Set To Dictionary    ${json_body}    gdsProfileId    ${gds_profile_id}
+    Run Keyword If    "${trv_guid}"!="None"    Set To Dictionary    ${json_body}    travelerGUID    ${trv_guid}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${json_body}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${json_body}    destination    ${destination}
+    Run Keyword If    "${origin_code_type}"!="None"    Set To Dictionary    ${json_body}    originCodeType    ${origin_code_type}
+    Run Keyword If    "${destination_code_type}"!="None"    Set To Dictionary    ${json_body}    destinationCodeType    ${destination_code_type}
+    Comment    Run Keyword If    "${cabin_class}"!="None"    Set To Dictionary    ${json_body}    cabinClass    ${cabin_class}
+    Run Keyword If    "${dep_date}"!="None"    Set To Dictionary    ${json_body}    departureDate    ${dep_date}
+    Run Keyword If    "${dep_time}"!="None"    Set To Dictionary    ${json_body}    departureTime    ${dep_time}
+    Comment    Run Keyword If    "${arr_date}"!="None"    Set To Dictionary    ${json_body}    arrivalDate    ${arr_date}
+    Comment    Run Keyword If    "${arr_time}"!="None"    Set To Dictionary    ${json_body}    arrivalTime    ${arr_time}
+    Comment    Run Keyword If    "${booking_date}"!="None"    Set To Dictionary    ${json_body}    bookingDate    ${booking_date}
+    Run Keyword If    "${iss_country}"!="None"    Set To Dictionary    ${json_body}    ticketIssuingCountry    ${iss_country}
+    Run Keyword If    "${booking_platform}"!="None"    Set To Dictionary    ${json_body}    bookingPlatform    ${booking_platform}
+    Run Keyword If    "${booking_platform_version}"!="None"    Set To Dictionary    ${json_body}    bookingPlatformVersion    ${booking_platform_version}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${json_body}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${app_id}"!="None"    Set To Dictionary    ${json_body}    appId    ${app_id}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${json_body}    pcc    ${pcc}
+    Run Keyword If    "${prefix}"!="None"    Set To Dictionary    ${json_body}    experimentGroupTypeCode    ${prefix}
+    Run Keyword If    "${version}"!="None"    Set To Dictionary    ${query_param_list}    version    ${version}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    Set Suite Variable    ${json_body}
+    Log    ${json_body}
+    Set Suite Variable    ${query_param_list}
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}
+    Comment    Set Suite Variable    ${gds_profile_id}
+    Set Suite Variable    ${trv_guid}
+    Set Suite Variable    ${origin}
+    Set Suite Variable    ${destination}
+    Set Suite Variable    ${origin_code_type}
+    Set Suite Variable    ${destination_code_type}
+    Set Suite Variable    ${cabin_class}
+    Set Suite Variable    ${dep_date}
+    Set Suite Variable    ${dep_time}
+    Set Suite Variable    ${arr_date}
+    Set Suite Variable    ${arr_time}
+    Set Suite Variable    ${booking_date}
+    Set Suite Variable    ${iss_country}
+    Set Suite Variable    ${booking_platform}
+    Set Suite Variable    ${booking_platform_version}
+    Set Suite Variable    ${csu_guid}
+    Set Suite Variable    ${app_id}
+
+Generate Test Variables For Post Personalization Score
+    [Arguments]    ${gds_profile_id}=123456    ${trv_guid}=S:0986    ${origin}=JFK    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A
+    ...    ${cabin_class}=F    ${dep_date}=20180912    ${dep_time}=18:00    ${arr_date}=20180913    ${arr_time}=18:00    ${booking_date}=20191001
+    ...    ${iss_country}=US    ${booking_platform}=AMADEUS    ${booking_platform_version}=v1    ${csu_guid}=B:456    ${app_id}=MyCWT_Mobile    ${prefix}=A
+    ...    ${pcc}=1234    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${score_endpoint}    ${context_path}/personalization/score/v3
+    Set Suite Variable    ${query_param_list}    None
+    ${json_body}    Create Dictionary
+    Comment    Run Keyword If    "${gds_profile_id}"!="None"    Set To Dictionary    ${json_body}    gdsProfileId    ${gds_profile_id}
+    Run Keyword If    "${trv_guid}"!="None"    Set To Dictionary    ${json_body}    travelerGUID    ${trv_guid}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${json_body}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${json_body}    destination    ${destination}
+    Run Keyword If    "${origin_code_type}"!="None"    Set To Dictionary    ${json_body}    originCodeType    ${origin_code_type}
+    Run Keyword If    "${destination_code_type}"!="None"    Set To Dictionary    ${json_body}    destinationCodeType    ${destination_code_type}
+    Comment    Run Keyword If    "${cabin_class}"!="None"    Set To Dictionary    ${json_body}    cabinClass    ${cabin_class}
+    Run Keyword If    "${dep_date}"!="None"    Set To Dictionary    ${json_body}    departureDate    ${dep_date}
+    Run Keyword If    "${dep_time}"!="None"    Set To Dictionary    ${json_body}    departureTime    ${dep_time}
+    Comment    Run Keyword If    "${arr_date}"!="None"    Set To Dictionary    ${json_body}    arrivalDate    ${arr_date}
+    Comment    Run Keyword If    "${arr_time}"!="None"    Set To Dictionary    ${json_body}    arrivalTime    ${arr_time}
+    Comment    Run Keyword If    "${booking_date}"!="None"    Set To Dictionary    ${json_body}    bookingDate    ${booking_date}
+    Run Keyword If    "${iss_country}"!="None"    Set To Dictionary    ${json_body}    ticketIssuingCountry    ${iss_country}
+    Run Keyword If    "${booking_platform}"!="None"    Set To Dictionary    ${json_body}    bookingPlatform    ${booking_platform}
+    Run Keyword If    "${booking_platform_version}"!="None"    Set To Dictionary    ${json_body}    bookingPlatformVersion    ${booking_platform_version}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${json_body}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${app_id}"!="None"    Set To Dictionary    ${json_body}    appId    ${app_id}
+    Run Keyword If    "${prefix}"!="None"    Set To Dictionary    ${json_body}    experimentGroupTypeCode    ${prefix}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${json_body}    pcc    ${pcc}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    Set Suite Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}
+    Set Suite Variable    ${gds_profile_id}
+    Set Suite Variable    ${trv_guid}
+    Set Suite Variable    ${origin}
+    Set Suite Variable    ${destination}
+    Set Suite Variable    ${origin_code_type}
+    Set Suite Variable    ${destination_code_type}
+    Set Suite Variable    ${cabin_class}
+    Set Suite Variable    ${dep_date}
+    Set Suite Variable    ${dep_time}
+    Set Suite Variable    ${arr_date}
+    Set Suite Variable    ${arr_time}
+    Set Suite Variable    ${booking_date}
+    Set Suite Variable    ${iss_country}
+    Set Suite Variable    ${booking_platform}
+    Set Suite Variable    ${booking_platform_version}
+    Set Suite Variable    ${csu_guid}
+    Set Suite Variable    ${app_id}
+    Run Keyword If    "${version}"=="${EMPTY}"    Set Test Variable    ${exp_version}    V1
+    ...    ELSE IF    "${version}"!="${EMPTY}"    Set Test Variable    ${exp_version}    ${version.upper()}
+
+Get Authorization Token For Content Personalization
+    Set Suite Variable    ${context_path}    ${context_path_cbs}
+    Wait Until Keyword Succeeds    3x    3 sec    Send Login Post Request
+    Get Token    False
+
+Get Authorization Token For Personalization Score
+    Set Test Variable    ${context_path}    ${context_path_ap}
+    Wait Until Keyword Succeeds    3x    3 sec    Send Login Post Request    ${ap_${env}_gw_username}    ${ap_${env}_gw_password}
+    Get Token    False
+
+Send Content Personalization Score Request
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"=="v3"    Send POST Request
+    ...    ELSE    Send GET Request
+
+Send GET Request For Personalization Score
+    [Arguments]    ${token}=${token}    ${query_param_list}=${query_param_list}
+    Set Test Variable    ${ap_uri}    ${score_endpoint}
+    ${headers_list}    Create Dictionary    Content-Type=application/json
+    Run Keyword If    "${token}" == "null"    Set To Dictionary    ${headers_list}    Authorization=null
+    ...    ELSE IF    "${token}" != "None"    Set To Dictionary    ${headers_list}    Authorization=Bearer ${token}
+    Run Keyword If    "${version}"=="v1" and "${app_id}" == "null"    Set To Dictionary    ${headers_list}    appId=null
+    ...    ELSE IF    "${version}"=="v1" and "${app_id}" != "None"    Set To Dictionary    ${headers_list}    appId=${app_id}
+    Run Keyword If    "${txn_id}" == "null"    Set To Dictionary    ${headers_list}    txnId=null
+    ...    ELSE IF    "${txn_id}" != "None"    Set To Dictionary    ${headers_list}    txnId=${txn_id}
+    Run Keyword If    "${version}"=="v1" and "${prefix}"=="null"    Set To Dictionary    ${headers_list}    useDataSet=null
+    ...    ELSE IF    "${version}"=="v1" and "${prefix}"!="None"    Set To Dictionary    ${headers_list}    useDataSet=DATASET_${prefix}
+    Log    ${headers_list}
+    ${environment_url}    Set Variable    ${${env}_base_url}
+    Create Session    AP    ${environment_url}    verify=true
+    ${ap_response}    Run Keyword If    "${query_param_list}"=="None"    Get Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    ELSE    Get Request    AP    ${ap_uri}    headers=${headers_list}    params=${query_param_list}
+    Set Suite Variable    ${ap_response}
+    Log    ${ap_response.content}
+    Log    ${ap_response.status_code}
+
+Send Personalization Score Request
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"=="v3"    Send POST Request For Personalization Score
+    ...    ELSE    Send GET Request For Personalization Score
+
+Verify That Content Personalization Response Is Same As Personalization Score
+    ${ap_response_new}    Convert To String    ${ap_response.content}
+    ${ap_response_new}    Remove String    ${ap_response_new}    ,"cabinType":"BUS"
+    ${ap_response_new}    Evaluate    json.loads('''${ap_response_new}''')    json
+    Dictionaries Should Be Equal    ${response.json()}    ${ap_response_new}    Actual Value is not equal to the Expected Value
+    Comment    Run Keyword And Continue On Failure    Run Keyword If    "${version}"=="v2.2"    Verify That Response Keys And Values Are Not Empty    carrierCode|origin|destination|issuingCountry|apScore|cpScore|totalScore|validatingCarrierCode|cabinClass    ['result']['score'][0]
+    Comment    Run Keyword And Continue On Failure    Run Keyword If    "${version}"=="v3"    Verify That Response Keys And Values Are Not Empty    marketingCode|origin|destination|issuingCountry|apScore|cpScore|totalScore|validatingCarrierCode|cabinClass|apFlag|cpFlag|tpFlag|tpScore|tpValue    ['result']['score'][0]
+
+Send POST Request For Personalization Score
+    [Arguments]    ${token}=${token}    ${query_param_list}=${query_param_list}    ${json_body}=${json_body}
+    Set Suite Variable    ${ap_uri}    ${score_endpoint}
+    ${headers_list}    Create Dictionary    Content-Type=application/json
+    Run Keyword If    "${token}" == "null"    Set To Dictionary    ${headers_list}    Authorization=null
+    ...    ELSE IF    "${token}" != "None"    Set To Dictionary    ${headers_list}    Authorization=Bearer ${token}
+    Run Keyword If    "${txn_id}" == "null"    Set To Dictionary    ${headers_list}    txnId=null
+    ...    ELSE IF    "${txn_id}" != "None"    Set To Dictionary    ${headers_list}    txnId=${txn_id}
+    Log    ${headers_list}
+    ${json_body}    Replace String    ${json_body}    "null"    null
+    ${json_body}    Replace String    ${json_body}    "True"    true
+    ${json_body}    Replace String    ${json_body}    "False"    false
+    ${json_body}    Replace String    ${json_body}    "true"    true
+    ${json_body}    Replace String    ${json_body}    "false"    false
+    Set Suite Variable    ${json_body}
+    ${json_body_exist}    Run Keyword And Return Status    Should Not Be Equal    ${json_body}    None
+    ${environment_url}    Set Variable    ${${env}_base_url}
+    Create Session    AP    ${environment_url}    verify=true
+    ${ap_response}    Run Keyword If    "${query_param_list}"=="None" and "${json_body_exist}"!="True"    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    data=${json_body}
+    ...    ELSE IF    "${query_param_list}"!="None" and "${json_body_exist}"=="False"    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    params=${query_param_list}
+    ...    ELSE    Post Request    AP    ${ap_uri}    headers=${headers_list}    params=${query_param_list}
+    ...    data=${json_body}
+    Set Suite Variable    ${ap_response}
+    Log    ${ap_response.content}
+    Log    ${ap_response.status_code}

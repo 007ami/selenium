@@ -1,0 +1,36 @@
+*** Settings ***
+Force Tags        security    regression    not-ready
+Resource          ../../resources/imports.txt
+Resource          resources/authenticate.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    Generate Test Variables For Post Authenticate    token=${invalid_gw_token}
+    Send Post request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    Generate Test Variables For Post Authenticate    token=${${env}_gw_expired_token}
+    Send Post request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    Generate Test Variables For Post Authenticate    token=${EMPTY}
+    Send Post request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    Generate Test Variables For Post Authenticate    token=null
+    Send Post request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    Generate Test Variables For Post Authenticate    token=None
+    Send Post request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}

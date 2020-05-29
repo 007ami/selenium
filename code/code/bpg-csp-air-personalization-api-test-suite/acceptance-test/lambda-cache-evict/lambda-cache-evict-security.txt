@@ -1,0 +1,73 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        security    regression
+Resource          ../../resources/imports.txt
+Resource          resources/lambda-cache-evict.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Generate Test Variables For Post Lambda Cache Evict    token=${invalid_token_1}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    [Tags]    not-ready
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Generate Test Variables For Post Lambda Cache Evict    token=${expired_token}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Generate Test Variables For Post Lambda Cache Evict    token=${EMPTY}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Generate Test Variables For Post Lambda Cache Evict    token=null
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Generate Test Variables For Post Lambda Cache Evict    token=None
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_006 Verify That SUPER_ADMIN Roles Are Given Access
+    #SUPER_ADMIN
+    Send Authenticate Post Request And Get Token    username=${${env}_sadmin_username}    password=${${env}_sadmin_password}
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    #ADMIN
+    Send Authenticate Post Request And Get Token    username=${${env}_gsmadmin_username}    password=${${env}_gsmadmin_password}
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"errorCode\\":\\"403\\",\\"errorMsg\\":\\"Access is Denied\\"}","statusCode":403,"instanceIP":
+    #USER
+    Send Authenticate Post Request And Get Token    username=${${env}_user_username}    password=${${env}_user_password}
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"errorCode\\":\\"403\\",\\"errorMsg\\":\\"Access is Denied\\"}","statusCode":403,"instanceIP":

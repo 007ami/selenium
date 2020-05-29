@@ -1,0 +1,23 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-regions.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That txnId Is Not Required When Retrieving Channels
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Regions    txn_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Get Regions    txn_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Get Regions    txn_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200

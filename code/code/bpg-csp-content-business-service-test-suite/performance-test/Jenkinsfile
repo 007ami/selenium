@@ -1,0 +1,489 @@
+#!/usr/bin/env groovy
+
+pipeline {
+  agent any
+
+  // General Options
+  options {
+    buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '5'))
+  }
+
+  parameters {
+    string(name: 'SOURCE_BRANCH', defaultValue: 'master', description: 'Branch to deploy and do performance test')
+    
+    //AWS Configuration
+    string(name: 'INSTANCE_TYPE', defaultValue: 'c5.large', description: 'Type of EC2 instance to spawn')
+    string(name: 'CLUSTER_SIZE', defaultValue: '2', description: 'Number of EC2 instances to spawn for the cluster')
+    string(name: 'ELB_TARGET_GROUP_NAME', defaultValue: 'perf-bpg-csp-content-svc-tg', description: 'AWS Application Loadbalancer Target Group Name')
+    string(name: 'PERF_TEST_RESULT_S3_BUCKET', defaultValue: 'bpg-business-services', description: 'AWS S3 Bucket Name to Store the Test results (s3://{bucketName})')
+    
+    //PERF TEST Configuration
+    string(name: 'JMXFILE', defaultValue: 'cbs-perf.jmx', description: 'JMN test Script file')
+    string(name: 'RESULTFILE', defaultValue: 'cbs-perf.jtl', description: 'Test Output filename')
+    string(name: 'HOST', defaultValue: '', description: 'Application Host')
+    string(name: 'OUTDIR', defaultValue: 'perf-logs', description: 'Jmeter Output file or directory')
+    string(name: 'THREADS', defaultValue: '25', description: 'No of threads ?')
+    string(name: 'DURATION', defaultValue: '3600', description: 'Duration for test in seconds')
+    string(name: 'RAMPUP', defaultValue: '100', description: 'ramp up time ')
+    string(name: 'EMAIL_SUBJECT', defaultValue: 'Content Business Service API Performance Test Results In', description: 'Performance Test Email Subject')
+    text(name: 'EMAIL_RECIPIENT_LIST', defaultValue: 'MReyes3@Carlsonwagonlit.com; Amit.Pachaury@carlsonwagonlit.com; Joshua.Cura@carlsonwagonlit.com; Jaynam.Shah@carlsonwagonlit.com; Ashraf.Mohammed@carlsonwagonlit.com', description: 'Performance result email recipient list')
+    
+    //Actions to Perform
+    booleanParam(name: 'DO_CLEAN_UP_ONLY', defaultValue: false, description: 'Do Cleanup for Destroy cluster?')
+    booleanParam(name: 'DEPLOY_APPLICATION', defaultValue: true, description: 'Deploy application to perf environment? You would select a build version')
+    // booleanParam(name: 'CREATE_LOAD_BALANCER_AND_TARGET_GROUP', defaultValue: true, description: 'Create load balancer and target group?')
+    booleanParam(name: 'CREATE_CLUSTER', defaultValue: true, description: 'Create cluster?')
+    booleanParam(name: 'DESTROY_CLUSTER', defaultValue: true, description: 'Destroy cluster?')
+    booleanParam(name: 'DESTROY_LOAD_BALANCER_AND_TARGET_GROUP', defaultValue: true, description: 'Destroy load balancer and target group?')
+  }
+  
+  environment {
+    ENVIRONMENT = 'perf'
+    JMETER_DOCKER_COMPOSE_FILE = 'bpg-csp-content-business-service-perf-jmeter-compose.yml'
+  	REPO_NAME = "bpg-csp/content-business-service"
+  	
+  	//Initialize AWS related configuration
+  	REGION_NAME = 'us-west-2'
+  	CLUSTER_NAME = 'bpg-csp-content-business-service'
+  	SERVICE_NAME = 'bpg-csp-content-business-service'
+  	
+  	ECR_URL = "379831576876.dkr.ecr.us-west-2.amazonaws.com/${REPO_NAME}-jmeter"
+  	
+  	ECS_AMI = 'ami-00430184c7bb49914'
+  	VPC_ID = 'vpc-60e2f807'
+  	SUBNET_IDS = 'subnet-ec56608b,subnet-ecca84a5,subnet-9e9e07c4'
+  	SECURITY_GROUP = 'sg-154fcd6b'
+  	JMETER_IAM_ROLE = 'jmeter-perf-runner-profile'
+  	
+  	//SLACK_COLOR_DANGER  = '#E01563'
+  	//SLACK_COLOR_INFO    = '#6ECADC'
+  	//SLACK_COLOR_WARNING = '#FFC300'
+  	//SLACK_COLOR_GOOD    = '#3EB991'
+  	//SLACK_CHANNEL = '#scrum_bpg_cbr_pod4'
+  	//SLACK_BASE_URL = 'https://cwag.slack.com/services/hooks/jenkins-ci/' // 'https://hooks.slack.com/services/T3WPNF06M/B82SYUF5H/'
+  	//SLACK_TOKEN = 'dO50fpwfqZalCzcparUwupdO' // '4rynWnQIWwv13uDx1NMiIXW9' 
+  	
+  }
+
+
+  stages {
+    stage('Choose Build') {
+      when {
+        expression {
+          return params.DEPLOY_APPLICATION && !params.DO_CLEAN_UP_ONLY
+        }
+      }
+      steps {
+        script {
+        // Prepare a list and write to file
+        def dockerImageTags = ""
+        def nextTokenAvailable = true
+        def nextToken = ""
+        def ecrImagesRS = null
+        
+        while (nextTokenAvailable == true) {
+          if(nextToken.length() > 0) {
+            ecrImagesRS = sh (returnStdout: true, script: "aws ecr list-images --repository-name ${REPO_NAME} --region ${REGION_NAME} --filter tagStatus=TAGGED --max-items 100 --starting-token ${nextToken}")
+          } else {
+            ecrImagesRS = sh (returnStdout: true, script: "aws ecr list-images --repository-name ${REPO_NAME} --region ${REGION_NAME} --filter tagStatus=TAGGED --max-items 100")
+          }
+          
+          echo "Response: ${ecrImagesRS}"
+          
+          def ecrImagesJSON = readJSON text: "$ecrImagesRS"
+          ecrImagesJSON.imageIds.each {          
+              dockerImageTags += it.imageTag + "\n"
+          }
+          
+          nextToken = ecrImagesJSON.NextToken
+          nextTokenAvailable = (nextToken != null && nextToken.length() > 0)              
+        }
+        
+        println ("Docker Tags available: " + dockerImageTags)
+        
+        env.TAG_VERSION = input message: 'User input required', ok: 'Go ahead with Perf test',
+          parameters: [choice(name: 'TAG_VERSION', choices: dockerImageTags, description: 'Choose a Docker tag version to perform the Performance test')]
+        }
+        
+        echo "Docker Tag Version selected is: ${env.TAG_VERSION}"
+      }
+    }
+    
+    stage('Prepare Load Balancer And Target Group') {
+      steps {
+        script {
+          setupPerfLoadBalancer();
+        }
+      }
+    }
+    
+    stage('Setup Perf Cluster') {
+      when {
+        expression {
+          return params.CREATE_CLUSTER && !params.DO_CLEAN_UP_ONLY
+        }
+      }
+      steps {
+        script {
+          echo 'Creating Cluster:  ' + env.ENVIRONMENT
+          createCluster(env.ENVIRONMENT, params.INSTANCE_TYPE, params.CLUSTER_SIZE)
+          createCluster('jmeter', 't2.large', 1)
+        }
+        
+        timeout(time: 5, unit: 'MINUTES') {
+          input message: 'Continue Deploy and Execute Perf Test?', submitter: getBuildSubmitter()
+        }
+      }
+    }
+	
+    stage('Build Jmeter Container') {
+      when {
+        expression {
+          return !params.DO_CLEAN_UP_ONLY
+        }
+      }
+      steps {
+       	dir('./bpg-csp-content-business-service-test-suite/performance-test/') {
+           sh 'docker build -t ${REPO_NAME}-jmeter:latest .'
+           sh 'docker tag ${REPO_NAME}-jmeter:latest ${ECR_URL}:latest'
+           echo "Pushing docker container to ECR : ${ECR_URL}"
+           sh 'eval $(aws ecr get-login --no-include-email --region ${REGION_NAME} | sed \'s|https://||\')'
+           sh 'docker push ${ECR_URL}:latest'
+       	}
+          
+      }
+    }
+    
+    stage('Deploy Application') {
+      when {
+        expression {
+          return params.DEPLOY_APPLICATION && !params.DO_CLEAN_UP_ONLY
+        }
+      }
+      steps {
+        script {
+          def sourceBranch = params.SOURCE_BRANCH;
+          sourceBranch = sourceBranch.replaceAll('/', '%2F')
+                    
+          build (job: 'content-business-service/bpg-csp-content-business-service/' + sourceBranch, 
+            propagate: true, 
+            wait: true,
+          parameters:[ 
+            string(name: 'TAG_VERSION', value: env.TAG_VERSION),
+            string(name: 'PERF_TG_ARN', value: env.TARGET_GROUP_ARN),   
+            [$class: 'BooleanParameterValue', name: 'DEPLOY_TO_PERF', value: Boolean.valueOf(true)],
+            [$class: 'BooleanParameterValue', name: 'DEPLOY_TO_DEV', value: Boolean.valueOf(false)],
+            [$class: 'BooleanParameterValue', name: 'RUN_REGRESSION_DEV', value: Boolean.valueOf(false)]
+            ])
+          
+          performHealthChecks("http://${HOST}/cbs/actuator/health")
+          targetGroupInstancesHealthCheck()
+        }
+      }
+    }
+
+    stage('Deploy Jmeter container') {
+      when {
+        expression {
+          return !params.DO_CLEAN_UP_ONLY
+        }
+      }
+      steps {
+        script {
+            deployJmeterDockerContainer()
+        }
+      }
+    }
+    
+    stage('Run Performance Test') {
+      when {
+        expression {
+          return !params.DO_CLEAN_UP_ONLY
+        }
+      }
+      steps {
+        script {
+        
+            waitPerfTestToFinish()
+            downloadPerfTestResultsAndSendEmail()
+        }
+      }
+    }
+    
+    stage('Teardown Cluster') {
+      when {
+        expression {
+          return params.DESTROY_CLUSTER
+        }
+      }
+      steps {
+        timeout(time: 15, unit: 'MINUTES') {
+          input message: 'Teardown perf env?'
+        }
+      
+        script {
+          try {
+            deleteCluster('jmeter')
+            
+          } catch (Exception ex) {
+            echo 'Unable to delete jmeter cluster'
+            println(ex)
+          }
+          
+          try {
+            deleteService(env.ENVIRONMENT, env.SERVICE_NAME)
+          } catch (Exception ex) {
+            echo 'Unable to delete service'
+            println(ex)
+          }
+
+        	deleteCluster(env.ENVIRONMENT)
+          
+          if (params.DESTROY_LOAD_BALANCER_AND_TARGET_GROUP) {
+            sleep 600
+          }
+
+        }
+      }
+    }
+	
+    stage('Teardown Load Balancer And Target Group') {
+      when {
+        expression {
+          return params.DESTROY_LOAD_BALANCER_AND_TARGET_GROUP
+        }
+      }
+      steps {        
+        script {  
+          teardownPerfLoadBalancer();
+        }
+      }
+    }
+	
+  }    
+
+  // Post Pipeline Job Actions
+  post {
+    always {
+  		echo "Wipe the workspace!"
+  		cleanWs()
+    }
+    success {
+  		echo "success!"
+//  		slackSend channel: "${env.SLACK_CHANNEL}", 
+//               baseUrl: "${env.SLACK_BASE_URL}", 
+//               token: "${env.SLACK_TOKEN}", 
+//               color: "${env.SLACK_COLOR_GOOD}", 
+//               message: "Pipeline: ${currentBuild.fullDisplayName} completed successfully." + (params.DESTROY_CLUSTER ? " Perf Env teardown/cleanup done." : "")
+    }
+    unstable {
+  		echo "Unstable Build!!!"
+//  		slackSend channel: "${env.SLACK_CHANNEL}", 
+//              baseUrl: "${env.SLACK_BASE_URL}", 
+//              token: "${env.SLACK_TOKEN}", 
+//              color: "${env.SLACK_COLOR_DANGER}", 
+//              message: "Pipeline: ${currentBuild.fullDisplayName} is unstable. Please check ${env.BUILD_URL}" 
+    }
+    failure {
+      echo "failure!"
+//		  slackSend channel: "${env.SLACK_CHANNEL}", 
+//        			baseUrl: "${env.SLACK_BASE_URL}", 
+//        			token: "${env.SLACK_TOKEN}", 
+//        			color: "${env.SLACK_COLOR_WARNING}", 
+//        			message: "Pipeline: ${currentBuild.fullDisplayName} FAILED. Please fix ${env.BUILD_URL}" 
+      
+      sendTestFailureEmail()
+    }
+  }
+  
+} // Close of Pipeline
+
+def targetGroupInstancesHealthCheck(){
+	echo 'target group instances health check'
+    timeout(time: 5, unit: 'MINUTES') {
+      waitUntil {
+        script {
+        	def describeTg = sh(returnStdout: true, script: "aws elbv2 describe-target-groups --region ${REGION_NAME} --names ${ELB_TARGET_GROUP_NAME}").trim()
+        	def describeTgJSON = readJSON text: "$describeTg"
+        	def tgArn = describeTgJSON.TargetGroups[0].TargetGroupArn
+        	env.TARGET_GROUP_ARN = tgArn
+        }
+        	
+       	script {
+	        def targetHealthDescriptionsRs = sh(returnStdout: true, script: "aws elbv2 describe-target-health --region ${REGION_NAME} --target-group-arn ${TARGET_GROUP_ARN}").trim()
+	        def targetHealthDescriptionsJSON = readJSON text: "$targetHealthDescriptionsRs"
+	        def healthyCnt = 0
+	        targetHealthDescriptionsJSON.TargetHealthDescriptions.each { instance ->
+		        if(instance.TargetHealth.State == "healthy") {
+		            healthyCnt++
+		        }
+	
+	        }
+	        println("Healthy Target Group Instance Count = $healthyCnt ; Cluster Size = " + params.CLUSTER_SIZE)
+	        return (healthyCnt == params.CLUSTER_SIZE.toInteger())
+	      }
+     }
+   }
+}
+
+
+def performHealthChecks(absoluteUrl) {
+
+	echo 'Waiting for the Application ramp up time'
+	
+	timeout(time: 3, unit: 'MINUTES') {
+	    script {
+	      waitUntil {
+				  script {
+           def healthCheckRS = sh(returnStdout: true, script: "curl --request GET --silent -k -w \\\\n%{http_code} --output /dev/null \
+             -H 'Cache-Control: no-cache' -H 'Content-Type: application/json' \
+             ${absoluteUrl} ").trim()
+           println("healthCheckRS=" + healthCheckRS)
+           return (healthCheckRS == '200')
+				}
+			}
+		}        
+	}
+}
+
+def sendTestFailureEmail() {
+	emailext (to: '${EMAIL_RECIPIENT_LIST}', subject: "${EMAIL_SUBJECT} - ${ENVIRONMENT}", body:'${SCRIPT, template="groovy-html.template"}')
+}
+
+def downloadPerfTestResultsAndSendEmail() {
+	echo "Copying the file from S3 bucket s3://${PERF_TEST_RESULT_S3_BUCKET}/content-business-svc-perf/${OUTDIR} to test_report.txt"
+	// sh 'aws s3 cp s3://${PERF_TEST_RESULT_S3_BUCKET}/content-business-svc-perf/${RESULTFILE} ${RESULTFILE}'
+	sh 'aws s3 cp s3://${PERF_TEST_RESULT_S3_BUCKET}/content-business-svc-perf/dashboard.tar dashboard.tar'
+  echo 'Copied the file from AWS successfully'   
+	
+	emailext (to: '${EMAIL_RECIPIENT_LIST}', subject: "${EMAIL_SUBJECT} - ${ENVIRONMENT}", body:'${SCRIPT, template="groovy-html.template"}', attachmentsPattern: 'dashboard.tar')
+}
+
+def deployJmeterDockerContainer() {
+  dir('./bpg-csp-content-business-service-test-suite/performance-test/') {
+    echo 'Deploying to ' + env.ENVIRONMENT 
+    
+    script {
+      	env.TEMP_FILE = env.ENVIRONMENT + "_" + env.JMETER_DOCKER_COMPOSE_FILE
+    }
+    
+    sh 'cat ${JMETER_DOCKER_COMPOSE_FILE} | sed "s/\\$environment/$ENVIRONMENT/g;s/\\$tag_version/latest/g;s/\\$jmxfile/$JMXFILE/g;s/\\$resultfile/$RESULTFILE/g;s/\\$host/$HOST/g;s/\\$outdir/$OUTDIR/g;s/\\$threads/$THREADS/g;s/\\$duration/$DURATION/g;s/\\$rampup/$RAMPUP/g;s|\\$bucketname|$PERF_TEST_RESULT_S3_BUCKET|g" > ${TEMP_FILE}'
+    sh 'cat ${TEMP_FILE}'
+      
+    sh '/usr/local/bin/ecs-cli compose --file ${TEMP_FILE} --ecs-params ecs-params.yml --project-name content-business-service-api-jmeter --region ${REGION_NAME} --cluster jmeter-${CLUSTER_NAME} up --create-log-groups'
+    echo 'success deploying jmeter'
+	}
+
+}
+
+def deleteService(env, service) {
+  try {
+    echo 'Update service count to 0'
+    sh "aws ecs update-service --cluster ${env}-${CLUSTER_NAME} --service ${service} --desired-count 0 --region ${REGION_NAME}"
+
+    echo 'Delete service'
+    sh "aws ecs delete-service --cluster ${env}-${CLUSTER_NAME} --service ${service} --region ${REGION_NAME}"
+
+    echo 'Wait for deleted service to be inactive'
+    sh "aws ecs wait services-inactive --cluster ${env}-${CLUSTER_NAME} --service ${service} --region ${REGION_NAME}"
+  } catch (Exception ex) {
+    echo 'Exception encountered: Unable to delete service'
+    println(ex)
+  }
+}
+
+def deleteCluster(env) {
+  sh "/usr/local/bin/ecs-cli down --cluster $env-${CLUSTER_NAME} --region ${REGION_NAME} --force"
+}
+
+@NonCPS
+def createCluster(env, instanceType, clusterSize) {
+	echo "Creating cluster intended for: ${env}..."
+	
+	if (env == 'jmeter') {
+    sh "/usr/local/bin/ecs-cli up --launch-type EC2 --cluster $env-${CLUSTER_NAME} --region ${REGION_NAME} --size $clusterSize --instance-type $instanceType --image-id ${ECS_AMI} --vpc ${VPC_ID} --subnets ${SUBNET_IDS} --security-group ${SECURITY_GROUP} --instance-role ${JMETER_IAM_ROLE} --no-associate-public-ip-address --force"
+	} else {
+    sh "/usr/local/bin/ecs-cli up --launch-type EC2 --cluster $env-${CLUSTER_NAME} --region ${REGION_NAME} --size $clusterSize --instance-type $instanceType --image-id ${ECS_AMI} --vpc ${VPC_ID} --subnets ${SUBNET_IDS} --security-group ${SECURITY_GROUP} --capability-iam --no-associate-public-ip-address --force"
+	}
+}
+
+
+def waitPerfTestToFinish() {
+	def time = params.DURATION
+	echo 'will wait for the perf run to finish...'
+  script {
+  	waitUntil {
+      script {
+      	sleep (time.toInteger()/4 + 10)
+      	def taskListRS    = sh(returnStdout: true, script: "aws ecs list-tasks --cluster jmeter-${CLUSTER_NAME} --region ${REGION_NAME}").trim()
+      	println taskListRS
+      	def taskListJSON  = readJSON text: "$taskListRS"
+      	def taskCompleted = true;
+      	
+      	taskListJSON.taskArns.each { taskArn ->
+      		def taskDefRS    = sh(returnStdout: true, script: "aws ecs describe-tasks --cluster jmeter-${CLUSTER_NAME} --region ${REGION_NAME} --tasks ${taskArn}" ).trim()
+      		println taskDefRS
+      		def taskDefJSON  = readJSON text: "$taskDefRS"
+      		taskDefJSON.tasks.each { task -> task.containers.each { container ->
+              println("Task:"+ taskArn + " container: " + container.containerArn + " Status:" + container.lastStatus + " Name:" + container.name)
+              if(taskCompleted == true && container.lastStatus == 'RUNNING' && container.name == 'bpg-csp-content-business-service-jmeter') {
+                taskCompleted = false
+              }
+            }
+      		}
+        }
+        echo 'perf test taskCompleted: ' + taskCompleted
+        return (taskCompleted)
+      }
+  	}
+	}
+}
+
+def setupPerfLoadBalancer() {
+  echo "Preparing LoadBalancer intended for: Perf..."  
+  def subnets = SUBNET_IDS.replace(",", " ")
+  def createLbRS = sh(returnStdout: true, script: "aws elbv2 create-load-balancer --name perf-bpg-content-svc-lb --region ${REGION_NAME} --scheme internal --subnets ${subnets} --security-groups ${SECURITY_GROUP}").trim()
+  
+  println("Prepare ELB reply: " + createLbRS);
+  
+  def createLbRSJSON = readJSON text: "$createLbRS"
+  def lbArn = createLbRSJSON.LoadBalancers[0].LoadBalancerArn
+  env.LOAD_BALANCER_ARN = lbArn
+  env.HOST = createLbRSJSON.LoadBalancers[0].DNSName
+  
+  echo "Preparing Target Group intended for: Perf..."  
+  def createTgRS = sh(returnStdout: true, script: "aws elbv2 create-target-group --name ${ELB_TARGET_GROUP_NAME} --region ${REGION_NAME} --protocol HTTP --port 80 --vpc-id ${VPC_ID} --health-check-path /cbs/actuator/health").trim()
+  def createTgRSJSON = readJSON text: "$createTgRS"
+  def tgArn = createTgRSJSON.TargetGroups[0].TargetGroupArn
+  env.TARGET_GROUP_ARN = tgArn
+  
+  echo "Preparing Listener intended for: Perf..."  
+  def createListenerRS = sh(returnStdout: true, script: "aws elbv2 create-listener --load-balancer-arn ${LOAD_BALANCER_ARN} --region ${REGION_NAME} --protocol HTTP --port 80  --default-actions Type=forward,TargetGroupArn=${TARGET_GROUP_ARN}").trim()
+  def createListenerRSJSON = readJSON text: "$createListenerRS"
+  def listenerArn = createListenerRSJSON.Listeners[0].ListenerArn
+  env.LISTENER_ARN = listenerArn
+}
+
+def teardownPerfLoadBalancer() {
+  echo "Deleting Listener intended for: Perf..."  
+  def deleteListenerRS = sh(returnStdout: true, script: "aws elbv2 delete-listener --listener-arn ${LISTENER_ARN} --region ${REGION_NAME}").trim()
+  echo "Response: ${deleteListenerRS}"
+  
+  echo "Deleting Target Group intended for: Perf..."  
+  def deleteTgRS = sh(returnStdout: true, script: "aws elbv2 delete-target-group --target-group-arn ${TARGET_GROUP_ARN} --region ${REGION_NAME}").trim()
+  echo "Response: ${deleteTgRS}"
+  
+  echo "Deleting LoadBalancer intended for: Perf..."  
+  def deleteLbRS = sh(returnStdout: true, script: "aws elbv2 delete-load-balancer --load-balancer-arn ${LOAD_BALANCER_ARN} --region ${REGION_NAME}").trim()
+  echo "Response: ${deleteLbRS}"  
+}
+
+@NonCPS
+def getBuildUserId() {
+    return currentBuild.rawBuild.getCause(Cause.UserIdCause).getUserId()
+}
+
+@NonCPS
+def getBuildSubmitter() {
+    return getBuildUserId().toUpperCase() + ',' + getBuildUserId()
+}

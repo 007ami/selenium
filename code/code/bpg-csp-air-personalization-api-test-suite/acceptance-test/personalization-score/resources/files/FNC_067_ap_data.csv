@@ -1,0 +1,21 @@
+row_id,departure _start _date,departure_ end_ date,origin,destination,origin_type,destination_ type,point_ of_ sale_ code,point_ of_ sale_ type,marketing_ carrier_ code,direction_ type,policy_ order,cabin_ class,booking_ start_ date,booking_ end_ date,validating_ carrier_ code
+2,01/01/2018,31/12/2020,JFK,LHR,Airport,Airport,GB,Country,AA,D,1,F,01/01/2018,31/08/2030,AA
+2,01/01/2018,31/12/2020,JFK,GB,Airport,Country,GB,Country,BA,D,1,F,01/01/2018,31/08/2030,AA
+2,01/01/2018,31/12/2020,JFK,EUR,Airport,Region,GB,Country,IB,D,1,F,01/01/2018,31/08/2030,AA
+2,01/01/2018,31/12/2020,JFK,YYYY,Airport,Global,GB,Country,AY,D,1,F,01/01/2018,31/08/2030,AA
+3,01/01/2018,31/12/2020,US,LHR,Country,Airport,GB,Country,VS,D,2,F,01/01/2018,31/08/2030,AA
+3,01/01/2018,31/12/2020,US,GB,Country,Country,GB,Country,DL,D,2,F,01/01/2018,31/08/2030,AA
+4,01/01/2018,31/12/2020,US,EUR,Country,Region,GB,Country,AA,D,1,F,01/01/2018,31/08/2030,AA
+4,01/01/2018,31/12/2020,US,YYYY,Country,Global,GB,Country,BA,D,1,F,01/01/2018,31/08/2030,AA
+4,01/01/2018,31/12/2020,NAM,LHR,Region,Airport,GB,Country,IB,D,1,F,01/01/2018,31/08/2030,AA
+4,01/01/2018,31/12/2020,NAM,GB,Region,Country,GB,Country,AY,D,1,F,01/01/2018,31/08/2030,AA
+5,01/01/2018,31/12/2020,NAM,EUR,Region,Region,GB,Country,DL,D,2,F,01/01/2018,31/08/2030,AA
+5,01/01/2018,31/12/2020,NAM,YYYY,Region,Global,GB,Country,AF,D,2,F,01/01/2018,31/08/2030,AA
+5,01/01/2018,31/12/2020,YYYY,LHR,Global,Airport,GB,Country,KL,D,2,F,01/01/2018,31/08/2030,AA
+5,01/01/2018,31/12/2020,YYYY,GB,Global,Country,GB,Country,AZ,D,2,F,01/01/2018,31/08/2030,AA
+17,01/01/2018,31/12/2020,YYYY,EUR,Global,Region,GB,Country,DL,D,4,F,01/01/2018,31/08/2030,AA
+17,01/01/2018,31/12/2020,YYYY,YYYY,Global,Global,GB,Country,AF,D,4,F,01/01/2018,31/08/2030,AA
+17,01/01/2018,31/12/2020,JFK,LHR,Airport,Airport,EUR,Region,KL,D,4,F,01/01/2018,31/08/2030,AA
+17,01/01/2018,31/12/2020,JFK,GB,Airport,Country,EUR,Region,AZ,D,4,F,01/01/2018,31/08/2030,AA
+17,01/01/2018,31/12/2020,JFK,EUR,Airport,Region,EUR,Region,VS,D,4,F,01/01/2018,31/08/2030,AA
+1,01/01/2018,31/12/2020,ASA,EUR,Region,Region,GB,Country,BA,D,3,F,01/01/2018,31/08/2030,AA

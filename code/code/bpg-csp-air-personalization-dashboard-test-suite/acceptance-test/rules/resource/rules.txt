@@ -1,0 +1,998 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resource/imports.txt
+Resource          ../../resource/common.txt
+Resource          ../../authentication/resource/authentication.txt
+
+*** Keywords ***
+Add Default Channels In MongoDB
+    Set Suite Variable    ${endpoint}    ${context_path}-admin/channels
+    Set Suite Variable    ${json_body}    ${mongo_channels_list}
+    Set Suite Variable    ${query_param_list}    None
+    Set Suite Variable    ${token}    ${${env}_gw_token}
+    ${uuid}    Generate UUID
+    Set Suite Variable    ${txn_id}    ${uuid}
+    Send PUT Request
+
+Add Default Clients In MongoDB
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    : FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    Mongo DB Client Data
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+
+Add Default TravelPort Data In MongoDB
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    : FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    Mongo DB Travel Port Data
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+
+Add Multiple Rules
+    [Arguments]    ${rules_list}
+    ${rules_list}    Split String    ${rules_list}    |
+    Log    ${rules_list}
+    : FOR    ${rules_list_items}    IN    @{rules_list}
+    \    ${rules_list_items}    Split String    ${rules_list_items}    ,
+    \    Click Add Rule Button
+    \    Run Keyword If    "${rules_list_items[0]}"!="${EMPTY}"    Set Sequence Number    ${rules_list_items[0]}
+    \    Run Keyword If    "${rules_list_items[1]}"!="${EMPTY}"    Set Rule Name    ${rules_list_items[1]}
+    \    Run Keyword If    "${rules_list_items[2]}"!="${EMPTY}"    Select ClientTopGuid From Dropdown List    ${rules_list_items[2]}
+    \    Run Keyword If    "${rules_list_items[3]}"!="${EMPTY}"    Select ClientSubGuid From Dropdown List    ${rules_list_items[3]}
+    \    Run Keyword If    "${rules_list_items[4]}"!="${EMPTY}"    Set PCC    ${rules_list_items[4]}
+    \    Run Keyword If    "${rules_list_items[5]}"!="${EMPTY}"    Set POS Region    ${rules_list_items[5]}
+    \    Run Keyword If    "${rules_list_items[6]}"!="${EMPTY}"    Set POS Country    ${rules_list_items[6]}
+    \    Run Keyword If    "${rules_list_items[7]}"!="${EMPTY}"    Set Origin Region    ${rules_list_items[7]}
+    \    Run Keyword If    "${rules_list_items[8]}"!="${EMPTY}"    Set Origin Country    ${rules_list_items[8]}
+    \    Run Keyword If    "${rules_list_items[9]}"!="${EMPTY}"    Set Origin Airport    ${rules_list_items[9]}
+    \    Run Keyword If    "${rules_list_items[10]}"!="${EMPTY}"    Set Destination Region    ${rules_list_items[10]}
+    \    Run Keyword If    "${rules_list_items[11]}"!="${EMPTY}"    Set Destination Country    ${rules_list_items[11]}
+    \    Run Keyword If    "${rules_list_items[12]}"!="${EMPTY}"    Set Destination Airport    ${rules_list_items[12]}
+    \    Run Keyword If    "${rules_list_items[13]}"!="${EMPTY}"    Select Direction From Dropdown List    ${rules_list_items[13]}
+    \    Run Keyword If    "${rules_list_items[14]}"!="${EMPTY}"    Select Channel From Dropdown List    ${rules_list_items[14]}
+    \    Run Keyword If    "${rules_list_items[15]}"=="ON"    Set Switch
+    \    Click Save Button
+    \    Verify Success Message
+
+Change Table Row Limit
+    [Arguments]    ${limit}=10
+    Click Object    ${row_drpdwn}
+    ${page}    Catenate    SEPARATOR=    ${row_amount_limit}    [text()='${limit}']
+    Click Object    ${page}
+    Sleep    2
+
+Clear Download Directory
+    Empty Directory    ${CURDIR}/../download
+
+Clear Field
+    [Arguments]    ${clr_field_id}
+    ${clr_field_id}    Split String    ${clr_field_id}    |
+    : FOR    ${clr_field_id_items}    IN    @{clr_field_id}
+    \    Clear Object Text    ${clr_field_id_items}
+
+Clear Rules Field
+    Clear Object Text    ${rule_name_txt}
+
+Click Add Rule Button
+    Click Object    ${add_rule_btn}    2    false    button
+    Sleep    3
+
+Click Cancel Button
+    Click Object    ${cancel_btn}    \    false    button
+
+Click Choose File Button
+    Click Object    ${choose_file_btn}    2    false    button
+
+Click Delete Button
+    [Arguments]    ${row_number}=0
+    ${delete_rule_btn}    Replace String    ${delete_rule_btn}    row_number    ${row_number}
+    Wait Until Element Is Visible    ${delete_rule_btn}
+    Click Object    ${delete_rule_btn}    2    false    element
+    Sleep    2
+
+Click Delete Alert Confirmation
+    [Arguments]    ${confirmation}=yes
+    Wait Until Element Is Visible    ${delete_alert_yes}
+    Run Keyword And Continue On Failure    Run Keyword If    "${confirmation}"=="yes"    Click Object    ${delete_alert_yes}    \    false
+    ...    button
+    Run Keyword And Continue On Failure    Run Keyword If    "${confirmation}"=="no"    Click Object    ${delete_alert_yes}    \    false
+    ...    button
+
+Click Download Dropdown Button and Download Latest Rules
+    Click Object    ${download_btn}    2    false    Element
+    Click Object    ${latest_rules_drpdwn_btn}    2    false    Link
+    ${year}    ${month}    ${day}    ${hour}    ${min}    Get Time    year,month,day,hour,min
+    ${filename}    Catenate    SEPARATOR=    LatestUploadedRules_    ${year}    ${month}    ${day}
+    ...    _    ${hour}    ${min}
+    Log    ${filename}
+    Set Test Variable    ${filename}
+
+Click Download Rules Template Link
+    Click Object    ${download_btn}    2    false    Element
+    Click Object    ${download_rules_template_lnk}    2    false    Link
+    Sleep    3
+
+Click Edit Button
+    [Arguments]    ${row_number}=0
+    ${edit_rule_btn}    Replace String    ${edit_rule_btn}    row_number    ${row_number}
+    Wait Until Element Is Visible    ${edit_rule_btn}
+    Click Object    ${edit_rule_btn}    2    false    element
+    Sleep    2
+
+Click Edit Link From Table
+    [Arguments]    ${link_count}
+    Click Object    (//a[text()='Edit'])[${link_count}]    \    false    Link
+
+Click Field
+    [Arguments]    ${obj_id}
+    Click Object    ${obj_id}    2    false    element
+
+Click Guidelines Button
+    Click Object    ${guideline_btn}    2    false    element
+    Sleep    3
+
+Click Multi Delete Checkbox
+    Click Object    ${multi_delete_chkbx}    2    false    button
+    Sleep    5
+
+Click On Multi Checkboxs
+    [Arguments]    ${checkbox_sequence}
+    ${checkbox_sequence}    Split String    ${checkbox_sequence}    ,
+    : FOR    ${sequence_items}    IN    @{checkbox_sequence}
+    \    ${rules_checkbox_new}    Replace String    ${rules_checkbox}    checkbox_sequence    ${sequence_items}
+    \    Click Object    ${rules_checkbox_new}    2    false    element
+
+Click On Next Arrow
+    Wait Until Page Contains Element    ${next_arrow_btn}
+    Click Object    ${next_arrow_btn}    \    False    Link
+    Sleep    3
+
+Click On Page Number
+    [Arguments]    ${page_no.}
+    ${pagination}    Catenate    SEPARATOR=    ${pagination_no._lnk}    [text()='${page_no.}']/..
+    Wait Until Element Is Visible    ${pagination}
+    Click Object    ${pagination}    \    False    Link
+    Sleep    2
+
+Click On Previous Arrow
+    Wait Until Element Is Visible    ${previous_arrow_btn}
+    Click Object    ${previous_arrow_btn}    \    False    Link
+    Sleep    3
+
+Click Reset Button
+    Click Object    ${reset_btn}    2    false    button
+
+Click Save Button
+    Click Object    ${save_btn}    2    false    element
+    Wait Until Element Is Visible    loading-spinner-text
+    Wait Until Element Is Not Visible    loading-spinner-text    10
+
+Click Search Filter Checkbox
+    Click Object    ${search_filter_chkbx}    2    false    button
+    Sleep    5
+
+Click Update Link From Table
+    [Arguments]    ${link_count}
+    Click Object    (//a[text()=Update])[${link_count}]    \    false    Link
+
+Click Upload Button
+    Wait Until Element Is Enabled    ${upload_rules_btn}
+    Click Object    ${upload_rules_btn}    2    false    button
+    Sleep    4
+
+Convert Rules File To List
+    [Arguments]    ${file}=default_30_rules.csv
+    ${rules_list}    Get File    ${CURDIR}/../files/${file}
+    ${rules_list}    Split To Lines    ${rules_list}    1
+    Log    ${rules_list}
+    Set Test Variable    ${rules_list}
+    [Return]    ${rules_list}
+
+Create Browser Desired Capabilitites List
+    ${dc}    Create Dictionary
+    Set Suite Variable    ${dc}
+
+Create Multiple Rules
+    [Arguments]    ${add_rule}
+    ${add_rule}    Split String    ${add_rule}    |
+    : FOR    ${add_rule_items}    IN    @{add_rule}
+    \    ${add_rule_items}    Split String    ${add_rule_items}    :
+    \    Set Rule Name    ${add_rule_items[0]}
+    \    Select Channel From Dropdown List    ${add_rule_items[1]}
+    \    Select ClientTopGuid From Dropdown List    ${add_rule_items[2]}
+    \    Select ClientSubGuid From Dropdown List    ${add_rule_items[3]}
+    \    Set Origin Region    ${add_rule_items[4]}
+    \    Set Origin Country    ${add_rule_items[5]}
+    \    Set Destination Region    ${add_rule_items[6]}
+    \    Set Destination Country    ${add_rule_items[7]}
+    \    Set Switch
+    \    Click Save Button
+    \    Verify Success Message
+    \    Click Add Rule Button
+
+Create Success Stub For Powerbase API
+    [Arguments]    ${file}=default_stub_powerbase.json
+    Create Session    wm    ${wiremock_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":{"url":"${wiremock_powerbase_url}${csu_guid_list}","method":"GET"}
+    ${response_body}    Set Variable    "response":{"status":200,"jsonBody": [${json_response}]
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Comment    Get Stub ID And Append To Stub List
+
+Create Success Stub For Powerbase API TravelPort Data
+    [Arguments]    ${file}=default_travelport_data.txt
+    Create Session    wm    ${wiremock_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":{"url":"${wiremock_travelport_url}","method":"GET"}
+    ${response_body}    Set Variable    "response":{"status":200,"headers":{"Content-Type":"application/json"},"bodyFileName": "${file}"
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Comment    Get Stub ID And Append To Stub List
+
+Create Successs Stub For Client Data
+    [Arguments]    ${num_of_clients}=5    ${json_response}=${EMPTY}    ${client_hash_list}=${default_cp_hash}
+    ${client_hash_list}    Split String    ${client_hash_list}    |
+    @{client_sub_guid_list}    Create List
+    : FOR    ${client_hash_item}    IN    @{client_hash_list}
+    \    ${client_hash_item}    Split String    ${client_hash_item}    ::
+    \    Append To List    ${client_sub_guid_list}    ${client_hash_item[2]}
+    Set Test Variable    ${client_sub_guid_list}
+    Set Test Variable    ${csu_guid_list}    ${EMPTY}
+    Set Test Variable    ${json_response}    ${EMPTY}
+    Set Test Variable    ${ctr}    0
+    Set Test Variable    ${count}    0
+    : FOR    ${client_sub_guid_list_items}    IN    @{client_sub_guid_list}
+    \    ${csu_guid_list}    Set Variable    ${csu_guid_list}&ids=${client_sub_guid_list_items}
+    \    ${json_response}    Set Variable    ${json_response}{"ClientTopUnitGuid":"${count}:${ctr}","ClientTopUnitName":"ClientTop-test-${count}-${ctr}","ClientSubUnits":[{"ClientSubUnitGuid":"${client_sub_guid_list_items}","ClientSubUnitName":"CSU-Test_${count}-${ctr}","Country":{"CountryCode":"US","CountryName":"United States"}}]}
+    \    Remove Values From List    ${client_sub_guid_list}    ${client_sub_guid_list_items}
+    \    Set Test Variable    ${client_sub_guid_list}
+    \    ${ctr}    Evaluate    ${ctr}+1
+    \    ${count}    Evaluate    ${count}+1
+    \    Set Test Variable    ${ctr}
+    \    Set Test Variable    ${count}
+    \    ${csu_guid_list}    Remove String Using Regexp    ${csu_guid_list}    ^&
+    \    Set Test Variable    ${csu_guid_list}
+    \    ${json_response}    Replace String    ${json_response}    }{    },{
+    \    Set Test Variable    ${json_response}
+    \    Run Keyword If    "${ctr}"=="${num_of_clients}"    Run Keywords    Create Success Stub For Powerbase API
+    \    ...    AND    Set Test Variable    ${ctr}    0
+    \    ...    AND    Set Test Variable    ${csu_guid_list}    ${EMPTY}
+    \    ...    AND    Set Test Variable    ${json_response}    ${EMPTY}
+
+Delete Channels Collecton In MongoDB
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    : FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    ${connect_status}    Run Keyword And Return Status    Drop Mongodb Collection    airPersonalization    channels
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+
+Delete Clients Collecton In MongoDB
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    : FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    ${connect_status}    Run Keyword And Return Status    Drop Mongodb Collection    airPersonalization    clients
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+
+Delete TravelPorts Collecton In MongoDB
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    : FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    ${connect_status}    Run Keyword And Return Status    Drop Mongodb Collection    airPersonalization    travelPorts
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+
+Element Is Not Exist In Page
+    [Arguments]    ${obj_id}
+    Element Should Not Be Visible    ${obj_id}
+
+Generate Rules List
+    @{rules_list}    Create List
+    Set Global Variable    @{rules_list}
+
+Generate Test Data For Client Sub Index
+    [Arguments]    ${part}=1234
+    ${default_client_list}    Split String    ${default_client_list}    |
+    : FOR    ${client_sub_item}    IN    @{default_client_list}
+    \    Set To Redis Agent Index    ${redis_connection}    INDEX::CLIENTSUB::${part}    ${client_sub_item}
+
+Generate Test Variables For Get Clients
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${ctu_guid}=None    ${csu_guid}=None
+    ${endpoint}    Set Variable If    "${ctu_guid}" == "None" and "${csu_guid}" == "None"    ${context_path}-admin/clients    "${ctu_guid}" != "None" and "${csu_guid}" == "None"    ${context_path}-admin/clients/${ctu_guid}    "${ctu_guid}" != "None" and "${csu_guid}" != "None"
+    ...    ${context_path}-admin/clients/${ctu_guid}/subunits/${csu_guid}
+    Set Test Variable    ${endpoint}
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+
+Generate Test Variables For Get Rules
+    [Arguments]    ${rule_id}= None    ${rule_name}=None    ${ctu_guid}=None    ${ctu_name}=None    ${csu_guid}=None    ${csu_name}=None
+    ...    ${channel}=None    ${origin_region}=None    ${origin_country}=None    ${destination_region}=None    ${destination_country}=None    ${active}=None
+    ...    ${create_user}=sadmin    ${update_user}=None    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${sort}=None    ${order}=None
+    ...    ${limit}=None    ${offset}=None
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules
+    Set Test Variable    ${json_body}    None
+    ${query_param_list}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    Run Keyword If    "${rule_id}"!="None"    Set To Dictionary    ${query_param_list}    id    ${rule_id}
+    Run Keyword If    "${rule_name}"!="None"    Set To Dictionary    ${query_param_list}    name    ${rule_name}
+    Run Keyword If    "${ctu_guid}"!="None"    Set To Dictionary    ${query_param_list}    clientTopGUID    ${ctu_guid}
+    Run Keyword If    "${ctu_name}"!="None"    Set To Dictionary    ${query_param_list}    clientTopName    ${ctu_name}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${query_param_list}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${csu_name}"!="None"    Set To Dictionary    ${query_param_list}    clientSubName    ${csu_name}
+    Run Keyword If    "${channel}"!="None"    Set To Dictionary    ${query_param_list}    channel    ${channel}
+    Run Keyword If    "${origin_region}"!="None"    Set To Dictionary    ${query_param_list}    originRegion    ${origin_region}
+    Run Keyword If    "${origin_country}"!="None"    Set To Dictionary    ${query_param_list}    originCountry    ${origin_country}
+    Run Keyword If    "${destination_region}"!="None"    Set To Dictionary    ${query_param_list}    destinationRegion    ${destination_region}
+    Run Keyword If    "${destination_country}"!="None"    Set To Dictionary    ${query_param_list}    destinationCountry    ${destination_country}
+    Run Keyword If    "${active}"!="None"    Set To Dictionary    ${query_param_list}    isActive    ${active}
+    Run Keyword If    "${create_user}"!="None"    Set To Dictionary    ${audit_log_body}    createdBy    ${create_user}
+    Run Keyword If    "${update_user}"!="None"    Set To Dictionary    ${audit_log_body}    updatedBy    ${update_user}
+    Run Keyword If    "${audit_log_body}"!="None"    Set To Dictionary    ${query_param_list}    auditLog    ${audit_log_body}
+    Run Keyword If    "${sort}"!="None"    Set To Dictionary    ${query_param_list}    sort    ${sort}
+    Run Keyword If    "${order}"!="None"    Set To Dictionary    ${query_param_list}    order    ${order}
+    Run Keyword If    "${limit}"!="None"    Set To Dictionary    ${query_param_list}    limit    ${limit}
+    Run Keyword If    "${offset}"!="None"    Set To Dictionary    ${query_param_list}    offset    ${offset}
+    Set Test Variable    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${rule_name}
+    Set Test Variable    ${ctu_guid}
+    Set Test Variable    ${ctu_name}
+    Set Test Variable    ${csu_guid}
+    Set Test Variable    ${csu_name}
+    Set Test Variable    ${channel}
+    Set Test Variable    ${origin_region}
+    Set Test Variable    ${origin_country}
+    Set Test Variable    ${destination_region}
+    Set Test Variable    ${destination_country}
+    Set Test Variable    ${active}
+    Set Test Variable    ${create_user}
+    Set Test Variable    ${update_user}
+    Set Test Variable    ${sort}
+    Set Test Variable    ${order}
+    Set Test Variable    ${limit}
+    Set Test Variable    ${offset}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+
+Get All The List Values
+    [Arguments]    ${obj_id}    ${expected_values}
+    ${expected_values}    Split String    ${expected_values}    |
+    ${list_items}    Get Text    ${obj_id}
+    : FOR    ${expected_values_items}    IN    @{expected_values}
+    \    Should Contain    ${list_items}    ${expected_values_items}
+
+Initialize Test Data For Upload API
+    Send Authenticate Post Request And Get Token
+    Delete Clients Collecton In MongoDB
+    Delete TravelPorts Collecton In MongoDB
+    Delete Channels Collecton In MongoDB
+    Add Default Clients In MongoDB
+    Add Default TravelPort Data In MongoDB
+    Add Default Channels In MongoDB
+
+Initialize Test Environment For Admin Upload API
+    Flush All Redis Keys
+    Generate Hash List
+    Generate Agent Index List
+    Generate Stub List
+    Point All Lambda Functions To Wiremock
+    Reset Wiremock Data
+    Send Authenticate Post Request And Get Token
+    Delete Rules Collecton In MongoDB
+    Delete Clients Collecton In MongoDB
+    Delete TravelPorts Collecton In MongoDB
+    Generate Rules List
+
+Login To Dashboard
+    [Arguments]    ${username}=${${env}_sadmin_username}    ${password}=${${env}_sadmin_password}
+    Set Username    ${username}
+    Set Password    ${password}
+    Click Login Button
+
+Mongo DB Client Data
+    ${clients_list}    Split String    ${mongo_clients_list}    |
+    : FOR    ${clients_list_item}    IN    @{clients_list}
+    \    ${connect_status}    Run Keyword And Return Status    Save Mongodb Records    airPersonalization    clients    ${clients_list_item}
+    \    Set Suite Variable    ${connect_status}
+
+Mongo DB Travel Port Data
+    ${travelport_list}    Split String    ${mongo_travelport_list}    |
+    : FOR    ${travelport_list_item}    IN    @{travelport_list}
+    \    ${connect_status}    Run Keyword And Return Status    Save Mongodb Records    airPersonalization    travelPorts    ${travelport_list_item}
+    \    Set Suite Variable    ${connect_status}
+
+Navigate To Rules Page
+    Wait Until Element Is Enabled    ${rules_lnk}
+    Click Object    ${rules_lnk}    \    false    Link
+    Sleep    3
+
+Navigate To Upload Rules Page
+    Wait Until Element Is Enabled    ${upload_rules_lnk}
+    Click Object    ${upload_rules_lnk}    \    false    Link
+    Sleep    3
+
+Next Arrow Is Disabled
+    Verify That Object Does Not Exist    ${next_arrow_btn}    Next Button Element
+
+Next Arrow Is Enabled
+    Verify That Object Exists    ${next_arrow_btn}    Next Button Element
+
+Point All Lambda Functions To Actual Endpoint
+    Update Lambda Function Environment Variable    ${meta_data_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${ap_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${cp_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${tp_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${boost_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${travelport_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${client_config_lambda}    SPRING_PROFILES_ACTIVE    dev
+
+Point All Lambda Functions To Wiremock
+    Update Lambda Function Environment Variable    ${meta_data_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${ap_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${cp_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${tp_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${boost_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${boost_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${travelport_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${client_config_lambda}    SPRING_PROFILES_ACTIVE    test
+
+Previous Arrow Is Disabled
+    Verify That Object Does Not Exist    ${previous_arrow_btn}    Previous Button Element
+
+Previous Arrow Is Enabled
+    Verify That Object Exists    ${previous_arrow_btn}    Previous Button Element
+
+Reset Wiremock Data
+    Create Session    wm    ${wiremock_url}    verify=True
+    Post Request    wm    /__admin/mappings/reset
+
+Select And Upload File
+    [Arguments]    ${file_path}
+    Choose File    ${choose_file_btn}    ${file_path}
+    Comment    ${file_path}    Replace String    ${file_path}    \\    /
+    Comment    Set Test Variable    ${file_path}
+    ${file}    Fetch From Right    ${file_path}    \\
+    Set Test Variable    ${file}
+
+Set Browser Default Download Path
+    Log    ${CURDIR}
+    ${dir}    Join Path    ${CURDIR}    ..    download
+    Log    ${dir}
+    ${path}    Create Dictionary    download.default_directory=${dir}
+    ${prefs}    Create Dictionary    prefs=${path}
+    Set To Dictionary    ${dc}    chromeOptions=${prefs}
+    Set Test Variable    ${dc}
+
+Select Channel From Dropdown List
+    [Arguments]    ${channel_name}
+    Click Object    ${channel_cmb_bx}    2    false    element
+    ${channel_drpdwn_bx}    Replace String    ${channel_drpdwn_bx}    channel_name    ${channel_name}
+    Wait Until Element Is Visible    ${channel_drpdwn_bx}
+    Run Keyword And Continue On Failure    Click Object    ${channel_drpdwn_bx}    2    false    element
+    Set Test Variable    ${channel_name}
+
+Select ClientSubGuid From Dropdown List
+    [Arguments]    ${csu_name}
+    Click Object    ${csu_guid_cmb_bx}    2    false    element
+    ${csu_guid_name_bx}    Replace String    ${csu_guid_name_bx}    csu_name    ${csu_name}
+    Click Object    ${csu_guid_name_bx}    2    false    element
+
+Set Client Sub Unit Name
+    [Arguments]    ${csu_name}
+    Set Object Text    ${csu_name_cmb_bx}    ${csu_name}
+    Set Test Variable    ${csu_name}
+
+Select ClientTopGuid From Dropdown List
+    [Arguments]    ${ctu_name}
+    Click Object    ${ctu_guid_cmb_bx}    2    false    element
+    ${ctu_guid_name_bx}    Replace String    ${ctu_guid_name_bx}    ctu_name    ${ctu_name}
+    Click Object    ${ctu_guid_name_bx}    2    false    element
+
+Set Destination Country
+    [Arguments]    ${destination_country}
+    Set Object Text    ${destination_country_txt}    ${destination_country}
+
+Set Destination Region
+    [Arguments]    ${destination_region}
+    Set Object Text    ${destination_region_txt}    ${destination_region}
+
+Set Filter Values In The Fields
+    [Arguments]    ${obj_id}    ${input_value}
+    Set Object Text    ${obj_id}    ${input_value}
+    Sleep    3
+
+Set Input Text
+    [Arguments]    ${obj_id}    ${input_text}
+    Click Object    ${obj_id}    2    false    element
+    Sleep    5
+    Comment    Input Text    ${obj_id}    ${input_text}
+    Comment    Input Text    ${obj_id}
+    Press Key    ${obj_id}    ${input_text}
+
+Set Origin Country
+    [Arguments]    ${origin_country}
+    Set Object Text    ${origin_country_txt}    ${origin_country}
+
+Set Origin Region
+    [Arguments]    ${origin_region}
+    Set Object Text    ${origin_region_txt}    ${origin_region}
+
+Set Rule Name
+    [Arguments]    ${rule_name}
+    Set Object Text    ${rule_name_txt}    ${rule_name}
+    Set Test Variable    ${rule_name}
+
+Set Sequence Number
+    [Arguments]    ${sequence_num}
+    Set Object Text    ${sequence_number_txt}    ${sequence_num}
+    Set Test Variable    ${sequence_num}
+
+Set Switch
+    Click Object    ${personalization_on_off_btn}    2    false    element
+
+Trigger Lambda Function
+    [Arguments]    ${lambda_func}    ${sleep_time}=15
+    Run    cat > outputfile.txt
+    ${status}    Run    aws lambda invoke --function-name ${lambda_func} --region us-west-2 outputfile.txt
+    Log    ${status}
+    Sleep    ${sleep_time}
+
+Trigger Lambda Function With Payload
+    [Arguments]    ${lambda_func}    ${payload}    ${sleep_time}=15
+    Run    cat > outputfile.txt
+    ${status}    Run    aws lambda invoke --function-name ${lambda_func} --region us-west-2 --payload ${payload} outputfile.txt
+    Log    ${status}
+    Sleep    ${sleep_time}
+
+Update Lambda Function Environment Variable
+    [Arguments]    ${lambda_func}    ${variable}    ${value}
+    ${status}    Run    aws lambda update-function-configuration --function-name ${lambda_func} --region us-west-2 --environment Variables={${variable}=${value}}
+    Log    ${status}
+
+Verify All Fields Are Empty
+    [Arguments]    ${fields_path}
+    Verify Text In The Field    ${rule_name_txt}    ${EMPTY}
+    Verify Text In The Field    ${channel_cmb_bx}    ${EMPTY}
+    Verify Text In The Field    ${ctu_cmb_bx}    ${EMPTY}
+    Verify Text In The Field    ${csu_cmb_bx}    ${EMPTY}
+    Verify Text In The Field    ${origin_region_cmb_bx}    ${EMPTY}
+    Verify Text In The Field    ${origin_country_cmb_bx}    ${EMPTY}
+    Verify Text In The Field    ${destination_region_cmb_bx}    ${EMPTY}
+    Verify Text In The Field    ${destination_country_cmb_bx}    ${EMPTY}
+
+Verify ClientSubGuid Dropdown Values
+    [Arguments]    ${expected_csu_list}
+    ${csu_items_list}    Get List Items    ${csu_drpdwn}
+    Log    ${csu_items_list}
+    Set Test Variable    ${csu_items_list}
+    Lists Should Be Equal    ${csu_items_list}    ${expected_csu_list}
+
+Verify Column Values
+    [Arguments]    ${expected_list_items}
+    ${expected_row_items_list}    Split String    ${expected_list_items}    ,
+    : FOR    ${expected_row_items}    IN    @{expected_row_items_list}
+    \    Run Keyword And Continue On Failure    Table Cell Should Contain    ${rules_tbl}    ${row}    ${col}    ${expected_row_items}
+    \    ${col}    Evaluate    ${col}+1
+
+Verify Download Latest Rule Success Message
+    Wait Until Element Is Visible    ${download_rule_process_lbl}
+    Run Keyword And Continue On Failure    Element Should Contain    ${download_rule_process_lbl}    Please wait while we preparing to download latest rules.
+    Wait Until Element Is Not Visible    ${download_rule_process_lbl}
+    Wait Until Element Is Visible    ${download_rule_lbl}    10
+    Run Keyword And Continue On Failure    Element Should Contain    ${download_rule_lbl}    Download complete. Please check your browser downloads section.
+    Sleep    2
+
+Verify Download Latest Rules Preparing Message
+    Wait Until Element Is Visible    //div[@id='messagesDiv']/p/ngb-alert[@class='alert alert-info alert-dismissible']
+    Run Keyword And Continue On Failure    Element Should Contain    //div[@id='messagesDiv']/p/ngb-alert[@class='alert alert-info alert-dismissible']    Please wait while we preparing to download latest rules.
+    Sleep    2
+
+Verify Error Message For Same Criteria
+    Wait Until Element Is Visible    //div[@id='messagesDiv']/p/ngb-alert[@class='alert alert-danger alert-dismissible']
+    Run Keyword And Continue On Failure    Element Should Contain    //div[@id='messagesDiv']/p/ngb-alert[@class='alert alert-danger alert-dismissible']    Save Rule: ERROR
+    Wait Until Element Is Visible    alertMessage    10
+    Run Keyword And Continue On Failure    Element Should Contain    alertMessage    Active Rule exists with same criteria.
+
+Verify Rules Data In The Table
+    [Arguments]    ${rules}=${EMPTY}    ${limit}=10    ${file}=${EMPTY}    ${rules_list}=${EMPTY}
+    Log    ${file}
+    ${rules_list}    Run Keyword If    "${rules}"!="${EMPTY}"    Split String    ${rules}    |
+    ...    ELSE IF    "${file}"!="${EMPTY}"    Convert Rules File To List    ${file}
+    ...    ELSE    Set Variable    ${rules_list}
+    Log    ${rules_list}
+    Set Test Variable    ${rules_list}
+    ${row}    Set Variable    1
+    : FOR    ${rules_list_item}    IN    @{rules_list}
+    \    ${rules_value_item}    Split String    ${rules_list_item}    ,
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[1]    ${rules_value_item[0]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[2]    ${rules_value_item[1]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[3]    ${rules_value_item[2]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[4]    ${rules_value_item[3]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[5]    ${rules_value_item[4]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[6]    ${rules_value_item[5]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[7]    ${rules_value_item[6]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[8]    ${rules_value_item[7]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[9]    ${rules_value_item[8]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[10]    ${rules_value_item[9]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[11]    ${rules_value_item[10]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[12]    ${rules_value_item[11]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[13]    ${rules_value_item[12]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[14]    ${rules_value_item[13]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[15]    ${rules_value_item[14]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[16]    ${rules_value_item[15]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[17]    ${rules_value_item[16]}    sleep=0
+    \    Run Keyword And Continue On Failure    Verify That Object Text Is Correct    ${rules_tbl_bdy}/tr[${row}]/td[18]    ${rules_value_item[17]}    sleep=0
+    \    ${row}    Evaluate    ${row}+1
+    \    Remove From List    ${rules_list}    0
+    \    Set Test Variable    ${rules_list}
+    \    Exit For Loop If    ${row}>${limit}
+    Run Keyword And Continue On Failure    Verify That Object Does Not Exist    ${rules_tbl_bdy}/tr[${row}]    Element
+    Log    ${rules_list}
+
+Verify Rules List Exceeding Limit
+    [Arguments]    ${rules_limit_count}    ${offset}=0
+    : FOR    ${ctr}    IN RANGE    ${offset}    ${offset}+${rules_limit_count}
+    \    Log    ${rules_list[${ctr}]}
+    \    Log    ${rules_array}
+    \    Run Keyword And Continue On Failure    List Should Contain Value    ${rules_array}    ${rules_list[${ctr}]}
+
+Verify Rules List From File
+    ${rules_list}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    ${files_rules_list}    Get File    ${CURDIR}${/}..//files//${file}
+    ${files_rules_list}    Split To Lines    ${files_rules_list}    1
+    Set Test Variable    ${files_rules_list}
+    ${ctr}    Set Variable    0
+    : FOR    ${files_rules_list_item}    IN    @{files_rules_list}
+    \    ${files_rules_list_item}    Split String    ${files_rules_list_item}    ,
+    \    Set To Dictionary    ${rules_list}    sequence    ${${files_rules_list_item[0]}}
+    \    Set To Dictionary    ${rules_list}    name    ${files_rules_list_item[1]}
+    \    Set To Dictionary    ${rules_list}    clientTopName    ${files_rules_list_item[2]}
+    \    Set To Dictionary    ${rules_list}    clientTopGUID    ${files_rules_list_item[3]}
+    \    Set To Dictionary    ${rules_list}    clientSubName    ${files_rules_list_item[4]}
+    \    Set To Dictionary    ${rules_list}    clientSubGUID    ${files_rules_list_item[5]}
+    \    Set To Dictionary    ${rules_list}    pcc    ${files_rules_list_item[6]}
+    \    Set To Dictionary    ${rules_list}    posRegion    ${files_rules_list_item[7]}
+    \    Set To Dictionary    ${rules_list}    posCountry    ${files_rules_list_item[8]}
+    \    Set To Dictionary    ${rules_list}    originRegion    ${files_rules_list_item[9]}
+    \    Set To Dictionary    ${rules_list}    originCountry    ${files_rules_list_item[10]}
+    \    Set To Dictionary    ${rules_list}    originAirport    ${files_rules_list_item[11]}
+    \    Set To Dictionary    ${rules_list}    destinationRegion    ${files_rules_list_item[12]}
+    \    Set To Dictionary    ${rules_list}    destinationCountry    ${files_rules_list_item[13]}
+    \    Set To Dictionary    ${rules_list}    destinationAirport    ${files_rules_list_item[14]}
+    \    Set To Dictionary    ${rules_list}    direction    ${files_rules_list_item[15]}
+    \    Set To Dictionary    ${rules_list}    channel    ${files_rules_list_item[16]}
+    \    Set To Dictionary    ${audit_log_body}    createdBy    ${create_user}
+    \    Run Keyword If    "${files_rules_list_item[17]}" == "ON"    Set To Dictionary    ${rules_list}    onOffInd    ${TRUE}
+    \    ...    ELSE    Set To Dictionary    ${rules_list}    onOffInd    ${FALSE}
+    \    Run Keyword If    "${files_rules_list_item[15]}"=="${EMPTY}"    Set To Dictionary    ${rules_list}    direction    D
+    \    Set To Dictionary    ${rules_list}    isActive    ${TRUE}
+    \    Log    ${rules_array}
+    \    Log    ${rules_list}
+    \    Log    ${rules_array[${ctr}]}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain Sub Dictionary    ${rules_array[${ctr}]}    ${rules_list}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${rules_array[${ctr}]}    id
+    \    ${json_body}    Convert JSON To String    ${rules_array[${ctr}]}
+    \    ${json_body}    Replace String    ${json_body}    '    "
+    \    Run Keyword And Continue On Failure    Verify Json Value Is Correct    ${json_body}    $.auditLog.createdBy    ${create_user}
+    \    ${created_timestamp}    Get Json Value    ${json_body}    $.auditLog.createdTimestamp
+    \    Run Keyword And Continue On Failure    Should Not Be Empty    ${created_timestamp}    Missing createdTimestamp
+    \    ${ctr}    Evaluate    ${ctr}+1
+
+Verify Rules List From Post Requests
+    ${rules_limit_count}    Get Length    ${rules_array}
+    Log    ${rules_list}
+    Set Test Variable    ${rules_limit_count}
+    ${limit_status}    Run Keyword And Return Status    Should Be True    "${rules_limit_count}"<="${limit}"
+    Run Keyword If    "${limit_status}" == "True"    Run Keyword And Continue On Failure    Log    Rules List is limited to the limit ${limit}
+    ...    ELSE    Fail    Rules List is NOT limited to the limit ${limit}
+    Run Keyword If    "${rule_count}" <= "${limit}"    Run Keyword And Continue On Failure    Lists Should Be Equal    ${rules_array}    ${rules_list}
+    ...    ELSE    Run Keyword And Continue On Failure    Verify Rules List Exceeding Limit    ${rules_limit_count}    ${offset}
+
+Verify Rules List Is Correct
+    [Arguments]    ${rules_list}=${rules_list}    ${limit}=5    ${offset}=0    ${file}=None
+    Set Test Variable    ${offset}
+    ${rules_array}    Get Value From Json    ${response.json()}    $.rules
+    Log    ${rules_array}
+    ${rules_array}    Convert JSON To String    ${rules_array}
+    ${rules_array}    Replace String    ${rules_array}    [    ${EMPTY}    1
+    ${rules_array}    Replace String    ${rules_array}    ]    ${EMPTY}    1
+    ${rules_array}    To Json    ${rules_array}
+    Set Test Variable    ${rules_array}
+    Run Keyword If    "${file}"=="None"    Verify Rules List From Post Requests
+    ...    ELSE    Verify Rules List From File
+    ${rule_count}    Run Keyword If    "${file}"=="None"    Get Length    ${rules_list}
+    ...    ELSE    Get Length    ${files_rules_list}
+    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${response.json()}    totalCount    ${rule_count}
+
+Verify Success Message
+    Wait Until Page Contains Element    ${rule_success_lbl}
+    Run Keyword And Continue On Failure    Page Should Contain Element    ${rule_success_lbl}    Rule (${sequence_num}) ${rule_name} has been saved.
+    Sleep    2
+
+Verify Text In The Field
+    [Arguments]    ${obj_id}    ${item_name}
+    ${selected_value}    Get Value    ${obj_id}
+    Log    ${selected_value}
+    Should Contain    ${selected_value}    ${item_name}
+
+Verify That Download Latest Rules Was Downloaded And Is Correct
+    [Arguments]    ${expected_file}=${file}
+    ${files}    List Files In Directory    ${CURDIR}/../download
+    ${download_file}    Get From List    ${files}    0
+    Should Match Regexp    ${download_file}    ^${filename}..\\.csv$
+    ${actual_file}    Get File    ${CURDIR}/../download/${download_file}
+    ${expected_file}    Get File    ${CURDIR}/../files/${expected_file}
+    Run Keyword And Continue On Failure    Should Be Equal As Strings    ${expected_file}    ${actual_file}    Files Are Not Equal.
+
+Verify That Download Rules Template Was Downloaded And Is Correct
+    Run Keyword And Continue On Failure    File Should Exist    ${CURDIR}/../download/RulesTemplate_v2.csv    File Does Not Exists.
+    ${actual_file}    Get File    ${CURDIR}/../download/RulesTemplate_v2.csv
+    ${expected_file}    Get File    ${CURDIR}/../files/RulesTemplate_v2.csv
+    Run Keyword And Continue On Failure    Should Be Equal As Strings    ${expected_file}    ${actual_file}    Files Are Not Equal.
+
+Verify That Element Is Disable
+    [Arguments]    ${obj_id}
+    Element Should Be Disabled    ${obj_id}
+
+Verify That Element Is Enabled
+    [Arguments]    ${obj_id}
+    Element Should Be Enabled    ${obj_id}
+
+Verify That File Is Successfully Uploaded
+    Sleep    5
+    Run Keyword And Continue On Failure    Page Should Contain    File (${file}) upload progress: 100 %
+
+Verify That File Validation Is Not Successful
+    [Arguments]    ${error_msg_list}
+    Sleep    5
+    Run Keyword And Continue On Failure    Page Should Contain    Upload rules: ERROR
+    ${error_msg_list}    Split String    ${error_msg_list}    |
+    : FOR    ${error_msg_list_item}    IN    @{error_msg_list}
+    \    Run Keyword And Continue On Failure    Page Should Contain    ${error_msg_list_item}
+
+Verify That File Validation Is Successful
+    Run Keyword And Continue On Failure    Page Should Contain    Upload rules: SUCCESS
+    Run Keyword And Continue On Failure    Page Should Contain    Latest rules has been activated successfully!
+    Sleep    3
+
+Verify That Rules Table Is Empty
+    Verify That Object Text Is Correct    ${no_result_lbl}    No results
+
+Verify That Upload Rules Instructions Were Displayed Correctly
+    Verify That Object Text Is Correct    ${instruction_tbl_header_txt}    Guidelines when filling out the template
+    Verify That Object Exists    ${instruction_tbl}    Element
+    ${instruction_row_headers}    Split String    ${instruction_row_headers}    |
+    ${ctr}    Set Variable    1
+    : FOR    ${instruction_row_headers_item}    IN    @{instruction_row_headers}
+    \    ${header}    Catenate    SEPARATOR=    (${instruction_tbl_row_header})    [${ctr}]
+    \    Set Test Variable    ${header}
+    \    Verify That Object Text Is Correct    ${header}    ${instruction_row_headers_item}
+    \    ${ctr}    Evaluate    ${ctr}+1
+    ${tbl_content}    Split String    ${sequence_instructions};${rule_name_instructions};${ct_name_instructions};${ct_guid_instructions};${cs_name_instructions};${csu_guid_instructions};${oid_pcc_instructions};${pos_region_instructions};${pos_country_instructions};${origin_region_instructions};${origin_country_instructions};${origin_airport_instructions};${destination_region_instructions};${destination_country_instructions};${destination_airport_instructions};${direction_instructions};${channel_instructions};${personalization_instructions}    ;
+    ${ctr}    Set Variable    1
+    : FOR    ${tbl_content_item}    IN    @{tbl_content}
+    \    ${tbl_content_item}    Split String    ${tbl_content_item}    |
+    \    ${content}    Catenate    SEPARATOR=    ${instruction_tbl_header_name_content}    [${ctr}]
+    \    Verify That Object Text Is Correct    ${content}    ${tbl_content_item[0]}
+    \    Set Variable    ${content}    ${EMPTY}
+    \    ${content}    Catenate    SEPARATOR=    ${instruction_tbl_optionality_content}    [${ctr}]
+    \    Verify That Object Text Is Correct    ${content}    ${tbl_content_item[1]}
+    \    Set Variable    ${content}    ${EMPTY}
+    \    ${content}    Catenate    SEPARATOR=    ${instruction_tbl_example_content}    [${ctr}]
+    \    Verify That Object Text Is Correct    ${content}    ${tbl_content_item[2]}
+    \    Set Variable    ${content}    ${EMPTY}
+    \    ${content}    Catenate    SEPARATOR=    ${instruction_tbl_format_content}    [${ctr}]
+    \    Verify That Object Text Is Correct    ${content}    ${tbl_content_item[3]}
+    \    Set Variable    ${content}    ${EMPTY}
+    \    ${content}    Catenate    SEPARATOR=    ${instruction_tbl_multiple_values_allowed_content}    [${ctr}]
+    \    Verify That Object Text Is Correct    ${content}    ${tbl_content_item[4]}
+    \    Set Variable    ${content}    ${EMPTY}
+    \    ${content}    Catenate    SEPARATOR=    ${instruction_tbl_special_instruction_content}    [${ctr}]
+    \    Verify That Object Text Is Correct    ${content}    ${tbl_content_item[5]}
+    \    ${ctr}    Evaluate    ${ctr}+1
+
+Verify Value From Direction Dropdown
+    [Arguments]    ${item_name}
+    ${selected_value}    Get Text    ${direction_bx}
+    Log    ${selected_value}
+    Run Keyword And Continue On Failure    Should Contain    ${selected_value}    ${item_name}
+
+Verify Value From Client Sub Unit Guid
+    [Arguments]    ${item_name}
+    ${selected_value}    Get Text    ${clientSub_field_txt}
+    Log    ${selected_value}
+    Should Contain    ${selected_value}    ${item_name}
+
+Verify Value From ClientTop
+    [Arguments]    ${item_name}
+    ${selected_value}    Get Text    ${clientTop_field_txt}
+    Log    ${selected_value}
+    Should Contain    ${selected_value}    ${item_name}
+
+Verify Value From Destination Country
+    [Arguments]    ${item_name}
+    ${selected_value}    Get Text    ${destCountry_field_txt}
+    Log    ${selected_value}
+    Should Contain    ${selected_value}    ${item_name}
+
+Verify Value From Destination Region
+    [Arguments]    ${item_name}
+    ${selected_value}    Get Text    ${destRegion_field_txt}
+    Log    ${selected_value}
+    Should Contain    ${selected_value}    ${item_name}
+
+Verify Value From Origin Country
+    [Arguments]    ${item_name}
+    ${selected_value}    Get Text    ${originCountry_field_txt}
+    Log    ${selected_value}
+    Should Contain    ${selected_value}    ${item_name}
+
+Verify Value From Origin Region
+    [Arguments]    ${item_name}
+    ${selected_value}    Get Text    ${originRegion_field_txt}
+    Log    ${selected_value}
+    Should Contain    ${selected_value}    ${item_name}
+
+Visibility Of Row Number In Table
+    [Arguments]    ${row_number}
+    Click Object    ${row_drpdwn}    2    false    element
+    Click Object    //div[@id='rowAmount']/div/ul/li[${row_number}]    2    false    element
+
+Verify Save Button Is Enabled
+    Element Should Be Enabled    ${save_btn}
+
+Verify Save Button Is Disabled
+    Element Should Be Disabled    ${save_btn}
+
+Verify Add Rule Error Message
+    Wait Until Page Contains Element    ${add_rule_error_lbl}
+    Run Keyword And Continue On Failure    Element Should Contain    ${add_rule_error_lbl}    Failed to save the rule. Please try again
+    Sleep    3
+
+Set Input Channel Name
+    [Arguments]    ${channel_name}
+    Set Object Text    ${channel_field_txt}    ${channel_name}
+    Set Test Variable    ${channel_name}
+
+Verify Channel Dropdown List
+    [Arguments]    ${channel_list}
+    Run Keyword And Continue On Failure    Click Object    ${channel_cmb_bx}    2    false    element
+    Sleep    2
+    ${dropdown_list}    Run Keyword And Continue On Failure    Get Text    ${channel_dropdown_list}
+    Log    ${dropdown_list}
+    ${channel_list}    Split String    ${channel_list}    |
+    ${dropdown_list}    Convert To String    ${dropdown_list}
+    : FOR    ${channel_items}    IN    @{channel_list}
+    \    Run Keyword And Continue On Failure    Should Contain    ${dropdown_list}    ${channel_items}
+    Sleep    5
+
+Verify ClientSubGuid Dropdown List
+    [Arguments]    ${csu_list}
+    Run Keyword And Continue On Failure    Click Object    ${csu_guid_cmb_bx}    2    false    element
+    ${dropdown_list}    Run Keyword And Continue On Failure    Get Text    ${csu_drpdwn_list}
+    Log    ${dropdown_list}
+    ${dropdown_list}    Convert To String    ${dropdown_list}
+    ${csu_list}    Split String    ${csu_list}    |
+    : FOR    ${csu_list_items}    IN    @{csu_list}
+    \    Run Keyword And Continue On Failure    Should Contain    ${dropdown_list}    ${csu_list_items}
+    Sleep    3
+
+Verify ClientTopGuid Dropdown List
+    [Arguments]    ${ctu_list}
+    Run Keyword And Continue On Failure    Click Object    ${ctu_guid_cmb_bx}    2    false    element
+    Sleep    2
+    ${dropdown_list}    Run Keyword And Continue On Failure    Get Text    ${ctu_drpdwn_list}
+    Log    ${dropdown_list}
+    ${dropdown_list}    Convert To String    ${dropdown_list}
+    ${ctu_list}    Split String    ${ctu_list}    |
+    : FOR    ${ctu_list_items}    IN    @{ctu_list}
+    \    Run Keyword And Continue On Failure    Should Contain    ${dropdown_list}    ${ctu_list_items}
+    Sleep    3
+
+Set Input ClientSubGuid
+    [Arguments]    ${csu_name}
+    Set Object Text    ${csu_txt}    ${csu_name}
+    Set Test Variable    ${csu_name}
+    Sleep    2
+
+Set Input ClientTopGuid
+    [Arguments]    ${ctu_name}
+    Set Object Text    ${ctu_txt}    ${ctu_name}
+    Set Test Variable    ${ctu_name}
+
+Set POS Region
+    [Arguments]    ${pos_region}
+    Set Object Text    ${pos_region_txt}    ${pos_region}
+    Set Test Variable    ${pos_region}
+
+Set POS Country
+    [Arguments]    ${pos_country}
+    Set Object Text    ${pos_country_txt}    ${pos_country}
+    Set Test Variable    ${pos_country}
+
+Set Origin Airport
+    [Arguments]    ${origin_airport}
+    Set Object Text    ${origin_airport_txt}    ${origin_airport}
+
+Set Destination Airport
+    [Arguments]    ${destination_airport}
+    Set Object Text    ${destination_airport_txt}    ${destination_airport}
+
+Select Direction From Dropdown List
+    [Arguments]    ${direction_name}
+    Click Object    ${direction_bx}    2    false    element
+    ${direction_drpdown_bx}    Replace String    ${direction_drpdown_bx}    direction_name    ${direction_name}
+    Click Object    ${direction_drpdown_bx}    2    false    element
+    Set Test Variable    ${direction_name}
+    Sleep    2
+
+Verify Sequence Error Message
+    Wait Until Page Contains Element    ${alert_msg_lbl}
+    Run Keyword And Continue On Failure    Page Should Contain    Save Rule: ERROR
+    Run Keyword And Continue On Failure    Page Should Contain    Rule saving encountered validation errors. Please see the following details.
+    Run Keyword And Continue On Failure    Page Should Contain    Sequence is a required field.
+
+Verify Rule Name Error Message
+    Wait Until Page Contains Element    ${alert_msg_lbl}
+    Run Keyword And Continue On Failure    Page Should Contain    Save Rule: ERROR
+    Run Keyword And Continue On Failure    Page Should Contain    Rule saving encountered validation errors. Please see the following details.
+    Run Keyword And Continue On Failure    Page Should Contain    Rule Name is a required field.
+
+Verify Save Rule Error Message
+    [Arguments]    ${field_name}=${EMPTY}
+    Wait Until Page Contains Element    ${alert_msg_lbl}
+    Run Keyword And Continue On Failure    Page Should Contain    Save Rule: ERROR
+    Run Keyword And Continue On Failure    Page Should Contain    Rule saving encountered validation errors. Please see the following details.
+    Run Keyword And Continue On Failure    Run Keyword If    "${field_name}"=="${EMPTY}"    Page Should Contain    Sequence is a required field.
+    Run Keyword And Continue On Failure    Run Keyword If    "${field_name}"=="${EMPTY}"    Page Should Contain    Rule Name is a required field.
+    Run Keyword And Continue On Failure    Run Keyword If    "${field_name}"=="PCC/OID"    Page Should Contain    PCC/OID rule criteria is applicable only for Desktop channels.
+    ...    ELSE IF    "${field_name}"!="${EMPTY}"    Page Should Contain    ${field_name} is not valid - contains incorrect data.
+
+Verify Delete Rules Success Message
+    Wait Until Page Contains Element    ${rule_success_lbl}
+    Run Keyword And Continue On Failure    Page Should Contain Element    ${rule_success_lbl}    Rule(s) have been deleted.
+    Sleep    2
+
+Click On Delete Selected Rules
+    Click Object    ${multiple_delete_rule_btn}    2    false    element
+    Sleep    2
+
+Clear ClientTopGuid Field
+    Click Object    ${ctuguid_cancel_btn}    2    false    element
+    Sleep    2
+
+Clear ClientSubGuid Field
+    Click Object    ${csuguid_cancel_btn}    2    false    element
+    Sleep    2
+
+Clear Channel Field
+    Click Object    ${channel_cancel_btn}    2    false    element
+    Sleep    2
+
+Set PCC
+    [Arguments]    ${pcc}
+    Set Object Text    ${pcc_txt}    ${pcc}

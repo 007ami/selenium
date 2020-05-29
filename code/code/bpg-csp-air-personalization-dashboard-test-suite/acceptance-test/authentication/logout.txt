@@ -1,0 +1,16 @@
+*** Settings ***
+Test Teardown     Close All Browsers
+Force Tags        functional    regression
+Resource          ../../resource/imports.txt
+Resource          ../resource/common.txt
+Resource          resource/authentication.txt
+
+*** Test Cases ***
+FNC_001 Logout Is Successful When User Clicks Logout Button
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username    ${${env}_sadmin_username}
+    Set Password    ${${env}_sadmin_password}
+    Click Login Button
+    Verify That Login Successful Message Is Displayed
+    Click Log Out Button
+    Verify That Log Out Is Successful

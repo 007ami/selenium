@@ -1,0 +1,3 @@
+*** Settings ***
+Resource          csvcheck.py
+Library           csvcheck.py

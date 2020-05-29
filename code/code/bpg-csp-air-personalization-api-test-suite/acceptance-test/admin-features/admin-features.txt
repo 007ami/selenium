@@ -1,0 +1,452 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-features.txt
+Resource          ../resources/common.txt
+Resource          ../admin-caches/resources/admin-caches.txt
+
+*** Test Cases ***
+FNC_001 Feature Is Successfully Added With All Fields Available
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    #VALID
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Features Response For Post Request Is Correct
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Features List Is Correct
+    Verify Redis Set Data    INDEX::CONFIG::FEATURE
+    Verify Redis String Data    CONFIG::FEATURE::MYCWT_MOBILE::V1
+
+FNC_002 Feature Is Successfully Added With Only Mandatory Fields Available
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    #VALID
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=None    cp_passthrough=None    with_default_tp=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Features Response For Post Request Is Correct
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Features List Is Correct
+    Verify Redis Set Data    INDEX::CONFIG::FEATURE
+    Verify Redis String Data    CONFIG::FEATURE::MYCWT_MOBILE::V1
+
+FNC_003 Feature Is Successfully Edited With All Fields Available
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Get Feature ID
+    #VALID
+    Generate Test Variables For Post Edit Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Features Response For Put Request Is Correct
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Features List Is Correct
+    Verify Redis Set Data    INDEX::CONFIG::FEATURE
+    Verify Redis String Data    CONFIG::FEATURE::MYCWT_MOBILE::V1
+
+FNC_004 Feature Is Successfully Edited With Only Mandatory Fields Available
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Get Feature ID
+    #VALID
+    Generate Test Variables For Post Edit Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=None    cp_passthrough=None    with_default_tp=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Verify That Features Response For Put Request Is Correct
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Features List Is Correct
+    Verify Redis Set Data    INDEX::CONFIG::FEATURE
+    Verify Redis String Data    CONFIG::FEATURE::MYCWT_MOBILE::V1
+
+FNC_005 Feature Is Successfully Deleted One Feature (Single Feature)
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Get Feature ID
+    #VALID
+    Generate Test Variables For Delete Features    features_id_list=${features_id_list}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    Redis Key Does Not Exist    CONFIG::FEATURE::MYCWT_MOBILE::V1
+
+FNC_006 Features Are Successfully Deleted (Multiple Rules)
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Get Feature ID
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V2    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Features Response For Post Request Is Correct
+    Generate Test Variables For Post Add Features    channel=DESKTOP_AMADEUS    api_version=V1    oag_enabled=true    cp_passthrough=false    with_default_tp=true
+    Send POST Request
+    Get Feature ID
+    Generate Test Variables For Delete Features
+    Send Delete Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Features List Is Correct
+    Verify Redis Set Data    INDEX::CONFIG::FEATURE
+    Verify Redis String Data    CONFIG::FEATURE::MYCWT_WEB::V2
+
+FNC_007 Features Are Not Deleted When Not Existing ID Is Included
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Verify That Features Response For Post Request Is Correct
+    Get Feature ID
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V2    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Features Response For Post Request Is Correct
+    Generate Test Variables For Post Add Features    channel=DESKTOP_AMADEUS    api_version=V1    oag_enabled=true    cp_passthrough=false    with_default_tp=true
+    Send POST Request
+    Verify That Features Response For Post Request Is Correct
+    Get Feature ID
+    Generate Test Variables For Delete Features    features_id_list=${features_id_list},abc123
+    Send Delete Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.not.valid.id"]}
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Features List    2,0,1
+    Verify Features List Is Correct
+    Verify Redis Set Data    INDEX::CONFIG::FEATURE
+    Verify Redis String Data    CONFIG::FEATURE::MYCWT_MOBILE::V1|CONFIG::FEATURE::MYCWT_WEB::V2|CONFIG::FEATURE::DESKTOP_AMADEUS::V1
+
+FNC_008 Features Are Successfully Retrieved
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    Generate Features List
+    Generate Feature Id List
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Verify That Features Response For Post Request Is Correct
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V2    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Features Response For Post Request Is Correct
+    Generate Test Variables For Post Add Features    channel=DESKTOP_AMADEUS    api_version=V1    oag_enabled=true    cp_passthrough=false    with_default_tp=true
+    Send POST Request
+    Verify That Features Response For Post Request Is Correct
+    Generate Test Variables For Get Features
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Sort Features List    2,0,1
+    Verify Features List Is Correct
+    Verify Redis Set Data    INDEX::CONFIG::FEATURE
+    Verify Redis String Data    CONFIG::FEATURE::MYCWT_MOBILE::V1|CONFIG::FEATURE::MYCWT_WEB::V2|CONFIG::FEATURE::DESKTOP_AMADEUS::V1
+
+FNC_009 Enable/Disable OAG Enabled Feature Is Working Properly
+    [Tags]    personalization_score    not-ready
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Same Channel Different Version CP PassThrough And Default TP
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Post Add Features    channel=DESKTOP_AMADEUS    api_version=V1    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V2    oag_enabled=true    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Clear Cache    personalizationConfig
+    Delete All Redis Keys Using Pattern    RULES*
+    Delete All Versions Redis Keys
+    Add Rules In Redis    ${all_match}
+    Generate Test Data For Traveler Preference 2    V1,C:8901|V2,C:8901
+    Get Authorization Token
+    Generate Test Variables For Get Personalization Score When Version Is V1    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=Desktop_Amadeus
+    Generate Test Variables For Get Personalization Score When Version Is V2    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=MyCWT_Mobile
+    Generate Test Variables For Get Personalization Score When Version Is V2.2
+    Create TP Meta Data
+    Create Test Data For Metadata    app_id=MyCWT_Mobile
+    Create Test Data For Metadata    app_id=Desktop_Amadeus
+    #OAG Data Same Origin-Destination
+    Generate Carriers OAG Data    CARRIERS::JFK::LHR,20191201::20190912::AA;20191201::20190712::AE;20190912::20190712::AI;20190911::20180912::AM;20191201::20190913::AQ;20191201::20190912::AU;20191201::20190912::AY;20191201::20190912::A3
+    #OAG Data Different Origin-Destination
+    Generate Carriers OAG Data    CARRIERS::MNL::SIN,20191201::20190912::AB;20191201::20190712::AF;20190912::20190712::AJ
+    # Multiple Matching AP Data With Origin Airport
+    Generate Test Variables And Data For Agency Preferences    row_id=1    ap_carrier_code=AA    ap_iss_country=C_GB    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    ...    ap_policy_order=2
+    Generate Test Variables And Data For Agency Preferences    row_id=1    ap_carrier_code=AB    ap_iss_country=C_GB    ap_origin=A_JFK    ap_destination=C_GB    ap_score=0.2
+    ...    ap_policy_order=2
+    Generate Test Variables And Data For Agency Preferences    row_id=1    ap_carrier_code=AC    ap_iss_country=C_GB    ap_origin=A_JFK    ap_destination=R_EUR    ap_score=0.3
+    ...    ap_policy_order=2
+    Generate Test Variables And Data For Agency Preferences    row_id=1    ap_carrier_code=AD    ap_iss_country=C_GB    ap_origin=A_JFK    ap_destination=G_YYYY    ap_score=0.4
+    ...    ap_policy_order=2
+    # Multiple Matching AP Data With Origin Country
+    Generate Test Variables And Data For Agency Preferences    row_id=2    ap_carrier_code=AE    ap_iss_country=C_GB    ap_origin=C_US    ap_destination=A_LHR    ap_score=0.5
+    ...    ap_policy_order=3
+    Generate Test Variables And Data For Agency Preferences    row_id=2    ap_carrier_code=AF    ap_iss_country=C_GB    ap_origin=C_US    ap_destination=C_GB    ap_score=0.6
+    ...    ap_policy_order=3
+    Generate Test Variables And Data For Agency Preferences    row_id=2    ap_carrier_code=AG    ap_iss_country=C_GB    ap_origin=C_US    ap_destination=R_EUR    ap_score=0.7
+    ...    ap_policy_order=3
+    Generate Test Variables And Data For Agency Preferences    row_id=2    ap_carrier_code=AH    ap_iss_country=C_GB    ap_origin=C_US    ap_destination=G_YYYY    ap_score=0.8
+    ...    ap_policy_order=3
+    # Multiple Matching AP Data With Origin Region
+    Generate Test Variables And Data For Agency Preferences    row_id=3    ap_carrier_code=AI    ap_iss_country=C_GB    ap_origin=R_NAM    ap_destination=A_LHR    ap_score=0.9
+    ...    ap_policy_order=4
+    Generate Test Variables And Data For Agency Preferences    row_id=3    ap_carrier_code=AJ    ap_iss_country=C_GB    ap_origin=R_NAM    ap_destination=C_GB    ap_score=1.10
+    ...    ap_policy_order=4
+    Generate Test Variables And Data For Agency Preferences    row_id=3    ap_carrier_code=AK    ap_iss_country=C_GB    ap_origin=R_NAM    ap_destination=R_EUR    ap_score=1.20
+    ...    ap_policy_order=4
+    Generate Test Variables And Data For Agency Preferences    row_id=3    ap_carrier_code=AL    ap_iss_country=C_GB    ap_origin=R_NAM    ap_destination=G_YYYY    ap_score=1.30
+    ...    ap_policy_order=4
+    # Multiple Matching AP Data With Origin Global
+    Generate Test Variables And Data For Agency Preferences    row_id=4    ap_carrier_code=AM    ap_iss_country=C_GB    ap_origin=G_YYYY    ap_destination=A_LHR    ap_score=1.40
+    ...    ap_policy_order=5
+    Generate Test Variables And Data For Agency Preferences    row_id=4    ap_carrier_code=AN    ap_iss_country=C_GB    ap_origin=G_YYYY    ap_destination=C_GB    ap_score=1.50
+    ...    ap_policy_order=5
+    Generate Test Variables And Data For Agency Preferences    row_id=4    ap_carrier_code=AO    ap_iss_country=C_GB    ap_origin=G_YYYY    ap_destination=R_EUR    ap_score=1.60
+    ...    ap_policy_order=5
+    Generate Test Variables And Data For Agency Preferences    row_id=4    ap_carrier_code=AP    ap_iss_country=C_GB    ap_origin=G_YYYY    ap_destination=G_YYYY    ap_score=1.70
+    ...    ap_policy_order=5
+    # Multiple Matching AP Data With Origin Airport And POS Region
+    Generate Test Variables And Data For Agency Preferences    row_id=5    ap_carrier_code=AQ    ap_iss_country=R_EUR    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=1.80
+    ...    ap_policy_order=6
+    Generate Test Variables And Data For Agency Preferences    row_id=5    ap_carrier_code=AR    ap_iss_country=R_EUR    ap_origin=A_JFK    ap_destination=C_GB    ap_score=1.90
+    ...    ap_policy_order=6
+    Generate Test Variables And Data For Agency Preferences    row_id=5    ap_carrier_code=AS    ap_iss_country=R_EUR    ap_origin=A_JFK    ap_destination=R_EUR    ap_score=2.00
+    ...    ap_policy_order=6
+    Generate Test Variables And Data For Agency Preferences    row_id=5    ap_carrier_code=AT    ap_iss_country=R_EUR    ap_origin=A_JFK    ap_destination=G_YYYY    ap_score=2.10
+    ...    ap_policy_order=6
+    # Multiple Matching AP Data With Origin Country And POS Region
+    Generate Test Variables And Data For Agency Preferences    row_id=6    ap_carrier_code=AU    ap_iss_country=R_EUR    ap_origin=C_US    ap_destination=A_LHR    ap_score=2.20
+    ...    ap_policy_order=7
+    Generate Test Variables And Data For Agency Preferences    row_id=6    ap_carrier_code=AV    ap_iss_country=R_EUR    ap_origin=C_US    ap_destination=C_GB    ap_score=2.30
+    ...    ap_policy_order=7
+    Generate Test Variables And Data For Agency Preferences    row_id=6    ap_carrier_code=AW    ap_iss_country=R_EUR    ap_origin=C_US    ap_destination=R_EUR    ap_score=2.40
+    ...    ap_policy_order=7
+    Generate Test Variables And Data For Agency Preferences    row_id=6    ap_carrier_code=AX    ap_iss_country=R_EUR    ap_origin=C_US    ap_destination=G_YYYY    ap_score=2.50
+    ...    ap_policy_order=7
+    # Multiple Matching AP Data With Origin Region And POS Region
+    Generate Test Variables And Data For Agency Preferences    row_id=7    ap_carrier_code=AY    ap_iss_country=R_EUR    ap_origin=R_NAM    ap_destination=A_LHR    ap_score=2.60
+    ...    ap_policy_order=8
+    Generate Test Variables And Data For Agency Preferences    row_id=7    ap_carrier_code=AZ    ap_iss_country=R_EUR    ap_origin=R_NAM    ap_destination=C_GB    ap_score=2.70
+    ...    ap_policy_order=8
+    Generate Test Variables And Data For Agency Preferences    row_id=7    ap_carrier_code=A1    ap_iss_country=R_EUR    ap_origin=R_NAM    ap_destination=R_EUR    ap_score=2.80
+    ...    ap_policy_order=8
+    Generate Test Variables And Data For Agency Preferences    row_id=7    ap_carrier_code=A2    ap_iss_country=R_EUR    ap_origin=R_NAM    ap_destination=G_YYYY    ap_score=2.90
+    ...    ap_policy_order=8
+    # Multiple Matching AP Data With Origin Global And POS Region
+    Generate Test Variables And Data For Agency Preferences    row_id=8    ap_carrier_code=A3    ap_iss_country=R_EUR    ap_origin=G_YYYY    ap_destination=A_LHR    ap_score=3.00
+    ...    ap_policy_order=9
+    Generate Test Variables And Data For Agency Preferences    row_id=8    ap_carrier_code=A4    ap_iss_country=R_EUR    ap_origin=G_YYYY    ap_destination=C_GB    ap_score=3.10
+    ...    ap_policy_order=9
+    Generate Test Variables And Data For Agency Preferences    row_id=8    ap_carrier_code=A5    ap_iss_country=R_EUR    ap_origin=G_YYYY    ap_destination=R_EUR    ap_score=3.20
+    ...    ap_policy_order=9
+    Generate Test Variables And Data For Agency Preferences    row_id=8    ap_carrier_code=A6    ap_iss_country=R_EUR    ap_origin=G_YYYY    ap_destination=G_YYYY    ap_score=3.30
+    ...    ap_policy_order=9
+    # Multiple Matching CP Data
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_policy_order=1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AB    cp_origin=A_JFK    cp_destination=CI_LON    cp_policy_order=2
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AC    cp_origin=CI_NYC    cp_destination=A_LHR    cp_policy_order=3
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AD    cp_origin=A_JFK    cp_destination=C_GB    cp_policy_order=4
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AE    cp_origin=C_US    cp_destination=A_LHR    cp_policy_order=5
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AF    cp_origin=A_JFK    cp_destination=SR_EUROP    cp_policy_order=6
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AG    cp_origin=SR_NAMER    cp_destination=A_LHR    cp_policy_order=7
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AH    cp_origin=A_JFK    cp_destination=R_EMEA    cp_policy_order=8
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AI    cp_origin=R_NORAM    cp_destination=A_LHR    cp_policy_order=9
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AJ    cp_origin=A_JFK    cp_destination=G_YYYY    cp_policy_order=10
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AK    cp_origin=G_YYYY    cp_destination=A_LHR    cp_policy_order=11
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AL    cp_origin=CI_NYC    cp_destination=CI_LON    cp_policy_order=12
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AM    cp_origin=CI_NYC    cp_destination=C_GB    cp_policy_order=13
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AN    cp_origin=C_US    cp_destination=CI_LON    cp_policy_order=14
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AO    cp_origin=CI_NYC    cp_destination=SR_EUROP    cp_policy_order=15
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AP    cp_origin=SR_NAMER    cp_destination=CI_LON    cp_policy_order=16
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AQ    cp_origin=CI_NYC    cp_destination=R_EMEA    cp_policy_order=17
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AR    cp_origin=R_NORAM    cp_destination=CI_LON    cp_policy_order=18
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AS    cp_origin=CI_NYC    cp_destination=G_YYYY    cp_policy_order=19
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AT    cp_origin=G_YYYY    cp_destination=CI_LON    cp_policy_order=20
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AU    cp_origin=C_US    cp_destination=C_GB    cp_policy_order=21
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AV    cp_origin=C_US    cp_destination=SR_EUROP    cp_policy_order=22
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AW    cp_origin=SR_NAMER    cp_destination=C_GB    cp_policy_order=23
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AX    cp_origin=C_US    cp_destination=R_EMEA    cp_policy_order=24
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AY    cp_origin=R_NORAM    cp_destination=C_GB    cp_policy_order=25
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AZ    cp_origin=C_US    cp_destination=G_YYYY    cp_policy_order=26
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A0    cp_origin=G_YYYY    cp_destination=C_GB    cp_policy_order=27
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A1    cp_origin=SR_NAMER    cp_destination=SR_EUROP    cp_policy_order=28
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A2    cp_origin=SR_NAMER    cp_destination=R_EMEA    cp_policy_order=29
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A3    cp_origin=R_NORAM    cp_destination=SR_EUROP    cp_policy_order=30
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A4    cp_origin=SR_NAMER    cp_destination=G_YYYY    cp_policy_order=31
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A5    cp_origin=G_YYYY    cp_destination=SR_EUROP    cp_policy_order=32
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A6    cp_origin=R_NORAM    cp_destination=R_EMEA    cp_policy_order=33
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A7    cp_origin=R_NORAM    cp_destination=G_YYYY    cp_policy_order=34
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A8    cp_origin=G_YYYY    cp_destination=R_EMEA    cp_policy_order=35
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=A9    cp_origin=G_YYYY    cp_destination=G_YYYY    cp_policy_order=36
+    #Matching Boost Data
+    Generate Test Variables And Data For Boost    boost_app_id=Desktop_Amadeus    boost_version=V1    boost_ap=0.3    boost_cp=0.3
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_version=V2    boost_ap=0.3    boost_cp=0.3
+    Send GET request
+    Verify That Response Headers Are Correct
+    Verify The Personalization Score When Version Is V1    {"version":"${exp_version}","experimentGroupTypeCode":"DATASET_${prefix}","result":{"score":[{"carrierCode":"AA","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":1,"cpValue":1,"apScore":0.3,"cpScore":0.3,"totalScore":0.6},{"carrierCode":"AB","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":1,"cpValue":0.972972972972973,"apScore":0.3,"cpScore":0.2918919,"totalScore":0.5918919},{"carrierCode":"AC","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":1,"cpValue":0.9459459459459459,"apScore":0.3,"cpScore":0.2837838,"totalScore":0.5837838},{"carrierCode":"AD","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":1,"cpValue":0.9189189189189189,"apScore":0.3,"cpScore":0.27567568,"totalScore":0.5756757},{"carrierCode":"AE","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.8888888888888888,"cpValue":0.8918918918918919,"apScore":0.26666668,"cpScore":0.26756757,"totalScore":0.5342343},{"carrierCode":"AF","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.8888888888888888,"cpValue":0.8648648648648649,"apScore":0.26666668,"cpScore":0.25945947,"totalScore":0.52612615},{"carrierCode":"AG","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.8888888888888888,"cpValue":0.8378378378378378,"apScore":0.26666668,"cpScore":0.25135136,"totalScore":0.518018},{"carrierCode":"AH","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.8888888888888888,"cpValue":0.8108108108108107,"apScore":0.26666668,"cpScore":0.24324325,"totalScore":0.5099099},{"carrierCode":"AI","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.7777777777777778,"cpValue":0.7837837837837838,"apScore":0.23333335,"cpScore":0.23513515,"totalScore":0.4684685},{"carrierCode":"AJ","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.7777777777777778,"cpValue":0.7567567567567568,"apScore":0.23333335,"cpScore":0.22702704,"totalScore":0.4603604},{"carrierCode":"AK","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.7777777777777778,"cpValue":0.7297297297297297,"apScore":0.23333335,"cpScore":0.21891892,"totalScore":0.45225227},{"carrierCode":"AL","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.7777777777777778,"cpValue":0.7027027027027026,"apScore":0.23333335,"cpScore":0.21081083,"totalScore":0.4441442},{"carrierCode":"AM","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.6666666666666667,"cpValue":0.6756756756756757,"apScore":0.20000002,"cpScore":0.20270272,"totalScore":0.40270275},{"carrierCode":"AN","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.6666666666666667,"cpValue":0.6486486486486487,"apScore":0.20000002,"cpScore":0.19459459,"totalScore":0.3945946},{"carrierCode":"AO","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.6666666666666667,"cpValue":0.6216216216216216,"apScore":0.20000002,"cpScore":0.18648648,"totalScore":0.3864865},{"carrierCode":"AP","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.6666666666666667,"cpValue":0.5945945945945945,"apScore":0.20000002,"cpScore":0.17837839,"totalScore":0.3783784},{"carrierCode":"AQ","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.5555555555555556,"cpValue":0.5675675675675675,"apScore":0.16666669,"cpScore":0.17027028,"totalScore":0.33693695},{"carrierCode":"AR","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.5555555555555556,"cpValue":0.5405405405405406,"apScore":0.16666669,"cpScore":0.16216215,"totalScore":0.32882884},{"carrierCode":"AS","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.5555555555555556,"cpValue":0.5135135135135135,"apScore":0.16666669,"cpScore":0.15405406,"totalScore":0.32072073},{"carrierCode":"AT","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.5555555555555556,"cpValue":0.4864864864864865,"apScore":0.16666669,"cpScore":0.14594595,"totalScore":0.31261265},{"carrierCode":"AU","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.4444444444444444,"cpValue":0.45945945945945943,"apScore":0.13333334,"cpScore":0.13783784,"totalScore":0.27117118},{"carrierCode":"AV","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.4444444444444444,"cpValue":0.43243243243243246,"apScore":0.13333334,"cpScore":0.12972973,"totalScore":0.26306307},{"carrierCode":"AW","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.4444444444444444,"cpValue":0.4054054054054054,"apScore":0.13333334,"cpScore":0.12162162,"totalScore":0.25495496},{"carrierCode":"AX","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.4444444444444444,"cpValue":0.3783783783783784,"apScore":0.13333334,"cpScore":0.11351352,"totalScore":0.24684685},{"carrierCode":"AY","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.33333333333333337,"cpValue":0.3513513513513513,"apScore":0.10000001,"cpScore":0.10540541,"totalScore":0.20540541},{"carrierCode":"AZ","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.33333333333333337,"cpValue":0.32432432432432434,"apScore":0.10000001,"cpScore":0.097297296,"totalScore":0.1972973},{"carrierCode":"A0","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0,"cpValue":0.29729729729729726,"apScore":0.0,"cpScore":0.089189194,"totalScore":0.089189194},{"carrierCode":"A1","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.33333333333333337,"cpValue":0.2702702702702703,"apScore":0.10000001,"cpScore":0.08108108,"totalScore":0.18108109},{"carrierCode":"A2","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.33333333333333337,"cpValue":0.2432432432432432,"apScore":0.10000001,"cpScore":0.072972976,"totalScore":0.17297298},{"carrierCode":"A3","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.2222222222222222,"cpValue":0.21621621621621623,"apScore":0.06666667,"cpScore":0.06486487,"totalScore":0.13153154},{"carrierCode":"A4","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.2222222222222222,"cpValue":0.18918918918918914,"apScore":0.06666667,"cpScore":0.05675676,"totalScore":0.12342343},{"carrierCode":"A5","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.2222222222222222,"cpValue":0.16216216216216217,"apScore":0.06666667,"cpScore":0.048648648,"totalScore":0.11531532},{"carrierCode":"A6","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.2222222222222222,"cpValue":0.1351351351351351,"apScore":0.06666667,"cpScore":0.04054054,"totalScore":0.10720721},{"carrierCode":"A7","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0,"cpValue":0.10810810810810811,"apScore":0.0,"cpScore":0.032432433,"totalScore":0.032432433},{"carrierCode":"A8","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0,"cpValue":0.08108108108108103,"apScore":0.0,"cpScore":0.024324324,"totalScore":0.024324324},{"carrierCode":"A9","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0,"cpValue":0.05405405405405406,"apScore":0.0,"cpScore":0.016216217,"totalScore":0.016216217}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"consumer":"Desktop_Amadeus","tpBoost":0.5,"cpBoost":0.3,"apBoost":0.3,"others":{"Factor1":"test"}},"meta":${tp_meta_data}}}
+    Verify The Personalization Score When Version Is V2    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"carrierCode":"AA","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":2,"apDerivedPolicyOrder":1,"apScore":0.3,"cpScore":0.3,"totalScore":0.6},{"carrierCode":"AE","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.8571428571428572,"cpValue":0.8571428571428572,"cpPolicyOrder":5,"cpDerivedPolicyOrder":2,"apPolicyOrder":3,"apDerivedPolicyOrder":2,"apScore":0.25714287,"cpScore":0.25714287,"totalScore":0.51428574},{"carrierCode":"AI","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.7142857142857143,"cpValue":0.7142857142857143,"cpPolicyOrder":9,"cpDerivedPolicyOrder":3,"apPolicyOrder":4,"apDerivedPolicyOrder":3,"apScore":0.21428573,"cpScore":0.21428573,"totalScore":0.42857146},{"carrierCode":"AU","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.5714285714285714,"cpValue":0.5714285714285714,"cpPolicyOrder":21,"cpDerivedPolicyOrder":4,"apPolicyOrder":7,"apDerivedPolicyOrder":4,"apScore":0.17142859,"cpScore":0.17142859,"totalScore":0.34285718},{"carrierCode":"AY","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.4285714285714286,"cpValue":0.4285714285714286,"cpPolicyOrder":25,"cpDerivedPolicyOrder":5,"apPolicyOrder":8,"apDerivedPolicyOrder":5,"apScore":0.12857144,"cpScore":0.12857144,"totalScore":0.25714287},{"carrierCode":"A3","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":0.2857142857142857,"cpValue":0.2857142857142857,"cpPolicyOrder":30,"cpDerivedPolicyOrder":6,"apPolicyOrder":9,"apDerivedPolicyOrder":6,"apScore":0.085714296,"cpScore":0.085714296,"totalScore":0.17142859}],"travelerPreference":{"traveler_guid":"C:8901","carrier":[{"code":"AA","value":0.1},{"code":"AE","value":0.2},{"code":"AI","value":0.3},{"code":"AU","value":0.6},{"code":"AY","value":0.7},{"code":"A3","value":0.8}],"depart_ts":{"ts_window_1":0.1,"ts_window_2":0.2,"ts_window_n":0.3},"arrival_ts":{"ts_window_1":0.4,"ts_window_2":0.5,"ts_window_n":0.6},"num_stops":{"n0":0.7,"n1":0.8,"n2":0.7},"duration":0.6,"price":0.5},"boost":{"tpBoost":0.5,"cpBoost":0.3,"apBoost":0.3,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}
+    Verify The Personalization Score When Version Is V2.2    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"carrierCode":"AA","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","validatingCarrierCode": "AA","cabinClass": "F","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":2,"apDerivedPolicyOrder":1,"apScore":0.3,"cpScore":0.3,"totalScore":0.6},{"carrierCode":"AE","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","validatingCarrierCode": "AA","cabinClass": "F","apValue":0.8571428571428572,"cpValue":0.8571428571428572,"cpPolicyOrder":5,"cpDerivedPolicyOrder":2,"apPolicyOrder":3,"apDerivedPolicyOrder":2,"apScore":0.25714287,"cpScore":0.25714287,"totalScore":0.51428574},{"carrierCode":"AI","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","validatingCarrierCode": "AA","cabinClass": "F","apValue":0.7142857142857143,"cpValue":0.7142857142857143,"cpPolicyOrder":9,"cpDerivedPolicyOrder":3,"apPolicyOrder":4,"apDerivedPolicyOrder":3,"apScore":0.21428573,"cpScore":0.21428573,"totalScore":0.42857146},{"carrierCode":"AU","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","validatingCarrierCode": "AA","cabinClass": "F","apValue":0.5714285714285714,"cpValue":0.5714285714285714,"cpPolicyOrder":21,"cpDerivedPolicyOrder":4,"apPolicyOrder":7,"apDerivedPolicyOrder":4,"apScore":0.17142859,"cpScore":0.17142859,"totalScore":0.34285718},{"carrierCode":"AY","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","validatingCarrierCode": "AA","cabinClass": "F","apValue":0.4285714285714286,"cpValue":0.4285714285714286,"cpPolicyOrder":25,"cpDerivedPolicyOrder":5,"apPolicyOrder":8,"apDerivedPolicyOrder":5,"apScore":0.12857144,"cpScore":0.12857144,"totalScore":0.25714287},{"carrierCode":"A3","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","validatingCarrierCode": "AA","cabinClass": "F","apValue":0.2857142857142857,"cpValue":0.2857142857142857,"cpPolicyOrder":30,"cpDerivedPolicyOrder":6,"apPolicyOrder":9,"apDerivedPolicyOrder":6,"apScore":0.085714296,"cpScore":0.085714296,"totalScore":0.17142859}],"travelerPreference":{"traveler_guid":"C:8901","carrier":[{"code":"AA","value":0.1},{"code":"AE","value":0.2},{"code":"AI","value":0.3},{"code":"AU","value":0.6},{"code":"AY","value":0.7},{"code":"A3","value":0.8}],"depart_ts":{"ts_window_1":0.1,"ts_window_2":0.2,"ts_window_n":0.3},"arrival_ts":{"ts_window_1":0.4,"ts_window_2":0.5,"ts_window_n":0.6},"num_stops":{"n0":0.7,"n1":0.8,"n2":0.7},"duration":0.6,"price":0.5},"boost":{"tpBoost":0.5,"cpBoost":0.3,"apBoost":0.3,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}
+    [Teardown]    Delete All Redis Keys Using Pattern    CARRIERS::*
+
+FNC_010 Enable/Disable CP Passthrough Is Working Properly
+    [Tags]    personalization_score    V1    V2    V3    V2.2
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Same Channel Different Version CP PassThrough And Default TP
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Post Add Features    channel=DESKTOP_SABRE    api_version=V1    oag_enabled=false    cp_passthrough=true    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V2    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V2.2    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=DESKTOP_SABRE    api_version=V3    oag_enabled=false    cp_passthrough=true    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Clear Cache    personalizationConfig
+    Delete All Redis Keys Using Pattern    RULES*
+    Delete All Versions Redis Keys
+    Add Rules In Redis    .*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::JFK::.*?::.*?::LHR::.*?::OFF
+    Generate Test Data For Traveler Preference 2    V1,C:8901|V2,C:8901
+    Get Authorization Token
+    Generate Test Variables For Get Personalization Score When Version Is V1    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=Desktop_Sabre
+    Generate Test Variables For Get Personalization Score When Version Is V2    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=MyCWT_Web
+    Generate Test Variables For Get Personalization Score When Version Is V2.2    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=MyCWT_Web
+    Generate Test Variables For Post Personalization Score When Version Is V3    trv_guid=C:8901    csu_guid=A:1234    origin=JFK    destination=LHR    dep_date=20190912    app_id=Desktop_Sabre
+    Create TP Meta Data
+    Create Test Data For Metadata    app_id=MyCWT_Web
+    Create Test Data For Metadata    app_id=Desktop_Sabre
+    Create Test Data For Metadata    app_id=Desktop_Sabre    group=DEFAULT
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_GB    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2    cp_policy_order=1
+    Generate Test Variables And Data For Boost    boost_app_id=Desktop_Sabre    boost_version=V1
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Web    boost_version=V2
+    Send Personalization Score Request
+    Verify That Response Headers Are Correct
+    Verify The Personalization Score When Version Is V1    {"version":"${exp_version}","experimentGroupTypeCode":"DATASET_A","result":{"score":[{"carrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"GB","apValue":0,"cpValue":1,"apScore":0.0,"cpScore":0.7,"totalScore":0.7}],"boost":{"consumer":"Desktop_Sabre","tpBoost":0.5,"cpBoost":0.7,"apBoost":0.3,"others":{"Factor1":"test"}}}}    False
+    Verify Error Message When Version Is V2    error_status=403    error_code=4004    error_message=Personalization is turned OFF for this request.
+    Verify Error Message When Version Is V2.2    error_status=403    error_code=4004    error_message=Personalization is turned OFF for this request.
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"DEFAULT","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":true,"result":{"score":[{"marketingCarrierCode":"AA","origin":"${origin}","destination":"${destination}","issuingCountry":"US","cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apValue":0,"cpValue":1,"apScore":0.0,"cpScore":0.7,"totalScore":0.7,"apFlag":false,"cpFlag":true,"tpFlag":false,"tpScore":0.0,"tpValue":0.0}],"boost":{"tpBoost":0.5,"cpBoost":0.7,"apBoost":0.3,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+
+FNC_011 Enable/Disable Default TP Is Working Properly
+    [Tags]    personalization_score    V1    V2    V2.2    V3
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Same Channel Different Version CP PassThrough And Default TP
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V1    oag_enabled=false    cp_passthrough=false    with_default_tp=false
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V2    oag_enabled=false    cp_passthrough=false    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V2.2    oag_enabled=false    cp_passthrough=false    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_WEB    api_version=V3    oag_enabled=false    cp_passthrough=false    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Clear Cache    personalizationConfig
+    Delete All Redis Keys Using Pattern    RULES*
+    Add Rules In Redis    ${all_match}
+    Delete All Versions Redis Keys
+    Generate Test Data For Traveler Preference 2    V1,DEFAULT|V2,DEFAULT
+    Get Authorization Token
+    Generate Test Variables For Get Personalization Score When Version Is V1    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=MyCWT_Mobile
+    Generate Test Variables For Get Personalization Score When Version Is V2    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=MyCWT_Web
+    Generate Test Variables For Get Personalization Score When Version Is V2.2    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=MyCWT_Web
+    Generate Test Variables For Post Personalization Score When Version Is V3    trv_guid=C:8901    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR    dep_date=20190912
+    ...    app_id=MyCWT_Web
+    Create TP Meta Data
+    Create Test Data For Metadata    app_id=MyCWT_Mobile
+    Create Test Data For Metadata    app_id=MyCWT_Web
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_GB    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2    cp_policy_order=1
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_version=V1    boost_ap=0.9    boost_cp=0.8
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Web    boost_version=V2    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    Verify That Response Headers Are Correct
+    Verify Error Message When Version Is V1    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+    Verify The Personalization Score When Version Is V2    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"carrierCode":"AA","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.7}],"travelerPreference":${default_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    Verify The Personalization Score When Version Is V2.2    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"carrierCode":"AA","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","validatingCarrierCode": "AA","cabinClass": "F","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.7}],"travelerPreference": ${default_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"${origin}","destination":"${destination}","issuingCountry":"${iss_country}","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.7,"tpScore":0.0,"tpValue":0.0,"apFlag":true,"cpFlag":true,"tpFlag":false}],"travelerPreference":${default_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+
+FNC_012 Enable/Disable All Features Enabled Is Working Properly
+    [Tags]    personalization_score    V1    V2    V2.2    V3
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Same Channel Different Version CP PassThrough And Default TP
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Post Add Features    channel=DESKTOP_AMADEUS    api_version=V1    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V2    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V2.2    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE    api_version=V3    oag_enabled=true    cp_passthrough=true    with_default_tp=true
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Clear Cache    personalizationConfig
+    Delete All Redis Keys Using Pattern    RULES*
+    Delete All Versions Redis Keys
+    Add Rules In Redis    .*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::HND::.*?::.*?::.*?::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::CEF::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::NRT::.*?::.*?::ZSF::.*?::ON
+    Generate Test Data For Traveler Preference 2    V1,DEFAULT|V2,DEFAULT
+    Get Authorization Token
+    Generate Test Variables For Get Personalization Score When Version Is V1    trv_guid=C:8901    csu_guid=C:1234    iss_country=JP    origin=TYO    destination=SFY    dep_date=20191201
+    ...    origin_code_type=C    destination_code_type=C    app_id=Desktop_Amadeus
+    Generate Test Variables For Get Personalization Score When Version Is V2    trv_guid=C:8901    csu_guid=C:1234    iss_country=JP    origin=TYO    destination=SFY    dep_date=20191201
+    ...    origin_code_type=C    destination_code_type=C    app_id=MyCWT_Mobile
+    Generate Test Variables For Get Personalization Score When Version Is V2.2    trv_guid=C:8901    csu_guid=C:1234    iss_country=JP    origin=TYO    destination=SFY    dep_date=20191201
+    ...    origin_code_type=C    destination_code_type=C    app_id=MyCWT_Mobile
+    Generate Test Variables For Post Personalization Score When Version Is V3    trv_guid=C:8901    csu_guid=C:1234    iss_country=JP    origin=TYO    destination=SFY    dep_date=20191201
+    ...    origin_code_type=C    destination_code_type=C    app_id=MyCWT_Mobile
+    Create TP Meta Data
+    Create Test Data For Metadata    app_id=MyCWT_Mobile
+    Create Test Data For Metadata    app_id=Desktop_Amadeus
+    Create Test Data For Metadata    app_id=MyCWT_Mobile    group=DEFAULT
+    # Multiple Matching AP Data
+    Generate Test Data For Agency Preferences From File    FNC_012_ap_data.csv
+    # Multiple Matching CP Data
+    Generate Test Data For Client Preferences From File    FNC_012_cp_data.csv
+    #Matching Boost Data
+    Generate Test Variables And Data For Boost    boost_app_id=Desktop_Amadeus    boost_version=V1    boost_ap=0.7    boost_cp=0.4
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_version=V2    boost_ap=0.7    boost_cp=0.4
+    Send Personalization Score Request
+    Verify That Response Headers Are Correct
+    Verify The Personalization Score When Version Is V1    FNC_012_v1_results.json
+    Verify The Personalization Score When Version Is V2    FNC_012_v2_results.json
+    Verify The Personalization Score When Version Is V2.2    FNC_012_v2.2_results.json
+    Verify The Personalization Score When Version Is V3    FNC_012_v3(1)_results.json

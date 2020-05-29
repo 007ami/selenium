@@ -1,0 +1,89 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Post Lambda Cache Evict
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${cache_list}=${default_cache_list}    ${cluster_name}=${env}-services    ${invoked_by}=qatest    ${admin_token}=${admin_token}
+    ...    ${service_name}=bpg-csp-air-personalization-api    ${cache_evict_url}=https://%s/p13n/admin/caches/clear
+    Set Global Variable    ${endpoint}    ${context_path_lambda}/lambda/cache/evict
+    ${query_param_list}    Create Dictionary
+    Set Global Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${cache_list}    Run Keyword If    "${cache_list}"=="None" or "${cache_list}"=="null"    Set Variable    ${cache_list}
+    ...    ELSE    Split String    ${cache_list}    |
+    ${json_body}    Create Dictionary
+    Run Keyword If    "${invoked_by}"=="null"    Set To Dictionary    ${json_body}    invokedBy    ${NULL}
+    ...    ELSE IF    "${invoked_by}"!="None"    Set To Dictionary    ${json_body}    invokedBy=${invoked_by}
+    Run Keyword If    "${admin_token}"=="null"    Set To Dictionary    ${json_body}    token    ${NULL}
+    ...    ELSE IF    "${admin_token}"!="None"    Set To Dictionary    ${json_body}    token=${admin_token}
+    Run Keyword If    "${cache_list}"=="null"    Set To Dictionary    ${json_body}    caches    ${NULL}
+    ...    ELSE IF    "${cache_list}"!="None"    Set To Dictionary    ${json_body}    caches=@{cache_list}
+    Run Keyword If    "${cluster_name}"=="null"    Set To Dictionary    ${json_body}    clusterName    ${NULL}
+    ...    ELSE IF    "${cluster_name}"!="None"    Set To Dictionary    ${json_body}    clusterName=${cluster_name}
+    Run Keyword If    "${service_name}"=="null"    Set To Dictionary    ${json_body}    serviceName    ${NULL}
+    ...    ELSE IF    "${service_name}"!="None"    Set To Dictionary    ${json_body}    serviceName=${service_name}
+    Run Keyword If    "${cache_evict_url}"=="null"    Set To Dictionary    ${json_body}    cacheEvictUrl    ${NULL}
+    ...    ELSE IF    "${cache_evict_url}"!="None"    Set To Dictionary    ${json_body}    cacheEvictUrl=${cache_evict_url}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    ${json_body}    Replace String    ${json_body}    ""    ${EMPTY}
+    Set Global Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Global Variable    ${cache_list}
+    Set Global Variable    ${txn_id}
+    Set Global Variable    ${token}
+    Set Global Variable    ${app_id}    None
+    Set Global Variable    ${prefix}    None
+
+Save Admin UI Token
+    Set Test Variable    ${admin_token}    ${${env}_gw_token}
+
+Send Login POST Request For Lambda
+    [Arguments]    ${username}=${${env}_lambda_gw_username}    ${password}=${${env}_lambda_gw_password}
+    Create Session    lambda-gw    ${${env}_base_url}    verify=True
+    ${headers}    Create Dictionary    Content-Type=application/x-www-form-urlencoded    Accept=application/json
+    ${data}    Create Dictionary    client_id=${username}    client_secret=${password}    grant_type=client_credentials
+    ${response}    Post Request    lambda-gw    ${context_path_lambda}/lambda/cache/evict/oauth2/token    data=${data}    headers=${headers}
+    Set Suite Variable    ${response}
+    Log    ${response.headers}
+    Log    ${response.content}
+    Comment    Run Keyword If    "${response.status_code}" == "200"    Get Token    False
+    Get Token    False
+    Should Not Be Empty    ${${env}_gw_token}
+
+Send Login Post Request for Kong Lambda Endpoint
+    Wait Until Keyword Succeeds    3x    3 sec    Send Login POST Request For Lambda
+
+Send POST Request for Kong Lambda Endpoint
+    [Arguments]    ${token}=${token}    ${query_param_list}=${query_param_list}    ${json_body}=${json_body}
+    Set Suite Variable    ${ap_uri}    ${endpoint}
+    ${headers_list}    Create Dictionary    Content-Type=application/json
+    Run Keyword If    "${token}" == "null"    Set To Dictionary    ${headers_list}    Authorization=null
+    ...    ELSE IF    "${token}" != "None"    Set To Dictionary    ${headers_list}    Authorization=Bearer ${token}
+    Run Keyword If    "${txn_id}" == "null"    Set To Dictionary    ${headers_list}    txnId=null
+    ...    ELSE IF    "${txn_id}" != "None"    Set To Dictionary    ${headers_list}    txnId=${txn_id}
+    Log    ${headers_list}
+    Set Suite Variable    ${json_body}
+    ${json_body_exist}    Run Keyword And Return Status    Should Not Be Equal    ${json_body}    None
+    ${environment_url}    Set Variable    ${${env}_base_url}
+    Create Session    lambda-gw    ${environment_url}    verify=true
+    ${response}    Run Keyword If    "${query_param_list}"=="None" and "${json_body_exist}"!="True"    Post Request    lambda-gw    ${ap_uri}    headers=${headers_list}
+    ...    data=${json_body}
+    ...    ELSE IF    "${query_param_list}"!="None" and "${json_body_exist}"=="False"    Post Request    lambda-gw    ${ap_uri}    headers=${headers_list}
+    ...    params=${query_param_list}
+    ...    ELSE    Post Request    lambda-gw    ${ap_uri}    headers=${headers_list}    params=${query_param_list}
+    ...    data=${json_body}
+    Set Suite Variable    ${response}
+    Log    ${response.content}
+    Log    ${response.status_code}
+
+Verify That Lambda Cache Evict Is Successful
+    Run Keyword And Continue On Failure    Should Be Equal    ${response.json()['caches'][0]['response']}    {\"result\":\"SUCCESS\"}

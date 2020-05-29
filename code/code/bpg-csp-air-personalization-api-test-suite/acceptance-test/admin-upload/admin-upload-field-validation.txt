@@ -1,0 +1,49 @@
+*** Settings ***
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-upload.txt
+Resource          ../resources/common.txt
+Resource          ../admin-regions/resources/admin-regions.txt
+
+*** Test Cases ***
+FV_001 Verify That file Is Required When Sending Upload Post Request
+    [Setup]    Initialize Test Data For Upload API
+    Delete Rules Collecton In MongoDB
+    # Text Document
+    Generate Test Variables For Upload    file=default_rules.txt
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    # CSV Document
+    Generate Test Variables For Upload    file=default_rules.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Upload    file=${EMPTY}
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4012    error_message=No data to process in uploaded file.
+
+FV_002 Verify That uploadUser Is Required When Sending Upload Post Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Upload    user=ABC 123 !@# $%^
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Upload    user=${EMPTY}
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4003    error_message=CreatedBy not specified for Rule.
+
+FV_003 Verify That txnId Is Not Required When Sending Upload Post Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Upload    txn_id=ABC 123 !@# $%^
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Upload    txn_id=${EMPTY}
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Upload    txn_id=None
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200

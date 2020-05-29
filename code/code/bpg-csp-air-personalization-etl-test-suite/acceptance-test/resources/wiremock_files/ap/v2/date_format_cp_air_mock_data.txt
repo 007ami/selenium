@@ -1,0 +1,4 @@
+client_subunit_guid|policy_valid_from_date|policy_valid_to_date|origin|destination|carrier|cp_value|policy_order|origin_type|destination_type|B_D
+14:3B67|||JFK|LHR|BA|0.9|1|AIRPORT|AIRPORT|D
+15:3C68||01/01/2999|JFK|GB|VS|0.1|1|AIRPORT|COUNTRY|D
+16:3D69|01/01/2017||JFK|EMEA|2E|0.4|2|AIRPORT|GLOBAL REGION|B

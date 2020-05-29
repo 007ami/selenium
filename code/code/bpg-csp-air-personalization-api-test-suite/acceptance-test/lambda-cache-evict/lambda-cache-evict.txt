@@ -1,0 +1,315 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/lambda-cache-evict.txt
+Resource          ../resources/common.txt
+Resource          ../admin-score/resources/admin-score.txt
+Resource          ../personalization-score/resources/personalization-score.txt
+Resource          ../admin-features/resources/admin-features.txt
+Resource          ../admin-caches/resources/admin-caches.txt
+
+*** Test Cases ***
+FNC_001 tpMeta Cache Is Cleared Successfully
+    [Tags]    personalization_score    V1
+    Get Authorization Token
+    Create Test Data For Metadata
+    Generate Test Data For Traveler Preference 2    V1,S:0986
+    Create TP Meta Data
+    Generate Test Variables For Get Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Generate Test Variables And Data For Boost
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V1    {"version":"${exp_version}","experimentGroupTypeCode":"DATASET_${prefix}","result":{"score":[],"travelerPreference":${${trv_guid}_trv_data},"meta":${tp_meta_data},"boost":{"consumer":"MyCWT_Mobile","tpBoost":0.5,"cpBoost":0.7,"apBoost":0.3,"others":{"Factor1":"test"}}}}    False
+    #Update TP Meta Data In Redis
+    Create TP Meta Data    meta=${updated_tp_meta_data}
+    #Old TP Meta Data Is Received
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V1    {"version":"${exp_version}","experimentGroupTypeCode":"DATASET_${prefix}","result":{"score":[],"travelerPreference":${${trv_guid}_trv_data},"meta":${updated_tp_meta_data},"boost":{"consumer":"MyCWT_Mobile","tpBoost":0.5,"cpBoost":0.7,"apBoost":0.3,"others":{"Factor1":"test"}}}}    False
+    #Clear Cache
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=tpMeta
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Correct Status Code Are Returned    200
+    Verify That Lambda Cache Evict Is Successful
+    #New TP Meta Data Is Received
+    Get Authorization Token
+    Generate Test Variables For Get Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V1    {"version":"${exp_version}","experimentGroupTypeCode":"DATASET_${prefix}","result":{"score":[],"travelerPreference":${${trv_guid}_trv_data},"meta":${updated_tp_meta_data},"boost":{"consumer":"MyCWT_Mobile","tpBoost":0.5,"cpBoost":0.7,"apBoost":0.3,"others":{"Factor1":"test"}}}}    False
+
+FNC_002 travelPortByAirport Cache Is Cleared Successfully
+    Get Authorization Token
+    Create TP Meta Data
+    Create Test Data For Metadata
+    Generate Test Data For Traveler Preference 2    V1,S:0986
+    Delete All Redis Keys Using Pattern    RULES*
+    #Add Rule Origin Country US Personalization is ON
+    Add Rules In Redis    .*?::.*?::.*?::.*?::.*?::.*?::.*?::US::.*?::.*?::.*?::LHR::.*?::ON
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    # Single Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_PH    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=B:4567    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Update TVLPORT::JFK Data In Redis
+    Add Hash Data In Redis    TVLPORT::JFK    cityCode=NYC|cityName=New York|airportCode=JFK|airportName=John F Kennedy Intl|countryCode=UX|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA \ \ \ |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+    #Old Country Code US Personalization Is ON
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Clear Cache
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=travelPortByAirport
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Correct Status Code Are Returned    200
+    Verify That Lambda Cache Evict Is Successful
+    #New Country Code UX Personalization Is OFF
+    Create Test Data For Metadata    app_id=MyCWT_Mobile    group=DEFAULT
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=true    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"DEFAULT","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":true,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":0,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apScore":0,"cpScore":0.8,"totalScore":0.8,"apFlag":false,"cpFlag":true,"tpFlag":false,"tpScore":0.0,"tpValue":0.0}],"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+
+FNC_003 travelPortByCity Cache Is Cleared Successfully
+    Create TP Meta Data
+    Create Test Data For Metadata
+    #Add Featuer
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Data For Traveler Preference 2    V1,S:0986
+    Delete All Redis Keys Using Pattern    RULES*
+    Delete All Redis Keys Using Pattern    INDEX::TVLPORT::MNL
+    Add TravelPort Index In Redis    MNL    TVLPORT::MNL
+    #Add Rule Origin Airport MNL Personalization is ON
+    Add Rules In Redis    .*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::MNL::.*?::.*?::LHR::.*?::ON
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=MNL    destination=LHR    origin_code_type=C
+    # Single Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_PH    ap_origin=A_MNL    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=B:4567    cp_carrier_code=AA    cp_origin=A_MNL    cp_destination=A_LHR    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"MNL","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Update INDEX::TVLPORT::MNL Data In Redis
+    Delete All Redis Keys Using Pattern    INDEX::TVLPORT::MNL
+    Add TravelPort Index In Redis    MNL    TVLPORT::SGL
+    #Old Origin Airport MNL Personalization Is ON
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"MNL","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Clear Cache
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=travelPortByCity
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Correct Status Code Are Returned    200
+    Verify That Lambda Cache Evict Is Successful
+    #New Origin Airport SGL Personalization Is OFF
+    Create Test Data For Metadata    app_id=MyCWT_Mobile    group=DEFAULT
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=true    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=MNL    destination=LHR    origin_code_type=C
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4020    error_message=No matching travel ports for origin in request
+
+FNC_004 posRegion Cache Is Cleared Successfully
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Create TP Meta Data
+    Create Test Data For Metadata
+    Generate Test Data For Traveler Preference 2    V1,S:0986
+    Delete All Redis Keys Using Pattern    RULES*
+    #Add Rule POS Region ASA Personalization is ON
+    Add Rules In Redis    .*?::.*?::.*?::.*?::ASA::.*?::.*?::.*?::JFK::.*?::.*?::LHR::.*?::ON
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    # Single Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_PH    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=B:4567    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Update GSM::COUNTRIES PH ASA - > NAM Data In Redis
+    Generate Test Data For GSM Countries Mapping    PH,NAM
+    #Old POS Region ASA Personalization Is ON
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Clear Cache
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=posRegion
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Correct Status Code Are Returned    200
+    Verify That Lambda Cache Evict Is Successful
+    #New Origin Airport SGL Personalization Is OFF
+    Create Test Data For Metadata    app_id=MyCWT_Mobile    group=DEFAULT
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=true    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"DEFAULT","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":true,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":0,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apScore":0,"cpScore":0.8,"totalScore":0.8,"apFlag":false,"cpFlag":true,"tpFlag":false,"tpScore":0.0,"tpValue":0.0}],"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+
+FNC_005 clientMappings Cache Is Cleared Successfully
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Create TP Meta Data
+    Create Test Data For Metadata
+    Generate Test Data For Traveler Preference 2    V1,S:0986
+    Delete All Redis Keys Using Pattern    RULES*
+    #Add Client Top Unit 0:0 Personalization is ON
+    Add Rules In Redis    B:0::.*?::.*?::.*?::.*?::.*?::.*?::.*?::JFK::.*?::.*?::LHR::.*?::ON
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    # Single Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_PH    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=B:4567    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Update CLIENT::CONFIG::MAPPINGS \ B:4567,B:0 -> B:4567,B:1 NAM Data In Redis
+    Generate Test Data For Client Config    B:4567,B:1
+    #Old CTU B:0 Personalization Is ON
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Clear Cache
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=clientMappings
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Correct Status Code Are Returned    200
+    Verify That Lambda Cache Evict Is Successful
+    #New CTU B:1 Personalization Is OFF
+    Create Test Data For Metadata    app_id=MyCWT_Mobile    group=DEFAULT
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=true    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"DEFAULT","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":true,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":0,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apScore":0,"cpScore":0.8,"totalScore":0.8,"apFlag":false,"cpFlag":true,"tpFlag":false,"tpScore":0.0,"tpValue":0.0}],"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+
+FNC_009 personalizationConfig Cache Is Cleared Successfully
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false    #api_version_feature=V2
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Create TP Meta Data
+    Create Test Data For Metadata
+    Generate Test Data For Traveler Preference 2    V1,DEFAULT
+    Delete All Redis Keys Using Pattern    RULES*
+    Add Rules In Redis    ${all_match}
+    Generate Test Variables For Personalization Score    trv_guid=A:1234    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    # Single Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_PH    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=B:4567    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4014    error_message=Traveler/Default preference not found
+    Generate Test Data For Features    api_version_feature=V2    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=true
+    Generate Test Data For Features    api_version_feature=V2.2    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=true
+    Generate Test Data For Features    api_version_feature=V3    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=true
+    #Verify That Cache Is not Cleared (Error)
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    trv_guid=A:1234    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4014    error_message=Traveler/Default preference not found
+    #Clear Cache
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=personalizationConfig
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Correct Status Code Are Returned    200
+    Verify That Lambda Cache Evict Is Successful
+    #Default TP Is Enabled
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    trv_guid=A:1234    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.7,"apFlag":true,"cpFlag":true,"tpFlag":false,"tpScore":0.0,"tpValue":0.0}],"travelerPreference":${default_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+
+FNC_006 Error Is Encountered When An Invalid Cache Is Included In the List
+    [Setup]    Initialize Test Environment For Admin API
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Data For Traveler Preference 2    V1,S:0986
+    Create TP Meta Data
+    Create Test Data For Meta data
+    Delete All Redis Keys Using Pattern    RULES*
+    Add Rules In Redis    B:0::.*?::.*?::.*?::ASA::.*?::.*?::US::.*?::.*?::.*?::LHR::.*?::ON
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    # Single Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_PH    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=B:4567    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Update TP Meta Data In Redis
+    Create TP Meta Data    meta=${updated_tp_meta_data}
+    #Update TVLPORT::JFK Data In Redis
+    Add Hash Data In Redis    TVLPORT::JFK    cityCode=NYC|cityName=New York|airportCode=JFK|airportName=John F Kennedy Intl|countryCode=UX|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA \ \ \ |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+    #Update GSM::COUNTRIES PH ASA - > NAM Data In Redis
+    Generate Test Data For GSM Countries Mapping    PH,NAM
+    #Update CLIENT::CONFIG::MAPPINGS \ B:4567,B:0 -> B:4567,B:1 NAM Data In Redis
+    Generate Test Data For Client Config    B:4567,B:1
+    #Old TP Meta Data Is Received
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Clear Cache FAILED
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=${default_cache_list}|TEST
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"errorCode\\":\\"INPUT_VALIDATION_ERROR\\",\\"errorMsg\\":\\"caches[6]: must match any of the following: tpMeta,posRegion,clientMappings,travelPortByAirport,travelPortByCity,personalizationConfig\\"}","statusCode":400,"instanceIP":
+    #Old TP Meta Data Is Received And Personalization Is ON
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"${prefix}","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":false,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":1,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apPolicyOrder":1,"apDerivedPolicyOrder":1,"apScore":0.9,"cpScore":0.8,"totalScore":1.95,"apFlag":true,"cpFlag":true,"tpFlag":true,"tpScore":0.25,"tpValue":0.5}],"travelerPreference":${${trv_guid}_trv_data},"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False
+    #Clear Cache SUCCESS
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=${default_cache_list}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Correct Status Code Are Returned    200
+    Verify That Lambda Cache Evict Is Successful
+    #Personalization Is OFF
+    Create Test Data For Metadata    app_id=MyCWT_Mobile    group=DEFAULT
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=true    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Variables For Personalization Score    csu_guid=B:4567    iss_country=PH    origin=JFK    destination=LHR
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    Verify The Personalization Score When Version Is V3    {"version":"${exp_version}","experimentGroupTypeCode":"DEFAULT","offlineAlgorithm":"${offline_algorithm}","onlineAlgorithm":"${online_algorithm}","personalizationApplied":${pers_applied},"systemPersonalized":true,"result":{"score":[{"marketingCarrierCode":"AA","origin":"JFK","destination":"LHR","issuingCountry":"PH","apValue":0,"cpValue":1,"cpPolicyOrder":1,"cpDerivedPolicyOrder":1,"apScore":0,"cpScore":0.8,"totalScore":0.8,"apFlag":false,"cpFlag":true,"tpFlag":false,"tpScore":0.0,"tpValue":0.0}],"boost":{"tpBoost":0.5,"cpBoost":0.8,"apBoost":0.9,"priceBoost":${price},"durationBoost":${duration},"numStopsBoost":${num_stops},"flightTimeBoost":${flight_time}}}}    False

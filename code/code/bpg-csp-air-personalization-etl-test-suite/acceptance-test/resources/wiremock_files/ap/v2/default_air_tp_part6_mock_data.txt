@@ -1,0 +1,11 @@
+{"traveler_guid":"14:24AD648D","carrier":[{"code":"AF","value":0.3}]}
+{"traveler_guid":"15:22E99F7E","carrier":[{"code":"AF","value":0.9}]}
+{"traveler_guid":"16:20AE994F","carrier":[{"code":"TC","value":0.8}]}
+{"traveler_guid":"17:18E99A1G","carrier":[{"code":"TD","value":0.7}]}
+{"traveler_guid":"18:16E99F2H","carrier":[{"code":"TE","value":0.6}]}
+{"traveler_guid":"19:14E99F3I","carrier":[{"code":"TF","value":0}]}
+{"traveler_guid":"13:12E99F4J","carrier":[{"code":"TH","value":0.4}]}
+{"traveler_guid":"12:10E99F5K","carrier":[{"code":"TI","value":0.3}]}
+{"traveler_guid":"11:26E99F6L","carrier":[{"code":"TJ","value":0.2}]}
+{"traveler_guid":"10:28S99F8M","carrier":[{"code":"TK","value":0.1}]}
+{"traveler_guid":"default","carrier":[]}

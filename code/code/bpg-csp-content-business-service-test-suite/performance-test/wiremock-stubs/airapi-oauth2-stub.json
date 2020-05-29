@@ -1,0 +1,17 @@
+{
+  "request": {
+    "url": "/wire-mock/service/repo/airapi/oauth2/token",
+    "method": "POST"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "token_type": "bearer",
+      "access_token": "9HlYXZd3TdmeCAnouIH96jk0ox4GIGXR",
+      "expires_in": 900
+    },
+    "headers": {
+        "Content-Type": "application/json"
+    }
+  }
+}

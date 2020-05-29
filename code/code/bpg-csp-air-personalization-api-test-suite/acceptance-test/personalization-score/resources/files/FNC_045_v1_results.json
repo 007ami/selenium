@@ -1,0 +1,39 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DATASET_A",
+	"result": {
+		"score": [{
+				"carrierCode": "AA",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "SG",
+				"apValue": 1.0,
+				"cpValue": 1.0,
+				"apScore": 0.3,
+				"cpScore": 0.7,
+				"totalScore": 1.0
+			},{
+				"carrierCode": "AB",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "SG",
+				"apValue": 1.0,
+				"cpValue": 0,
+				"apScore": 0.3,
+				"cpScore": 0,
+				"totalScore": 0.3
+			}
+		],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"consumer": "MyCWT_Mobile",
+			"tpBoost": 0.5,
+			"cpBoost": 0.7,
+			"apBoost": 0.3,
+			"others": {
+				"Factor1": "test"
+			}
+		},
+		"meta": tp_meta_data
+	}
+}

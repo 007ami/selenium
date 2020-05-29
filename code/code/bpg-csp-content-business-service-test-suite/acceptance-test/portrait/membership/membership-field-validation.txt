@@ -1,0 +1,37 @@
+*** Settings ***
+Test Setup        Get Authorization Token
+Force Tags        field_validation    regression
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/portrait-membership.txt
+
+*** Test Cases ***
+FV_001 Verify That travelerGUID Is Required When Sending A Get Portriat Membership Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Portrait Membership    trv_guid=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Portrait Membership    trv_guid=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    PORTRAIT    BAD_REQUEST    param.required.travelerGUID
+    # None
+    Generate Test Variables For Get Portrait Membership    trv_guid=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    PORTRAIT    BAD_REQUEST    param.required.travelerGUID
+
+FV_012 Verify That txnId Is Not Required When Sending A Get Portriat Membership Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Portrait Membership    txn_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Portrait Membership    txn_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Portrait Membership    txn_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200

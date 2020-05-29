@@ -1,0 +1,60 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "prefix",
+	"offlineAlgorithm": "offline_algorithm",
+	"onlineAlgorithm": "online_algorithm",
+	"personalizationApplied": pers_applied,
+	"systemPersonalized": false,
+	"result": {
+		"score": [{
+				"marketingCarrierCode": "AA",
+				"origin": "origin",
+				"destination": "CEF",
+				"issuingCountry": "iss_country",
+				"apValue": 1,
+				"cpValue": 1,
+				"cpPolicyOrder": 1,
+				"cpDerivedPolicyOrder": 1,
+				"apPolicyOrder": 1,
+				"apDerivedPolicyOrder": 1,
+				"apScore": 0.6,
+				"cpScore": 0.5,
+				"totalScore": 1.35,
+				"apFlag": true,
+				"cpFlag": true,
+				"tpFlag": true,
+				"tpScore" : 0.25,
+				"tpValue" :0.5
+			}, {
+				"marketingCarrierCode": "AB",
+				"origin": "origin",
+				"destination": "ZSF",
+				"issuingCountry": "iss_country",
+				"apValue": 1,
+				"cpValue": 1,
+				"cpPolicyOrder": 2,
+				"cpDerivedPolicyOrder": 1,
+				"apPolicyOrder": 1,
+				"apDerivedPolicyOrder": 1,
+				"apScore": 0.6,
+				"cpScore": 0.5,
+				"totalScore": 1.1,
+				"apFlag": true,
+				"cpFlag": true,
+				"tpFlag": false,
+				"tpScore" : 0.0,
+				"tpValue" :0.0
+			}
+		],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"tpBoost": 0.5,
+			"cpBoost": 0.5,
+			"apBoost": 0.6,
+			"priceBoost": price,
+			"durationBoost": duration,
+			"numStopsBoost": num_stops,
+			"flightTimeBoost": flight_time
+		}
+	}
+}

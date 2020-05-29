@@ -1,0 +1,3 @@
+*** Settings ***
+Force Tags        admin_channels
+Resource          ../authenticate/resource/authenticate.txt

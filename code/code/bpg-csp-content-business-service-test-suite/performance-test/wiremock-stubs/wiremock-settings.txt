@@ -1,0 +1,5 @@
+wiremock-host: http://172.16.4.182:8080/__admin/mappings
+air-personalization-stub-id: 
+airapi-oauth2-stub-id: 
+ccr-composite-policy-stub-id: 8d5aa18f-be7a-494b-86e4-773f521bf413
+powerbase-oauth2-stub-id: bc13aba4-c012-4cf4-8545-3044aebbe784

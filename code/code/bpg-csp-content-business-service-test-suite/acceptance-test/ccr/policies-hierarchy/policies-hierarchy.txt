@@ -1,0 +1,17 @@
+*** Settings ***
+Force Tags        functional
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/policies-hierarchy.txt
+
+*** Test Cases ***
+FUNC001_Verify That CBS Policies Hierarchy Response Is Same With PB Policies Hierarchy Response
+    Get Authorization Token For PB
+    Generate Test Variables For Policies Hierarchy Get Request For PB
+    Send GET Request For PB API
+    Get Authorization Token
+    Generate Test Variables For Policies Hierarchy Get Request For CBS
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Response Is Same With Powerbase API

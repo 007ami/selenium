@@ -1,0 +1,29 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DATASET_prefix",
+	"result": {
+		"score": [{
+				"carrierCode": "AA",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 1,
+				"cpValue": 0,
+				"apScore": 0.9,
+				"cpScore": 0.0,
+				"totalScore": 0.9
+			}
+		],
+		"travelerPreference": default_trv_data,
+		"boost": {
+			"consumer": "MyCWT_Mobile",
+			"tpBoost": 0.5,
+			"cpBoost": 0.8,
+			"apBoost": 0.9,
+			"others": {
+				"Factor1": "test"
+			}
+		},
+		"meta": tp_meta_data
+	}
+}

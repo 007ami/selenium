@@ -1,0 +1,4 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment
+Force Tags        traveler_preference    not-ready
+Resource          ../resources/common.txt

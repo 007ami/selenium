@@ -1,0 +1,798 @@
+*** Settings ***
+Suite Setup       Initialize Test Data For Upload API
+Test Setup        Send Authenticate Post Request And Get Token
+Test Teardown     Close All Browsers
+Force Tags        upload_rules
+Resource          resource/rules.txt
+Resource          ../authentication/resource/authentication.txt
+Resource          ../resource/common.txt
+Resource          ../../resource/imports.txt
+Library           Selenium2Library
+
+*** Test Cases ***
+FNC_001 Verify That File Is Selected
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Verify Text In The Field    ${choose_file_btn}    C:\\fakepath\\default_rules.csv
+
+FNC_002 Verify That Upload File Button Is Disable And Enable After Upload File
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    # First Disable
+    Verify That Element Is Disable    ${upload_rules_btn}
+    #After Upload File
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Verify That Element Is Enabled    ${upload_rules_btn}
+
+FNC_003 Verify The Error Message When File Content Is Not Valid
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\Penguins.jpg
+    Click Upload Button
+    Verify That File Validation Is Not Successful    Please upload a correct and valid file containing the rules for refresh.
+
+FNC_004 Verify The Success Message When File Format Is Valid
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    # txt
+    Select And Upload File    ${CURDIR}\\files\\default_rules.txt
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=default_rules.txt
+    # csv
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=default_rules.csv
+
+FNC_005 Verify The Error Message When Uploading Same Rule Name File
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=default_rules.csv
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=default_rules.csv
+
+FNC_009 File Upload Is Successfully With All Fields Are Available
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=default_rules.csv
+
+FNC_010 File Upload Is Successfully With Only Mandatory Fields Are Available
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\mandatory_fileds_available.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=mandatory_fileds_available.csv
+
+FNC_011 File Is Not Uploaded When There Are Missing Fields
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\missing_ctuguid_header.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    Please upload a correct and valid file containing the rules for refresh.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_012 File Is Not Uploaded When There Are Extra Fields
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\extra_test_header.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    Please upload a correct and valid file containing the rules for refresh.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_013 File Is Not Uploaded When There Are Duplicate Sequence Number
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\duplicate_sequence_number.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|sequence has found duplicate/s.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_014 File Upload Is Successful When There Are Duplicate Rule Names
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\duplicate_rule_name.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=duplicate_rule_name.csv
+
+FNC_015 File Upload Is Successful When There Are Duplicate Criterias
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\duplicate_criteria.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=duplicate_criteria.csv
+
+FNC_016 File Upload Is Successful When Some Fields Are Set To Blank Or ALL
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\all_blank_values.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=all_blank_values.csv
+
+FNC_017 File Is Not Uploaded When Sequence Are Set To Blank Or All
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    # Blank
+    Select And Upload File    ${CURDIR}\\files\\blank_sequence_number.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|sequence is a required field.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # All
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\all_sequence_number.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 2|sequence has found duplicate/s.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_018 File Is Not Uploaded When Rule Name Are Set To Blank
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\blank_rule_name.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|rule_name is a required field.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_019 File Is Not Uploaded When Personalization Are Set To Blank Or ALL
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #Blank
+    Select And Upload File    ${CURDIR}\\files\\blank_personalization.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|personalization is a required field.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #All
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\all_personalization.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|personalization is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_020 File Upload Is Successful When CTU Name And CSU Name Are Not Existing In DB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\non_existing_ctu_csu_names.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=non_existing_ctu_csu_names.csv
+
+FNC_021 File Upload Is Dependent On CTU-CSU GUID Heirarchy Validation Against Clients In DB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #ctu_guid_xx_csu_guid_exists
+    Select And Upload File    ${CURDIR}\\files\\ctu_guid_xx_csu_guid_exists.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=ctu_guid_xx_csu_guid_exists.csv
+    #ctu_guid_xx_csu_guid_xx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\ctu_guid_xx_csu_guid_xx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|client_sub is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_xx_csu_guid_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\ctu_guid_xx_csu_guid_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|client_top is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_xx_csu_guid_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\ctu_guid_xx_csu_guid_all.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|client_top is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_exists_csu_guid_xx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\ctu_guid_exists_csu_guid_xx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|client_sub is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_exists_csu_guid_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\ctu_guid_exists_csu_guid_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=ctu_guid_exists_csu_guid_blank.csv
+    #ctu_guid_exists_csu_guid_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\ctu_guid_exists_csu_guid_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=ctu_guid_exists_csu_guid_all.csv
+
+FNC_022 File Upload Is Dependent On POS Regions-Country Heirarchy Validation Against TravelPort Data In DB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #pos_region_exists_country_xx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pos_region_exists_country_xx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|pos is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_exists_country_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pos_region_exists_country_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_exists_country_blank.csv
+    #pos_region_exists_country_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pos_region_exists_country_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_exists_country_all.csv
+    #pos_region_xxx_country_xx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pos_region_xxx_country_xx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|pos is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_xxx_country_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pos_region_xxx_country_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|pos is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_xxx_country_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pos_region_xxx_country_all.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|pos is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_xxx_country_exists
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pos_region_xxx_country_exists.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_xxx_country_exists.csv
+
+FNC_023 File Upload Is Dependent On Origin Regions-Country-Airport Heirarchy Validation Against TravelPort Data In DB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #origin_region_exists_country_exists_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_exists_country_exists_airport_xxx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 3|origin is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_exists_country_exists_airport_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_exists_country_exists_airport_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_exists_country_exists_airport_blank.csv
+    #origin_region_exists_country_exists_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_exists_country_exists_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_exists_country_exists_airport_all.csv
+    #origin_region_exists_country_xx_airport_exists
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_exists_country_xx_airport_exists.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_exists_country_xx_airport_exists.csv
+    #origin_region_exists_country_xx_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_exists_country_xx_airport_xxx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|origin is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_exists_country_xx_airport_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_exists_country_xx_airport_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|origin is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_exists_country_xx_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_exists_country_xx_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|origin is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_xxx_country_exists_airport_exists
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_xxx_country_exists_airport_exists.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_xxx_country_exists_airport_exists.csv
+    #origin_region_xxx_country_all_airport_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_xxx_country_all_airport_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|origin is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_blank_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_blank_country_blank_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_blank_country_blank_airport_all.csv
+    #origin_region_all_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\origin_region_all_country_blank_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_all_country_blank_airport_all.csv
+
+FNC_024 File Upload Is Dependent On Destination Regions-Country-Airport Heirarchy Validation Against TravelPort Data In DB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #destination_region_exists_country_exists_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_exists_country_exists_airport_xxx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 3|destination is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_exists_country_exists_airport_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_exists_country_exists_airport_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_exists_country_exists_airport_blank.csv
+    #destination_region_exists_country_exists_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_exists_country_exists_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_exists_country_exists_airport_all.csv
+    #destination_region_exists_country_xx_airport_exists
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_exists_country_xx_airport_exists.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_exists_country_xx_airport_exists.csv
+    #destination_region_exists_country_xx_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_exists_country_xx_airport_xxx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|destination is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_exists_country_xx_airport_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_exists_country_xx_airport_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|destination is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_exists_country_xx_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_exists_country_xx_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|destination is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_xxx_country_exists_airport_exists
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_xxx_country_exists_airport_exists.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_xxx_country_exists_airport_exists.csv
+    #destination_region_xxx_country_all_airport_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_xxx_country_all_airport_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|destination is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_blank_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_blank_country_blank_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_blank_country_blank_airport_all.csv
+    #destination_region_all_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\destination_region_all_country_blank_airport_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_all_country_blank_airport_all.csv
+
+FNC_025 File Upload Is Dependent On Direction Validation
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #direction_x
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\direction_x.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 4|direction is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #direction_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\direction_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=direction_blank.csv
+    #direction_B
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\direction_d_b.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=direction_d_b.csv
+    #direction_ALL
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\direction_all.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 4|direction is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_026 File Upload Is Dependent On Channel Validation Against Channel In DB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #channel_xxx
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\channel_xxx.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|channel is not valid - contains incorrect data.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #channel_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\channel_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=channel_blank.csv
+    #channel_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\channel_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=channel_all.csv
+
+FNC_031 File Upload Is Dependent On PCC Validation Against Channel
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #pcc_exists_channel_desktop
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_exists_channel_desktop.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_exists_channel_desktop.csv
+    #pcc_exists_channel_digital
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_exists_channel_digital.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 1|PCC/OID rule criteria is applicable only for Desktop channels.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pcc_exists_channel_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_exists_channel_all.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 2|PCC/OID rule criteria is applicable only for Desktop channels.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pcc_exists_channel_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_exists_channel_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Not Successful    File processing encountered validation errors. Please see the following details.|Line 5|PCC/OID rule criteria is applicable only for Desktop channels.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pcc_blank_channel_desktop_digital
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_blank_channel_desktop_digital.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_blank_channel_desktop_digital.csv
+    #pcc_blank_channel_all
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_blank_channel_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_blank_channel_all.csv
+    #pcc_blank_channel_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_blank_channel_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_blank_channel_blank.csv
+    #pcc_all_channel_desktop
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_all_channel_desktop.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_all_channel_desktop.csv
+    #pcc_all_channel_digital
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_all_channel_digital.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_all_channel_all_blank.csv
+    #pcc_all_channel_all_blank
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\pcc_all_channel_all_blank.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_all_channel_all_blank.csv
+
+FNC_027 File Upload Is Successful And Overrides The Existing Rules In DB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Delete Rules Collecton In MongoDB
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Select And Upload File    ${CURDIR}\\files\\pos_region_exists_country_all.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_exists_country_all.csv
+
+FNC_028 Instructions For Filling Out Rules Template Is Displayed
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Guidelines Button
+    Verify That Upload Rules Instructions Were Displayed Correctly
+
+FNC_029 Verify That Rules Template Is Successfully Downloaded
+    [Setup]    Clear Download Directory
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Download Rules Template Link
+    Verify That Download Rules Template Was Downloaded And Is Correct
+
+FNC_030 Verify That Rules Are Uploaded When Direction Is Bidirectional
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\direction_d_b.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=direction_d_b.csv
+
+Generate Test Data
+    [Tags]    test_data
+    Initialize Test Data For Upload API
+    [Teardown]    No Operation

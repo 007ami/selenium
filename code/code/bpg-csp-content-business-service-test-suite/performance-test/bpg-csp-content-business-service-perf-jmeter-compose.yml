@@ -1,0 +1,20 @@
+version: "2"
+services: 
+  bpg-csp-content-business-service-jmeter: 
+    environment: 
+      - ENV=$environment
+      - "ARGS=-n -t /opt/scripts/$jmxfile -l /opt/scripts/$outdir/$resultfile -Jhost=$host -Joutput_dir=$outdir -Jusers=$threads -Jduration=$duration -Jramp_up=$rampup"
+      - "DASHBOARD_ARGS=-g /opt/scripts/$outdir/$resultfile -o /opt/scripts/dashboard"
+      - OUTDIR=$outdir
+      - BUCKETNAME=$bucketname
+      - FILENAME=$resultfile
+    image: "379831576876.dkr.ecr.us-west-2.amazonaws.com/bpg-csp/content-business-service-jmeter:$tag_version"
+    cpu_shares: 1024
+    mem_reservation: 1500m
+    mem_limit: 8000m
+    logging: 
+      driver: awslogs
+      options: 
+        awslogs-group: /aws/ec2/$environment-content-business-service-jmeter
+        awslogs-region: us-west-2
+        awslogs-stream-prefix: $environment-content-business-service-jmeter

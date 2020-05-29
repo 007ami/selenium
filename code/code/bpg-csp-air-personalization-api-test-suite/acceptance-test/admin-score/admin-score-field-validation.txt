@@ -1,0 +1,387 @@
+*** Settings ***
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-score.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That travelerGUID Is Required When Sending A Get Personalization Score Request
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    trv_guid=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4014    error_message=Traveler/Default preference not found
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    trv_guid=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    trv_guid=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+
+FV_002 Verify That clientSubGUID Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    csu_guid=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    csu_guid=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    csu_guid=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+
+FV_003 Verify That issuingCountry Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    iss_country=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    iss_country=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    iss_country=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+
+FV_004 Verify That departureDate Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters (Invalid Date Format)
+    Generate Test Variables For Get Personalization Admin Score    dep_date=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: should be a valid date format - yyyyMMdd
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Get Personalization Admin Score    dep_date=12/12/2018
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: should be a valid date format - yyyyMMdd
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    dep_date=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    dep_date=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: must not be blank
+
+FV_005 Verify That arrivalDate Is Not Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Get Personalization Admin Score    arr_date=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalDate: should be a valid date format - yyyyMMdd
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Get Personalization Admin Score    arr_date=12/12/2018
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalDate: should be a valid date format - yyyyMMdd
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    arr_date=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Personalization Admin Score    arr_date=None
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+
+FV_006 Verify That cabinType Is Not Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    cabin_type=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    cabin_type=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Personalization Admin Score    cabin_type=None
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+
+FV_007 Verify That origin Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    origin=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    origin=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=origin: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    origin=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=origin: must not be blank
+
+FV_008 Verify That destination Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    destination=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    destination=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destination: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    destination=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destination: must not be blank
+
+FV_009 Verify That numberOfRows Is Not Required When Sending A Get Personalization Score Request
+    # Letters
+    Generate Test Variables For Get Personalization Admin Score    rows=ABC
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=numberOfRows: should be a counting number
+    # Special Characters
+    Generate Test Variables For Get Personalization Admin Score    rows=!@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=numberOfRows: should be a counting number
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    rows=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Personalization Admin Score    rows=None
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+
+FV_010 Verify That originCodeType Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    origin_code_type=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Get Personalization Admin Score    origin_code_type=B
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    #Numbers
+    Generate Test Variables For Get Personalization Admin Score    origin_code_type=123
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    #Special Characters
+    Generate Test Variables For Get Personalization Admin Score    origin_code_type=!
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    origin_code_type=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: must not be blank;originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    # None
+    Generate Test Variables For Get Personalization Admin Score    origin_code_type=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: must not be blank
+
+FV_011 Verify That destinationCodeType Is Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    destination_code_type=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Get Personalization Admin Score    destination_code_type=B
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    #Numbers
+    Generate Test Variables For Get Personalization Admin Score    destination_code_type=123
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    #Special Characters
+    Generate Test Variables For Get Personalization Admin Score    destination_code_type=!
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    destination_code_type=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: must not be blank;destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    # None
+    Generate Test Variables For Get Personalization Admin Score    destination_code_type=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: must not be blank
+
+FV_012 Verify That txnId Is Not Required When Sending A Get Personalization Score Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    txn_id=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    txn_id=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Personalization Admin Score    txn_id=None
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+
+FV_013 Verify That appId Is Required When Sending A Get Personalization Score Request
+    Generate Test Data For Features    app_id=ABC 123 !@# $%^    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    app_id=ABC 123 !@# $%^
+    Create Test Data For Metadata    app_id=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    app_id=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=getScore.appId: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    app_id=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Comment    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=Missing request header 'appId' for method parameter of type String
+    Verify Error Message When Version Is V2    400    error_code=INPUT_VALIDATION_ERROR    error_message=Required String parameter 'appId' is not present
+
+FV_014 Verify That tpBoost Is Required When Sending A Get Personalization Score Request
+    [Tags]    not-ready
+    # Letters
+    Generate Test Variables For Get Personalization Admin Score    tp_boost=ABC
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=tpBoost: should be numerical value
+    # Special Characters
+    Generate Test Variables For Get Personalization Admin Score    tp_boost=!@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=tpBoost: should be numerical value
+    # Numbers
+    Generate Test Variables For Get Personalization Admin Score    tp_boost=123
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Float Numbers
+    Generate Test Variables For Get Personalization Admin Score    tp_boost=0.2
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    tp_boost=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=tpBoost: must not be blank
+    # None
+    Generate Test Variables For Get Personalization Admin Score    tp_boost=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=tpBoost: must not be blank
+
+FV_015 Verify That apBoost Is Required When Sending A Get Personalization Score Request
+    # Letters
+    Generate Test Variables For Get Personalization Admin Score    ap_boost=ABC
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=apBoost: should be a valid boost / weightage amount i.e. double type value
+    # Special Characters
+    Generate Test Variables For Get Personalization Admin Score    ap_boost=!@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=apBoost: should be a valid boost / weightage amount i.e. double type value
+    # Numbers
+    Generate Test Variables For Get Personalization Admin Score    ap_boost=123
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Float Numbers
+    Generate Test Variables For Get Personalization Admin Score    ap_boost=0.2
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    ap_boost=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=apBoost: should be a valid boost / weightage amount i.e. double type value
+    # None
+    Generate Test Variables For Get Personalization Admin Score    ap_boost=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=apBoost: value is required
+
+FV_016 Verify That cpBoost Is Required When Sending A Get Personalization Score Request
+    # Letters
+    Generate Test Variables For Get Personalization Admin Score    cp_boost=ABC
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=cpBoost: should be a valid boost / weightage amount i.e. double type value
+    # Special Characters
+    Generate Test Variables For Get Personalization Admin Score    cp_boost=!@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=cpBoost: should be a valid boost / weightage amount i.e. double type value
+    # Numbers
+    Generate Test Variables For Get Personalization Admin Score    cp_boost=123
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Float Numbers
+    Generate Test Variables For Get Personalization Admin Score    cp_boost=0.2
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    cp_boost=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=cpBoost: should be a valid boost / weightage amount i.e. double type value
+    # None
+    Generate Test Variables For Get Personalization Admin Score    cp_boost=None
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=cpBoost: value is required
+
+FV_017 Verify That applyOAGFilter Is Not Required When Sending A Get Personalization Score Request
+    [Tags]    not-ready
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Admin Score    oag=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=applyOAGFilter: when applyOAGFilter param exists, use only 'Y' or 'true'; else remove this param
+    # Blank
+    Generate Test Variables For Get Personalization Admin Score    oag=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=applyOAGFilter: when applyOAGFilter param exists, use only 'Y' or 'true'; else remove this param
+    # None
+    Generate Test Variables For Get Personalization Admin Score    oag=None
+    Send GET request
+    Verify That Response Status Code Is Correct    200

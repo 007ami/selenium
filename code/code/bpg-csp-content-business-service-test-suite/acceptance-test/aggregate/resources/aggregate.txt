@@ -1,0 +1,149 @@
+*** Settings ***
+Library           String
+Library           Collections
+Library           DateTime
+Library           json.decoder.JSONDecoder
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../resources/common.txt
+Resource          ../../../resources/imports.txt
+
+*** Keywords ***
+Generate Test Variables For Aggregate Get Request For CBS
+    [Arguments]    ${token}=${${env}_gw_token}    ${txn_id}=auto    ${details}=None    ${systemUserGuid}=None    ${teamId}=None    ${csuGuid}=None
+    ...    ${clientAccNum}=None    ${travTypeGuid}=None    ${tripTypeId}=None    ${departure_date}=None    ${bookingDate}=None    ${languageCode}=None
+    ...    ${origin}=None    ${destination}=None    ${GDSCode}=None    ${systemUserLoginId}=None    ${travelerGuid}=None    ${iss_country}=None
+    ...    ${origin_code_type}=None    ${destination_code_type}=None    ${app_id}=None    ${prefix}=None    ${version}=${version}    ${pcc}=None
+    ...    ${booking_date}=None
+    Set Test Variable    ${endpoint}    ${context_path_cbs}/aggregate
+    ${query_param_list}    Create Dictionary
+    Run Keyword If    "${GDSCode}"!="None"    Set To Dictionary    ${query_param_list}    gdsCode    ${GDSCode}
+    Run Keyword If    "${csuGuid}"!="None"    Set To Dictionary    ${query_param_list}    clientSubGUID    ${csuGuid}
+    Run Keyword If    "${clientAccNum}"!="None"    Set To Dictionary    ${query_param_list}    clientAccountNumber    ${clientAccNum}
+    Run Keyword If    "${travTypeGuid}"!="None"    Set To Dictionary    ${query_param_list}    travelerTypeGUID    ${travTypeGuid}
+    Run Keyword If    "${departure_date}"!="None"    Set To Dictionary    ${query_param_list}    departureDate    ${departure_date}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${query_param_list}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${query_param_list}    destination    ${destination}
+    Run Keyword If    "${systemUserGuid}"!="None"    Set To Dictionary    ${query_param_list}    systemUserGUID    ${systemUserGuid}
+    Run Keyword If    "${teamId}"!="None"    Set To Dictionary    ${query_param_list}    teamId    ${teamId}
+    Run Keyword If    "${tripTypeId}"!="None"    Set To Dictionary    ${query_param_list}    tripTypeId    ${tripTypeId}
+    Run Keyword If    "${bookingDate}"!="None"    Set To Dictionary    ${query_param_list}    bookingDate    ${bookingDate}
+    Run Keyword If    "${languageCode}"!="None"    Set To Dictionary    ${query_param_list}    languageCode    ${languageCode}
+    Run Keyword If    "${systemUserLoginId}"!="None"    Set To Dictionary    ${query_param_list}    SystemUserLoginIdentifier    ${systemUserLoginId}
+    Run Keyword If    "${travelerGuid}"!="None"    Set To Dictionary    ${query_param_list}    travelerGUID    ${travelerGuid}
+    Run Keyword If    "${iss_country}"!="None"    Set To Dictionary    ${query_param_list}    issuingCountry    ${iss_country}
+    Run Keyword If    "${origin_code_type}"!="None"    Set To Dictionary    ${query_param_list}    originCodeType    ${origin_code_type}
+    Run Keyword If    "${destination_code_type}"!="None"    Set To Dictionary    ${query_param_list}    destinationCodeType    ${destination_code_type}
+    Run Keyword If    "${app_id}" != "None"    Set To Dictionary    ${query_param_list}    appId    ${app_id}
+    Run Keyword If    "${version}"!="None"    Set To Dictionary    ${query_param_list}    version    ${version}
+    Run Keyword If    "${prefix}"!="None"    Set To Dictionary    ${query_param_list}    experimentGroupTypeCode    ${prefix}
+    Run Keyword If    "${pcc}" != "None"    Set To Dictionary    ${query_param_list}    pcc    ${pcc}
+    Run Keyword If    "${booking_date}" != "None"    Set To Dictionary    ${query_param_list}    bookingDate    ${booking_date}
+    Set Test Variable    ${query_param_list}
+    Log    ${query_param_list}
+    ${details_list}    Split String    ${details}    |
+    : FOR    ${details_list_item}    IN    @{details_list}
+    \    Run Keyword If    "${details_list_item}"!="None"    Set Test Variable    ${endpoint}    ${endpoint}&details=${details_list_item}
+    \    ...    ELSE    Set Test Variable    ${endpoint}    ${endpoint}
+    ${endpoint}    Replace String    ${endpoint}    &    ?    1
+    Set Test Variable    ${endpoint}
+    Log    ${endpoint}
+    ${txn_id}    Run Keyword If    "${txn_id}"=="auto"    Generate UUID
+    ...    ELSE    Set Variable    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${app_id}
+
+Initialize Test Data For Personalization
+    Create Redis Cluster Connection
+    Generate Hash List
+    Generate Agent Index List
+    Generate Boost Index List
+    Generate Stub List
+    Create Meta Rule
+    Add Rules In Redis    ${all_match}
+
+Verify Aggregate Error Message When Version Is V1
+    [Arguments]    ${error_status_code}    ${error_endpoint}    ${error_status}    ${error_message}=${EMPTY}    ${error_response}=${EMPTY}
+    Run Keyword If    "${version}"=="v1"    Verify That Response Status Code Is Correct    ${error_status_code}
+    Run Keyword If    "${version}"=="v1" and "${error_response}"=="${EMPTY}"    Verify That Error Response Is Returned    ${error_endpoint}    ${error_status}    ${error_message}    #ELSE IF
+    ...    # "${version}"=="v2" and "${error_response}" != "${EMPTY}"    Verify That Error Response Is Returned    ${error_endpoint}    ${error_status}    ${error_response}
+
+Verify That API Response Is Same With Aggregate API
+    [Arguments]    ${details_list}
+    ${details_list}    Split String    ${details_list}    |
+    : FOR    ${details_list_items}    IN    @{details_list}
+    \    ${agg_response}    Run Keyword And Continue On Failure    Run Keyword If    "${details_list_items}"=="CompositePolicy"    Get From Dictionary    ${agg_response.json()['ClientConfig']}
+    \    ...    CompositePolicy
+    \    ...    ELSE IF    "${details_list_items}"=="Portrait"    Get From Dictionary    ${agg_response.json()}    Portrait
+    \    ...    ELSE IF    "${details_list_items}"=="Personalization"    Get From Dictionary    ${agg_response.json()}    Personalization
+    \    ${ap_response_new}    Run Keyword And Continue On Failure    Run Keyword If    "${details_list_items}"=="Personalization"    Convert To String    ${ap_response.content}
+    \    ${ap_response_new}    Run Keyword And Continue On Failure    Run Keyword If    "${details_list_items}"=="Personalization"    Remove String    ${ap_response_new}
+    \    ...    ,"cabinType":"BUS"
+    \    ${ap_response_new}    Run Keyword And Continue On Failure    Run Keyword If    "${details_list_items}"=="Personalization"    Evaluate    json.loads('''${ap_response_new}''')
+    \    ...    json
+    \    Log    ${agg_response}
+    \    Log    ${response.json()}
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${details_list_items}"=="Portrait"    Verify List Items    ${response.json()}    ${agg_response}
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${details_list_items}"=="CompositePolicy"    Dictionaries Should Be Equal    ${response.json()}    ${agg_response}
+    \    ...    Actual Value is not equal to the Expected Value
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${details_list_items}"=="Personalization"    Dictionaries Should Be Equal    ${ap_response_new}    ${agg_response}
+    \    ...    Actual Value is not equal to the Expected Value
+
+Verify That Correct Status Code Are Returned For Aggregate
+    [Arguments]    ${status_code}=${EMPTY}
+    Verify That Actual Value Matches Expected Value    ${agg_response.status_code}    ${status_code}
+
+Verify That Error Response Is Returned For Aggregate
+    [Arguments]    ${error_endpoint}=${EMPTY}    ${error_status}=${EMPTY}    ${error_message}=${EMPTY}    ${error_response}=${EMPTY}
+    ${error_response}    Escape The Special Characters Of A String    ${error_response}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_response}" == "${EMPTY}"    Should Be Equal    ${agg_response.json()['endpoint']}    ${error_endpoint}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_response}" == "${EMPTY}"    Should Be Equal    ${agg_response.json()['status']}    ${error_status}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_endpoint}" != "PERSONALIZATION" and "${error_response}" == "${EMPTY}"    Verify Json Value Is Correct    ${agg_response.content}    error    ${error_message.replace("\"", "")}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_endpoint}" == "PERSONALIZATION" and "${error_response}" == "${EMPTY}"    Verify That Error Message Is Correct    ${error_message}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_response}" != "${EMPTY}"    Verify That String Contains Substring    ${agg_response.content}    ${error_response}
+
+Verify That Error Response Is Returned For Composite Aggregate
+    [Arguments]    ${error_status}=${EMPTY}    ${error_message}=${EMPTY}
+    ${agg_error_status}    Get From Dictionary    ${agg_response.json()['ClientConfig']['CompositePolicy']}    status
+    ${agg_error_msg}    Get From Dictionary    ${agg_response.json()['ClientConfig']['CompositePolicy']}    error
+    ${agg_error_msg}    Convert To String    ${agg_error_msg}
+    Run Keyword And Continue On Failure    Should Be Equal    ${agg_error_status}    ${error_status}
+    Run Keyword And Continue On Failure    Should Be Equal    ${agg_error_msg}    ${error_message}
+
+Verify That Error Response Is Returned For Personalization Aggregate V1
+    [Arguments]    ${status_code}=${EMPTY}    ${error_status}=${EMPTY}    ${error_message}=${EMPTY}
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"=="v1"    Verify That Correct Status Code Are Returned For Aggregate    ${status_code}
+    ${agg_response.json()}    Run Keyword If    "${version}"=="v1"    Get From Dictionary    ${agg_response.json()}    Personalization
+    ${agg_error_status}    Run Keyword If    "${version}"=="v1"    Get From Dictionary    ${agg_response.json()}    status
+    ${agg_error_msg}    Run Keyword If    "${version}"=="v1"    Get From Dictionary    ${agg_response.json()}    error
+    ${agg_error_msg}    Run Keyword If    "${version}"=="v1"    Convert To String    ${agg_error_msg}
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"=="v1"    Should Be Equal    ${agg_error_status}    ${error_status}
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"=="v1"    Should Be Equal    ${agg_error_msg}    ${error_message}
+
+Verify That Error Response Is Returned For Personalization Aggregate V2
+    [Arguments]    ${status_code}=${EMPTY}    ${error_status}=${EMPTY}    ${error_message}=${EMPTY}
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"!="v1"    Verify That Correct Status Code Are Returned For Aggregate    ${status_code}
+    ${agg_response.json()}    Run Keyword If    "${version}"!="v1"    Get From Dictionary    ${agg_response.json()}    Personalization
+    ${agg_error_status}    Run Keyword If    "${version}"!="v1"    Get From Dictionary    ${agg_response.json()}    status
+    ${agg_error_msg}    Run Keyword If    "${version}"!="v1"    Get From Dictionary    ${agg_response.json()}    error
+    ${agg_error_msg}    Run Keyword If    "${version}"!="v1"    Convert To String    ${agg_error_msg}
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"!="v1"    Should Be Equal    ${agg_error_status}    ${error_status}
+    Run Keyword And Continue On Failure    Run Keyword If    "${version}"!="v1"    Should Be Equal    ${agg_error_msg}    ${error_message}
+
+Verify That Portrait Membership Response Is Same With Aggregate API
+    Set Test Variable    ${portrait_response}    {"Portrait":${response.content}}
+    ${portrait_response}    Convert To String    ${portrait_response}
+    ${agg_response}    Convert To String    ${agg_response.content}
+    Run Keyword And Continue On Failure    Should Be Equal    ${portrait_response}    ${agg_response}
+
+Verify That Response Does Not Contain Details Key
+    [Arguments]    ${details}
+    ${details}    Split String    ${details}    |
+    : FOR    ${details_key}    IN    @{details}
+    \    Run Keyword And Continue On Failure    Dictionary Should Not Contain Key    ${agg_response.json()}    ${details_key}
+
+Verify That Response Headers Are Correct For Aggregate
+    ${headers}    Convert To String    ${agg_response.headers}
+    Run Keyword And Continue On Failure    Run Keyword If    "${txn_id}"!="None"    Verify That String Contains Substring    ${headers}    'transactionId': '${txn_id}'
+    ...    ELSE    Verify That String Matches Pattern    ${headers}    'transactionId': '.*'

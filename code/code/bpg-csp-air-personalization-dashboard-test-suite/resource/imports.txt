@@ -1,0 +1,16 @@
+*** Settings ***
+Library           Collections
+Library           DateTime
+Library           OperatingSystem
+Library           RequestsLibrary
+Library           String
+Library           SudsLibrary
+Library           Process
+Resource          environment-variables.txt
+Resource          utilities.txt
+Library           RedisLibrary
+Library           RedisCustomLibrary.py
+Library           Selenium2Library
+Library           AngularJSLibrary
+Resource          object-variables.txt
+Library           MongoDBLibrary

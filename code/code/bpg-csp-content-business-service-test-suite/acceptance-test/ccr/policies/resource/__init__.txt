@@ -1,0 +1,4 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment
+Resource          resource/common.txt
+Resource          ../resource/imports.txt

@@ -1,0 +1,778 @@
+*** Settings ***
+Suite Setup       Initialize Test Data For Upload API
+Test Teardown     Close All Browsers
+Resource          ../authentication/resource/authentication.txt
+Resource          resource/rules.txt
+
+*** Test Cases ***
+FNC_001 Verify That Rules Are Displayed In The Rules Table Without Pagination
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Change Table Row Limit    50
+    Verify Rules Data In The Table    file=default_30_rules.csv    limit=30
+
+FNC_002 Verify That Rules Are Displayed In The Rules Table With Pagination
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Verify Rules Data In The Table    file=default_30_rules.csv
+    Click On Page Number    2
+    Verify Rules Data In The Table    rules_list=${rules_list}
+    Click On Page Number    3
+    Verify Rules Data In The Table    rules_list=${rules_list}
+    Click On Page Number    2
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+    Click On Page Number    1
+    Verify Rules Data In The Table    rules=0,Test 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|1,Test 1,ClientTop-test-0-1,1:1,CSU-Test_0-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|3,Test 3,ClientTop-test-0-3,3:3,CSU-Test_0-3,17:3E61,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|4,Test 4,ClientTop-test-0-4,4:4,CSU-Test_0-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|5,Test 5,ClientTop-test-0-5,5:0,CSU-Test_0-5,19:3G63,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|6,Test 6,ClientTop-test-0-6,6:1,CSU-Test_0-6,20:3H64,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|7,Test 7,ClientTop-test-0-7,7:2,CSU-Test_0-7,21:3I65,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|8,Test 8,ClientTop-test-0-8,8:3,CSU-Test_0-8,22:3J66,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_003 Verify That Rules Are Displayed In The Rules Table With Pagination By Arrow
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Previous Arrow Is Disabled
+    Next Arrow Is Enabled
+    Verify Rules Data In The Table    file=default_30_rules.csv
+    Click On Next Arrow
+    Previous Arrow Is Enabled
+    Next Arrow Is Enabled
+    Verify Rules Data In The Table    rules_list=${rules_list}
+    Click On Next Arrow
+    Previous Arrow Is Enabled
+    Next Arrow Is Disabled
+    Verify Rules Data In The Table    rules_list=${rules_list}
+    Click On Previous Arrow
+    Previous Arrow Is Enabled
+    Next Arrow Is Enabled
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+    Click On Previous Arrow
+    Previous Arrow Is Disabled
+    Next Arrow Is Enabled
+    Verify Rules Data In The Table    rules=0,Test 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|1,Test 1,ClientTop-test-0-1,1:1,CSU-Test_0-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|3,Test 3,ClientTop-test-0-3,3:3,CSU-Test_0-3,17:3E61,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|4,Test 4,ClientTop-test-0-4,4:4,CSU-Test_0-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|5,Test 5,ClientTop-test-0-5,5:0,CSU-Test_0-5,19:3G63,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|6,Test 6,ClientTop-test-0-6,6:1,CSU-Test_0-6,20:3H64,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|7,Test 7,ClientTop-test-0-7,7:2,CSU-Test_0-7,21:3I65,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|8,Test 8,ClientTop-test-0-8,8:3,CSU-Test_0-8,22:3J66,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_004 Verify That Latest Uploaded Rules Is Successfully Downloaded
+    [Setup]    Clear Download Directory
+    Delete Rules Collecton In MongoDB
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Click Download Dropdown Button and Download Latest Rules
+    Verify Download Latest Rule Success Message
+    Verify That Download Latest Rules Was Downloaded And Is Correct
+
+FNC_005 Verify That Latest Uploaded Rules Is Successfully Downloaded When No File Is Uploaded
+    [Setup]    Clear Download Directory
+    Delete Rules Collecton In MongoDB
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Download Dropdown Button and Download Latest Rules
+    Verify Download Latest Rule Success Message
+    Verify That Download Latest Rules Was Downloaded And Is Correct    RulesTemplate_v2.csv
+
+FNC_006 Verify The Rules From Table When Filter By Sequence
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${sequence_filter_txt}    2
+    Verify Rules Data In The Table    rules=2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_007 Verify The Rules From Table When Filter By Rule Name
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${rule_name_filter_txt}    Test 2
+    Verify Rules Data In The Table    rules=2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|20,Test 20,ClientTop-test-0-20,0:0,CSU-Test_0-20,14:3B67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|21,Test 21,ClientTop-test-0-21,1:1,CSU-Test_0-21,15:3C68,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|22,Test 22,ClientTop-test-0-22,2:2,CSU-Test_0-22,16:3D69,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|23,Test 23,ClientTop-test-0-23,3:3,CSU-Test_0-23,17:3E61,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|24,Test 24,ClientTop-test-0-24,4:4,CSU-Test_0-24,18:3F62,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|25,Test 25,ClientTop-test-0-25,5:0,CSU-Test_0-25,19:3G63,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|26,Test 26,ClientTop-test-0-26,6:1,CSU-Test_0-26,20:3H64,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|27,Test 27,ClientTop-test-0-27,7:2,CSU-Test_0-27,21:3I65,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|28,Test 28,ClientTop-test-0-28,8:3,CSU-Test_0-28,22:3J66,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+    Click On Next Arrow
+    Verify Rules Data In The Table    rules=29,Test 29,ClientTop-test-0-29,9:4,CSU-Test_0-29,23:3K67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+
+FNC_008 Verify The Rules From Table When Filter By ClientTop Name
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${client_top_name_filter_txt}    ClientTop-test-0-7
+    Verify Rules Data In The Table    rules=7,Test 7,ClientTop-test-0-7,7:2,CSU-Test_0-7,21:3I65,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_009 Verify The Rules From Table When Filter By ClientTop GUID
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${client_top_guid_filter_txt}    3:3
+    Verify Rules Data In The Table    rules=3,Test 3,ClientTop-test-0-3,3:3,CSU-Test_0-3,17:3E61,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|23,Test 23,ClientTop-test-0-23,3:3,CSU-Test_0-23,17:3E61,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+
+FNC_010 Verify The Rules From Table When Filter By ClientSub Name
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${client_sub_name_filter_txt}    CSU-Test_0-15
+    Verify Rules Data In The Table    rules=15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_011 Verify The Rules From Table When Filter By ClientSub GUID
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${client_sub_guid_filter_txt}    23:3K67
+    Verify Rules Data In The Table    rules=9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|29,Test 29,ClientTop-test-0-29,9:4,CSU-Test_0-29,23:3K67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+
+FNC_012 Verify The Rules From Table When Filter By POS Region
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${pos_region_filter_txt}    ASA
+    Verify Rules Data In The Table    rules=20,Test 20,ClientTop-test-0-20,0:0,CSU-Test_0-20,14:3B67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|21,Test 21,ClientTop-test-0-21,1:1,CSU-Test_0-21,15:3C68,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|22,Test 22,ClientTop-test-0-22,2:2,CSU-Test_0-22,16:3D69,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|23,Test 23,ClientTop-test-0-23,3:3,CSU-Test_0-23,17:3E61,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|24,Test 24,ClientTop-test-0-24,4:4,CSU-Test_0-24,18:3F62,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|25,Test 25,ClientTop-test-0-25,5:0,CSU-Test_0-25,19:3G63,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|26,Test 26,ClientTop-test-0-26,6:1,CSU-Test_0-26,20:3H64,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|27,Test 27,ClientTop-test-0-27,7:2,CSU-Test_0-27,21:3I65,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|28,Test 28,ClientTop-test-0-28,8:3,CSU-Test_0-28,22:3J66,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|29,Test 29,ClientTop-test-0-29,9:4,CSU-Test_0-29,23:3K67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+
+FNC_013 Verify The Rules From Table When Filter By POS Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${pos_country_filter_txt}    GB
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_014 Verify The Rules From Table When Filter By Origin Region
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${origin_region_filter_txt}    NAM
+    Verify Rules Data In The Table    rules=0,Test 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|1,Test 1,ClientTop-test-0-1,1:1,CSU-Test_0-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|3,Test 3,ClientTop-test-0-3,3:3,CSU-Test_0-3,17:3E61,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|4,Test 4,ClientTop-test-0-4,4:4,CSU-Test_0-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|5,Test 5,ClientTop-test-0-5,5:0,CSU-Test_0-5,19:3G63,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|6,Test 6,ClientTop-test-0-6,6:1,CSU-Test_0-6,20:3H64,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|7,Test 7,ClientTop-test-0-7,7:2,CSU-Test_0-7,21:3I65,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|8,Test 8,ClientTop-test-0-8,8:3,CSU-Test_0-8,22:3J66,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_015 Verify The Rules From Table When Filter By Origin Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${origin_country_filter_txt}    US
+    Verify Rules Data In The Table    rules=0,Test 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|1,Test 1,ClientTop-test-0-1,1:1,CSU-Test_0-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|3,Test 3,ClientTop-test-0-3,3:3,CSU-Test_0-3,17:3E61,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|4,Test 4,ClientTop-test-0-4,4:4,CSU-Test_0-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|5,Test 5,ClientTop-test-0-5,5:0,CSU-Test_0-5,19:3G63,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|6,Test 6,ClientTop-test-0-6,6:1,CSU-Test_0-6,20:3H64,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|7,Test 7,ClientTop-test-0-7,7:2,CSU-Test_0-7,21:3I65,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|8,Test 8,ClientTop-test-0-8,8:3,CSU-Test_0-8,22:3J66,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_016 Verify The Rules From Table When Filter By Origin Airport
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${origin_airport_filter_txt}    LHR
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_017 Verify The Rules From Table When Filter By Destination Region
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${destination_region_filter_txt}    ASA
+    Verify Rules Data In The Table    rules=20,Test 20,ClientTop-test-0-20,0:0,CSU-Test_0-20,14:3B67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|21,Test 21,ClientTop-test-0-21,1:1,CSU-Test_0-21,15:3C68,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|22,Test 22,ClientTop-test-0-22,2:2,CSU-Test_0-22,16:3D69,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|23,Test 23,ClientTop-test-0-23,3:3,CSU-Test_0-23,17:3E61,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|24,Test 24,ClientTop-test-0-24,4:4,CSU-Test_0-24,18:3F62,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|25,Test 25,ClientTop-test-0-25,5:0,CSU-Test_0-25,19:3G63,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|26,Test 26,ClientTop-test-0-26,6:1,CSU-Test_0-26,20:3H64,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|27,Test 27,ClientTop-test-0-27,7:2,CSU-Test_0-27,21:3I65,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|28,Test 28,ClientTop-test-0-28,8:3,CSU-Test_0-28,22:3J66,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|29,Test 29,ClientTop-test-0-29,9:4,CSU-Test_0-29,23:3K67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+
+FNC_018 Verify The Rules From Table When Filter By Destination Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${destination_country_filter_txt}    GB
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_019 Verify The Rules From Table When Filter By Destination Airport
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${destination_airport_filter_txt}    JFK
+    Verify Rules Data In The Table    rules=0,Test 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|1,Test 1,ClientTop-test-0-1,1:1,CSU-Test_0-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|3,Test 3,ClientTop-test-0-3,3:3,CSU-Test_0-3,17:3E61,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|4,Test 4,ClientTop-test-0-4,4:4,CSU-Test_0-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|5,Test 5,ClientTop-test-0-5,5:0,CSU-Test_0-5,19:3G63,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|6,Test 6,ClientTop-test-0-6,6:1,CSU-Test_0-6,20:3H64,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|7,Test 7,ClientTop-test-0-7,7:2,CSU-Test_0-7,21:3I65,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|8,Test 8,ClientTop-test-0-8,8:3,CSU-Test_0-8,22:3J66,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_020 Verify The Rules From Table When Filter By Direction
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${direction_filter_txt}    D
+    Verify Rules Data In The Table    rules=0,Test 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|1,Test 1,ClientTop-test-0-1,1:1,CSU-Test_0-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Test 2,ClientTop-test-0-2,2:2,CSU-Test_0-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|3,Test 3,ClientTop-test-0-3,3:3,CSU-Test_0-3,17:3E61,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|4,Test 4,ClientTop-test-0-4,4:4,CSU-Test_0-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|5,Test 5,ClientTop-test-0-5,5:0,CSU-Test_0-5,19:3G63,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|6,Test 6,ClientTop-test-0-6,6:1,CSU-Test_0-6,20:3H64,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|7,Test 7,ClientTop-test-0-7,7:2,CSU-Test_0-7,21:3I65,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|8,Test 8,ClientTop-test-0-8,8:3,CSU-Test_0-8,22:3J66,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+    Click On Next Arrow
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+    Click On Next Arrow
+    Verify Rules Data In The Table    rules=20,Test 20,ClientTop-test-0-20,0:0,CSU-Test_0-20,14:3B67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|21,Test 21,ClientTop-test-0-21,1:1,CSU-Test_0-21,15:3C68,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|22,Test 22,ClientTop-test-0-22,2:2,CSU-Test_0-22,16:3D69,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|23,Test 23,ClientTop-test-0-23,3:3,CSU-Test_0-23,17:3E61,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|24,Test 24,ClientTop-test-0-24,4:4,CSU-Test_0-24,18:3F62,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|25,Test 25,ClientTop-test-0-25,5:0,CSU-Test_0-25,19:3G63,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|26,Test 26,ClientTop-test-0-26,6:1,CSU-Test_0-26,20:3H64,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|27,Test 27,ClientTop-test-0-27,7:2,CSU-Test_0-27,21:3I65,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|28,Test 28,ClientTop-test-0-28,8:3,CSU-Test_0-28,22:3J66,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|29,Test 29,ClientTop-test-0-29,9:4,CSU-Test_0-29,23:3K67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+
+FNC_021 Verify The Rules From Table When Filter By Channel
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${channel_filter_txt}    Desktop_Amadeus
+    Verify Rules Data In The Table    rules=20,Test 20,ClientTop-test-0-20,0:0,CSU-Test_0-20,14:3B67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|21,Test 21,ClientTop-test-0-21,1:1,CSU-Test_0-21,15:3C68,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|22,Test 22,ClientTop-test-0-22,2:2,CSU-Test_0-22,16:3D69,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|23,Test 23,ClientTop-test-0-23,3:3,CSU-Test_0-23,17:3E61,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|24,Test 24,ClientTop-test-0-24,4:4,CSU-Test_0-24,18:3F62,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|25,Test 25,ClientTop-test-0-25,5:0,CSU-Test_0-25,19:3G63,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|26,Test 26,ClientTop-test-0-26,6:1,CSU-Test_0-26,20:3H64,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|27,Test 27,ClientTop-test-0-27,7:2,CSU-Test_0-27,21:3I65,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|28,Test 28,ClientTop-test-0-28,8:3,CSU-Test_0-28,22:3J66,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON|29,Test 29,ClientTop-test-0-29,9:4,CSU-Test_0-29,23:3K67,,ASA,JP,ASA,JP,NRT,ASA,JP,NRT,D,Desktop_Amadeus,ON
+
+FNC_022 Verify The Rules From Table When Filter By Personalization Switch
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${personalization_filter_txt}    OFF
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_023 Verify The Rules From Table When Filter By CTU Guid, Origin Country And Destination Airport
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${client_top_guid_filter_txt}    7:2
+    Set Filter Values In The Fields    ${origin_country_filter_txt}    GB
+    Set Filter Values In The Fields    ${destination_airport_filter_txt}    LHR
+    Verify Rules Data In The Table    rules=17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_024 Verify The Rules From Table When Filter By POS Region, Origin Region And Destination Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${pos_region_filter_txt}    EUR
+    Set Filter Values In The Fields    ${origin_region_filter_txt}    EUR
+    Set Filter Values In The Fields    ${destination_country_filter_txt}    GB
+    Verify Rules Data In The Table    rules=10,Test 10,ClientTop-test-0-10,0:0,CSU-Test_0-10,14:3B67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|11,Test 11,ClientTop-test-0-11,1:1,CSU-Test_0-11,15:3C68,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|12,Test 12,ClientTop-test-0-12,2:2,CSU-Test_0-12,16:3D69,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|13,Test 13,ClientTop-test-0-13,3:3,CSU-Test_0-13,17:3E61,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|14,Test 14,ClientTop-test-0-14,4:4,CSU-Test_0-14,18:3F62,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|15,Test 15,ClientTop-test-0-15,5:0,CSU-Test_0-15,19:3G63,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|16,Test 16,ClientTop-test-0-16,6:1,CSU-Test_0-16,20:3H64,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|17,Test 17,ClientTop-test-0-17,7:2,CSU-Test_0-17,21:3I65,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|18,Test 18,ClientTop-test-0-18,8:3,CSU-Test_0-18,22:3J66,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF|19,Test 19,ClientTop-test-0-19,9:4,CSU-Test_0-19,23:3K67,,EUR,GB,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_025 Verify The Rules From Table When Filter By Origin Airport, Destination Region, Channel And Personalization Switch
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\combination origin_destination.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${origin_airport_filter_txt}    LHR
+    Set Filter Values In The Fields    ${destination_region_filter_txt}    ASA
+    Set Filter Values In The Fields    ${channel_filter_txt}    MyCWT_Web
+    Set Filter Values In The Fields    ${personalization_filter_txt}    OFF
+    Verify Rules Data In The Table    rules=9,Test 9,ClientTop-test-0-9,9:4,CSU-Test_0-9,23:3K67,,NAM,US,EUR,GB,LHR,ASA,JP,NRT,D,MyCWT_Web,OFF
+
+FNC_026 Verify The Rules From Table When Filter By Rule Name, CSU Guid, POS Country And Origin Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\combination origin_destination.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${rule_name_filter_txt}    TEST 1
+    Set Filter Values In The Fields    ${client_sub_guid_filter_txt}    16:3D69
+    Set Filter Values In The Fields    ${pos_country_filter_txt}    JP
+    Set Filter Values In The Fields    ${origin_country_filter_txt}    GB
+    Set Filter Values In The Fields    ${client_top_guid_filter_txt}    13:2
+    Verify Rules Data In The Table    rules=12,Test 12,ClientTop-test-0-2,13:2,CSU-Test_0-2,16:3D69,,ASA,JP,EUR,GB,LHR,EUR,GB,LHR,D,MyCWT_Web,OFF
+
+FNC_045 Verify The Rules From Table When Filter By PCC/OID
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Set Filter Values In The Fields    ${pcc_filter_txt}    ABC1234567890
+    Verify Rules Data In The Table    rules=3,Test 3,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,ABC1234567890,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Amadeus,ON
+
+FNC_027 Verify That Rules Are Displayed In The Rules Table When Upload Blank Rules File
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\blank.csv
+    Click Upload Button
+    Verify That Rules Table Is Empty
+
+FNC_028 Verify That Rules Are Displayed In The Rules Table When Upload Failed Rules File
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_5_rules.csv
+    Click Upload Button
+    Verify Rules Data In The Table    file=default_5_rules.csv
+    Select And Upload File    ${CURDIR}\\files\\default_5_rules Failed.csv
+    Click Upload Button
+    Verify Rules Data In The Table    file=default_5_rules.csv
+
+FNC_029 Verify That Rules Are Displayed In The Rules Table When Upload Blank And ALL Values
+    [Setup]    Clear Download Directory
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    Login To Dashboard
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\all_blank_values_for_download.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Verify Rules Data In The Table    file=all_blank_values_for_download_direction_d.csv
+    Click Download Dropdown Button and Download Latest Rules
+    Verify Download Latest Rules Preparing Message
+    Verify That Download Latest Rules Was Downloaded And Is Correct    all_blank_values_for_download_direction_d.csv
+
+FNC_031 Verify That Rules Are Successfully Added When All Mandatory Fields Available
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule 1
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Rule 1,,,,,,,,,,,,,,D,,OFF
+
+FNC_030 Verify That Rules Are Successfully Added When All Fields Available
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Add Rule 1
+    Select ClientTopGuid From Dropdown List    ClientTop-test-1-1 [1:1]
+    Select ClientSubGuid From Dropdown List    CSU-Test_1-1 [15:3C68]
+    Set POS Region    NAM
+    Set POS Country    US
+    Set Origin Region    NAM
+    Set Origin Country    US
+    Set Origin Airport    JFK
+    Set Destination Region    APAC
+    Set Destination Country    PH
+    Set Destination Airport    MNL
+    Select Direction From Dropdown List    D
+    Select Channel From Dropdown List    ALL
+    Set PCC    ALL
+    Set Switch
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,ALL,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,ON
+    #Add Multiple Rules
+    Add Multiple Rules    2,Rule 2,ClientTop-test-0-0 [0:0],CSU-Test_0-0 [14:3B67],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|3,Rule 3,ClientTop-test-1-1 [1:1],CSU-Test_1-1 [15:3C68],LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3 [3:3],CSU-Test_3-3 [17:3E61],,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|6,Rule 6,ClientTop-test-4-4 [4:4],CSU-Test_4-4 [18:3F62],ALL,NAM,US,NAM,US,JFK,APAC,PH,MNL,B,ALL,OFF
+    Verify Rules Data In The Table    rules=1,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,ALL,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,ON|2,Rule 2,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|3,Rule 3,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|6,Rule 6,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,ALL,NAM,US,NAM,US,JFK,APAC,PH,MNL,B,ALL,OFF
+
+FNC_032 Verify That Rules Are Successfully Modify With Mandatory And Non-Mandatory Fields
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Add Rule With Values
+    Set Sequence Number    1
+    Set Rule Name    Add Rule 1
+    Select ClientTopGuid From Dropdown List    ClientTop-test-1-1 [1:1]
+    Select ClientSubGuid From Dropdown List    CSU-Test_1-1 [15:3C68]
+    Set POS Region    NAM
+    Set POS Country    US
+    Set Origin Region    NAM
+    Set Origin Country    US
+    Set Origin Airport    JFK
+    Set Destination Region    APAC
+    Set Destination Country    PH
+    Set Destination Airport    MNL
+    Select Direction From Dropdown List    D
+    Select Channel From Dropdown List    DESKTOP_AMADEUS
+    Set PCC    3W7F
+    Set Switch
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,3W7F,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,DESKTOP_AMADEUS,ON
+    # Edit Fields To ALL
+    Click Edit Button
+    Clear Field    ${sequence_number_txt}|${rule_name_txt}|${pos_region_txt}|${pos_country_txt}|${origin_region_txt}|${origin_country_txt}|${origin_airport_txt}|${destination_region_txt}|${destination_country_txt}|${destination_airport_txt}|${pcc_txt}
+    Set Sequence Number    2
+    Set Rule Name    Edit Rule 2
+    Select ClientTopGuid From Dropdown List    ALL
+    Select ClientSubGuid From Dropdown List    ALL
+    Set POS Region    ALL
+    Set POS Country    ALL
+    Set Origin Region    ALL
+    Set Origin Country    ALL
+    Set Origin Airport    ALL
+    Set Destination Region    ALL
+    Set Destination Country    ALL
+    Set Destination Airport    ALL
+    Select Channel From Dropdown List    ALL
+    Select Direction From Dropdown List    B
+    Set PCC    ALL
+    Set Switch
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    2,Edit Rule 2,ALL,ALL,ALL,ALL,ALL,ALL,ALL,ALL,ALL,ALL,ALL,ALL,ALL,B,ALL,OFF
+    # Edit ALL To Values
+    Click Edit Button
+    Clear Field    ${sequence_number_txt}|${rule_name_txt}|${pos_region_txt}|${pos_country_txt}|${origin_region_txt}|${origin_country_txt}|${origin_airport_txt}|${destination_region_txt}|${destination_country_txt}|${destination_airport_txt}|${pcc_txt}
+    Set Sequence Number    1
+    Set Rule Name    Edit Rule 1
+    Select ClientTopGuid From Dropdown List    ClientTop-test-1-1 [1:1]
+    Select ClientSubGuid From Dropdown List    CSU-Test_1-1 [15:3C68]
+    Set POS Region    NAM
+    Set POS Country    US
+    Set Origin Region    NAM
+    Set Origin Country    US
+    Set Origin Airport    JFK
+    Set Destination Region    APAC
+    Set Destination Country    PH
+    Set Destination Airport    MNL
+    Select Direction From Dropdown List    D
+    Select Channel From Dropdown List    DESKTOP_AMADEUS
+    Set PCC    3W7F
+    Set Switch
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Edit Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,3W7F,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,DESKTOP_AMADEUS,ON
+    # Edit Values To Blank
+    Click Edit Button
+    Clear Field    ${pos_region_txt}|${pos_country_txt}|${origin_region_txt}|${origin_country_txt}|${origin_airport_txt}|${destination_region_txt}|${destination_country_txt}|${destination_airport_txt}|${pcc_txt}
+    Clear ClientTopGuid Field
+    Clear ClientSubGuid Field
+    Clear Channel Field
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Edit Rule 1,,,,,,,,,,,,,,D,,ON
+    # Edit Blank To Values
+    Click Edit Button
+    Select ClientTopGuid From Dropdown List    ClientTop-test-2-2 [2:2]
+    Select ClientSubGuid From Dropdown List    CSU-Test_2-2 [16:3D69]
+    Set POS Region    NAM
+    Set POS Country    US
+    Set Origin Region    EUR
+    Set Origin Country    GB
+    Set Origin Airport    LHR
+    Set Destination Region    NAM
+    Set Destination Country    US
+    Set Destination Airport    JFK
+    Select Direction From Dropdown List    B
+    Select Channel From Dropdown List    DESKTOP_SABRE
+    Set PCC    3W7F
+    Set Switch
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Edit Rule 1,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,3W7F,NAM,US,EUR,GB,LHR,NAM,US,JFK,B,DESKTOP_SABRE,OFF
+
+FNC_033 Verify That Rule Is Successfully Deleted Single Rule
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    #Delete Row 1
+    Add Multiple Rules    0,Rule 0,ClientTop-test-0-0 [0:0],CSU-Test_0-0 [14:3B67],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|1,Rule 1,ClientTop-test-1-1 [1:1],CSU-Test_1-1 [15:3C68],LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|2,Rule 2,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|3,Rule 3,ClientTop-test-3-3 [3:3],CSU-Test_3-3 [17:3E61],,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|4,Rule 4,ClientTop-test-4-4 [4:4],CSU-Test_4-4 [18:3F62],,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,OFF
+    Verify Rules Data In The Table    rules=0,Rule 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|1,Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|2,Rule 2,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|3,Rule 3,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|4,Rule 4,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,OFF
+    Click Delete Button
+    Click Delete Alert Confirmation
+    Verify Delete Rules Success Message
+    Verify Rules Data In The Table    rules=1,Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|2,Rule 2,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|3,Rule 3,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|4,Rule 4,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,OFF
+    #Delete Row 3
+    Click Delete Button    row_number=3
+    Click Delete Alert Confirmation    confirmation=yes
+    Verify Delete Rules Success Message
+    Verify Rules Data In The Table    rules=1,Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|2,Rule 2,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|3,Rule 3,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON
+
+FNC_034 Verify That Rules Are Successfully Deleted Multiple Rules
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    Add Multiple Rules    0,Rule 0,ClientTop-test-0-0 [0:0],CSU-Test_0-0 [14:3B67],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|1,Rule 1,ClientTop-test-1-1 [1:1],CSU-Test_1-1 [15:3C68],LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|2,Rule 2,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|3,Rule 3,ClientTop-test-3-3 [3:3],CSU-Test_3-3 [17:3E61],,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|4,Rule 4,ClientTop-test-4-4 [4:4],CSU-Test_4-4 [18:3F62],,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,OFF
+    Verify Rules Data In The Table    rules=0,Rule 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|1,Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|2,Rule 2,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,3W7F,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|3,Rule 3,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|4,Rule 4,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,OFF
+    Click Multi Delete Checkbox
+    Click On Multi Checkboxs    2,3,4
+    Click On Delete Selected Rules
+    Click Delete Alert Confirmation
+    Verify Delete Rules Success Message
+    Click Multi Delete Checkbox
+    Verify Rules Data In The Table    rules=0,Rule 0,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|1,Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,LONWL2220,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON
+
+FNC_035 Verify That Rules Are Added And Modify With Same Sequence Number
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    # Add Rule
+    Set Sequence Number    1
+    Set Rule Name    Add Rule 1
+    Select ClientTopGuid From Dropdown List    ClientTop-test-1-1 [1:1]
+    Select ClientSubGuid From Dropdown List    CSU-Test_1-1 [15:3C68]
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,,,,,,,,,D,,OFF
+    #Add Rule With Same Sequence Number
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Add Rule 1
+    Select ClientTopGuid From Dropdown List    ClientTop-test-1-1 [1:1]
+    Select ClientSubGuid From Dropdown List    CSU-Test_1-1 [15:3C68]
+    Set POS Region    NAM
+    Set POS Country    US
+    Set Origin Region    NAM
+    Set Origin Country    US
+    Set Origin Airport    JFK
+    Set Destination Region    APAC
+    Set Destination Country    PH
+    Set Destination Airport    MNL
+    Select Direction From Dropdown List    D
+    Select Channel From Dropdown List    ALL
+    Set PCC    ALL
+    Set Switch
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,ALL,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,ON|2,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,,,,,,,,,D,,OFF
+    #Add same Sequence Mid of the Rules
+    Add Multiple Rules    3,Rule 3,ClientTop-test-3-3 [3:3],CSU-Test_3-3 [17:3E61],,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|4,Rule 4,ClientTop-test-4-4 [4:4],CSU-Test_4-4 [18:3F62],,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,OFF|3,Rule 5,ClientTop-test-3-3 [3:3],CSU-Test_3-3 [17:3E61],,,,,,,,,,,,OFF
+    Verify Rules Data In The Table    1,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,ALL,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,ON|2,Add Rule 1,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,,,,,,,,,D,,OFF|3,Rule 5,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,,,,,,,,,D,,OFF|4,Rule 3,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|5,Rule 4,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,APAC,PH,MNL,D,ALL,OFF
+
+FNC_037 Verify That Rules Are Successfully Added And Modify When Direction Is Bidirectional
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    # Add Direction D
+    Set Sequence Number    1
+    Set Rule Name    Rule 1
+    Select Direction From Dropdown List    D
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Rule 1,,,,,,,,,,,,,,D,,OFF
+    # Add Direction B
+    Click Add Rule Button
+    Set Sequence Number    2
+    Set Rule Name    Rule 2
+    Select Direction From Dropdown List    B
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Rule 1,,,,,,,,,,,,,,D,,OFF|2,Rule 2,,,,,,,,,,,,,,B,,OFF
+    #Edit Direction B
+    Click Edit Button    row_number=0
+    Select Channel From Dropdown List    MYCWT_MOBILE
+    Select Direction From Dropdown List    B
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Rule 1,,,,,,,,,,,,,,B,MYCWT_MOBILE,OFF|2,Rule 2,,,,,,,,,,,,,,B,,OFF
+    #Edit Direction Blank
+    Click Edit Button    row_number=1
+    Select Direction From Dropdown List    D
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Rule 1,,,,,,,,,,,,,,B,MYCWT_MOBILE,OFF|2,Rule 2,,,,,,,,,,,,,,D,,OFF
+
+FNC_038 Verify The Error Message When Add Rules With Same Criterias
+    [Tags]    not-ready
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Add Rule
+    Set Sequence Number    1
+    Set Rule Name    Add Rule 1
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    1,Add Rule 1,,,,,,,,,,,,,,D,,OFF
+    #Add Same Rule Name And Sequence
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Add Rule 1
+    Click Save Button
+    Verify Rules Data In The Table    1,Add Rule 1,,,,,,,,,,,,,,D,,OFF|2,Add Rule 1,,,,,,,,,,,,,,D,,OFF
+    #Add Same Criteria
+    Add Multiple Rules    1,Test 1,ClientTop-test-0-0 [0:0],CSU-Test_0-0 [14:3B67],NAM,US,NAM,US,JFK,NAM,US,JFK,D,MYCWT_MOBILE,ON|2,Test 2,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],NAM,US,NAM,US,JFK,NAM,US,JFK,D,MYCWT_MOBILE,ON|3,Test 3,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],NAM,US,NAM,US,JFK,NAM,US,JFK,D,MYCWT_MOBILE,ON
+    Verify Rules Data In The Table    1,Test 1,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MYCWT_MOBILE,ON|2,Test 2,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MYCWT_MOBILE,ON|3,Test 3,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],NAM,US,NAM,US,JFK,NAM,US,JFK,D,MYCWT_MOBILE,ON |4,Add Rule 1,,,,,,,,,,,,,D,,OFF|5,Add Rule 1,,,,,,,,,,,,,D,,OFF
+
+FNC_039 Verify That GsmAdmin Is Able To Upload,View, Add, Edit And Delete Rules
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard    ${${env}_gsmadmin_username}    ${${env}_gsmadmin_password}
+    Verify That Cache Is Not Visible
+    Verify That Login Successful Message Is Displayed
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Verify Rules Data In The Table    file=default_rules.csv
+    #Add Multiple Rules
+    Add Multiple Rules    2,Rule 2,ClientTop-test-0-0 [0:0],CSU-Test_0-0 [14:3B67],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|3,Rule 3,ClientTop-test-1-1 [1:1],CSU-Test_1-1 [15:3C68],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3 [3:3],CSU-Test_3-3 [17:3E61],,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|6,Rule 6,ClientTop-test-4-4 [4:4],CSU-Test_4-4 [18:3F62],,NAM,US,NAM,US,JFK,APAC,PH,MNL,B,ALL,OFF
+    Verify Rules Data In The Table    rules=1,Test 1,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Rule 2,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|3,Rule 3,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|6,Rule 6,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,APAC,PH,MNL,B,ALL,OFF|7,Test 2,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Web,ON|8,Test 3,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,ABC1234567890,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Amadeus,ON|9,Test 4,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,A23D,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Sabre,ON|10,Test 5,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+    # Edit Rule
+    Click Edit Button    row_number=0
+    Set Sequence Number    10
+    Set Rule Name    Edit Rule 1
+    Select ClientTopGuid From Dropdown List    ClientTop-test-4-4 [4:4]
+    Select ClientSubGuid From Dropdown List    CSU-Test_4-4 [18:3F62]
+    Select Channel From Dropdown List    ALL
+    Click Save Button
+    Verify Success Message
+    Verify Rules Data In The Table    rules=2,Rule 2,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|3,Rule 3,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|6,Rule 6,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,APAC,PH,MNL,B,ALL,OFF|7,Test 2,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Web,ON|8,Test 3,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,ABC1234567890,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Amadeus,ON|9,Test 4,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,A23D,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Sabre,ON|10,Test 5,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|110,Test 1Edit Rule 1,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,ALL,ON
+    #Delete Rules
+    Click Multi Delete Checkbox
+    Click On Multi Checkboxs    2,6
+    Click On Delete Selected Rules
+    Click Delete Alert Confirmation
+    Click Multi Delete Checkbox
+    Verify Rules Data In The Table    rules=3,Rule 3,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|7,Test 2,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Web,ON|8,Test 3,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,ABC1234567890,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Amadeus,ON|9,Test 4,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,A23D,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Sabre,ON|10,Test 5,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|110,Test 1Edit Rule 1,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,ALL,ON
+
+FNC_040 Verify That GsmAdmin Is Able To Download Rule Template When No File Is Uploaded
+    [Setup]    Clear Download Directory
+    Delete Rules Collecton In MongoDB
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    Login To Dashboard    ${${env}_gsmadmin_username}    ${${env}_gsmadmin_password}
+    Navigate To Rules Page
+    Click Download Dropdown Button and Download Latest Rules
+    Verify Download Latest Rule Success Message
+    Verify That Download Latest Rules Was Downloaded And Is Correct    RulesTemplate_v2.csv
+
+FNC_041 Verify GsmAdmin Is Able To Download Latest Uploaded Rules
+    [Setup]    Clear Download Directory
+    Delete Rules Collecton In MongoDB
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    Login To Dashboard    ${${env}_gsmadmin_username}    ${${env}_gsmadmin_password}
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Click Download Dropdown Button and Download Latest Rules
+    Verify Download Latest Rule Success Message
+    Verify That Download Latest Rules Was Downloaded And Is Correct
+
+FNC_042 Verify That User Is Able To View Rules
+    Delete Rules Collecton In MongoDB
+    Generate Rules List
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    #Login By User
+    Login To Dashboard    ${${env}_user_username}    ${${env}_user_password}
+    Verify That Cache Is Not Visible
+    Verify That Login Successful Message Is Displayed
+    Click Log Out Button
+    # Login By Gsmadmin
+    Login To Dashboard    ${${env}_gsmadmin_username}    ${${env}_gsmadmin_password}
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Verify Rules Data In The Table    file=default_rules.csv
+    Add Multiple Rules    2,Rule 2,ClientTop-test-0-0 [0:0],CSU-Test_0-0 [14:3B67],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|3,Rule 3,ClientTop-test-1-1 [1:1],CSU-Test_1-1 [15:3C68],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2 [2:2],CSU-Test_2-2 [16:3D69],,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3 [3:3],CSU-Test_3-3 [17:3E61],,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|6,Rule 6,ClientTop-test-4-4 [4:4],CSU-Test_4-4 [18:3F62],,NAM,US,NAM,US,JFK,APAC,PH,MNL,B,ALL,OFF
+    Click Log Out Button
+    #Login By User
+    Login To Dashboard    ${${env}_user_username}    ${${env}_user_password}
+    Navigate To Rules Page
+    Verify That Element Is Not Visible For User
+    Verify Rules Data In The Table    rules=1,Test 1,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON|2,Rule 2,ClientTop-test-0-0,0:0,CSU-Test_0-0,14:3B67,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,,ON|3,Rule 3,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_AMADEUS,ON|4,Rule 4,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,DESKTOP_SABRE,OFF|5,Rule 5,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,,NAM,US,NAM,US,JFK,EUR,GB,LHR,D,MYCWT_WEB,ON|6,Rule 6,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,APAC,PH,MNL,B,ALL,OFF|7,Test 2,ClientTop-test-1-1,1:1,CSU-Test_1-1,15:3C68,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Web,ON|8,Test 3,ClientTop-test-2-2,2:2,CSU-Test_2-2,16:3D69,ABC1234567890,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Amadeus,ON|9,Test 4,ClientTop-test-3-3,3:3,CSU-Test_3-3,17:3E61,A23D,NAM,US,NAM,US,JFK,NAM,US,JFK,D,Desktop_Sabre,ON|10,Test 5,ClientTop-test-4-4,4:4,CSU-Test_4-4,18:3F62,,NAM,US,NAM,US,JFK,NAM,US,JFK,D,MyCWT_Mobile,ON
+
+FNC_043 Verify That User Is Able To Download Rule Template When No File Is Uploaded
+    [Setup]    Clear Download Directory
+    Delete Rules Collecton In MongoDB
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    #Login By User
+    Login To Dashboard    ${${env}_user_username}    ${${env}_user_password}
+    Navigate To Rules Page
+    Click Download Dropdown Button and Download Latest Rules
+    Verify Download Latest Rule Success Message
+    Verify That Download Latest Rules Was Downloaded And Is Correct    RulesTemplate_v2.csv
+
+FNC_044 Verify User Is Able To Download Latest Uploaded Rules
+    [Setup]    Clear Download Directory
+    Delete Rules Collecton In MongoDB
+    Create Browser Desired Capabilitites List
+    Set Browser Default Download Path
+    Open Browser And Navigate To Air Personalization Dashboard Page    dc=${dc}
+    #Login By Gsmadmin
+    Login To Dashboard    ${${env}_gsmadmin_username}    ${${env}_gsmadmin_password}
+    Navigate To Rules Page
+    Select And Upload File    ${CURDIR}\\files\\default_30_rules.csv
+    Click Upload Button
+    Verify That File Validation Is Successful
+    Click Log Out Button
+    #Login By User
+    Login To Dashboard    ${${env}_user_username}    ${${env}_user_password}
+    Navigate To Rules Page
+    Click Download Dropdown Button and Download Latest Rules
+    Verify Download Latest Rule Success Message
+    Verify That Download Latest Rules Was Downloaded And Is Correct
+
+*** Keywords ***
+Verify That Element Is Not Visible For User
+    Element Should Not Be Visible    ${upload_rules_btn}
+    Element Should Not Be Visible    ${add_rule_btn}
+    Element Should Not Be Visible    editRuleBtn0
+    Element Should Not Be Visible    deleteRuleBtn0
+
+Verify That Cache Is Not Visible
+    Sleep    3
+    Element Should Not Be Visible    ${cache_viewer_lnk}
+    Go To    https://test.int.us-west-2.bpg-aws-cwt.com/portal/airapi/cache

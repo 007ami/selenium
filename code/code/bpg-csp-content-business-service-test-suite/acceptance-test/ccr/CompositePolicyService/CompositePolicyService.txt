@@ -1,0 +1,19 @@
+*** Settings ***
+Force Tags        functional
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/ccr-composite-policy-service.txt
+
+*** Test Cases ***
+FUNC001_Verify That CBS CompositePolicyService Response Is Same With PB CompositePolicyService Response
+    Get Authorization Token For PB
+    Generate Test Variables For Composite Policy Service Get Request For PB    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    travelDate=2018-01-01    travelerGuid=A:406EAC5B
+    Send GET Request For PB API
+    Get Authorization Token
+    Generate Test Variables For Composite Policy Service Get Request For CBS    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101    travelerGuid=A:406EAC5B
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Response Is Same With Powerbase API

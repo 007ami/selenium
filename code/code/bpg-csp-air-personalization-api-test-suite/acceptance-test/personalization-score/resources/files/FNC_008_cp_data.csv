@@ -1,0 +1,5 @@
+client_subunit_guid,policy_valid_from_date,policy_valid_to_date,origin,destination,carrier,cp_value,policy_order,origin_type,destination_type,B_D
+B:4567,01/01/2018,31/12/2020,MNL,NRT,AA,0.2,1,Airport,Airport,D
+B:4567,01/01/2018,31/12/2020,MNL,NRT,AD,0.2,2,Airport,Airport,D
+C:8910,01/01/2018,31/12/2020,MNL,NRT,BA,0.2,1,Airport,Airport,D
+B:4567,01/01/2018,31/12/2020,LHR,JFK,DA,0.2,1,Airport,Airport,D

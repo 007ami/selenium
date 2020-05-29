@@ -1,0 +1,7 @@
+*** Variables ***
+${fullname_txt}    //input[@id='fullname']
+${uname_txt}      suUsername
+${email_txt}      suEmail
+${pword_txt}      suPassword
+${pwordconf_txt}    suPasswordConf
+${createAcc_btn}    signupButton

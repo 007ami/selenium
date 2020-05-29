@@ -1,0 +1,69 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../../resources/imports.txt
+Resource          ../../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Composite Policy Service Get Request For CBS
+    [Arguments]    ${systemUserGuid}=None    ${teamId}=None    ${csuGuid}=None    ${clientAccNum}=None    ${travTypeGuid}=None    ${tripTypeId}=None
+    ...    ${departure_date}=None    ${bookingDate}=None    ${languageCode}=None    ${origin}=None    ${destination}=None    ${GDSCode}=None
+    ...    ${txn_id}=auto    ${systemUserLoginId}=None    ${travelerGuid}=None    ${ALL}=None    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}/ccr/CompositePolicyService
+    ${query_param_list}    Create Dictionary
+    ${txn_id}    Run Keyword If    "${txn_id}"=="auto"    Generate UUID
+    ...    ELSE    Set Variable    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Run Keyword If    "${GDSCode}"!="None"    Set To Dictionary    ${query_param_list}    gdsCode    ${GDSCode}
+    Run Keyword If    "${csuGuid}"!="None"    Set To Dictionary    ${query_param_list}    clientSubGUID    ${csuGuid}
+    Run Keyword If    "${clientAccNum}"!="None"    Set To Dictionary    ${query_param_list}    clientAccountNumber    ${clientAccNum}
+    Run Keyword If    "${travTypeGuid}"!="None"    Set To Dictionary    ${query_param_list}    travelerTypeGUID    ${travTypeGuid}
+    Run Keyword If    "${departure_date}"!="None"    Set To Dictionary    ${query_param_list}    departureDate    ${departure_date}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${query_param_list}    origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${query_param_list}    destination    ${destination}
+    Run Keyword If    "${systemUserGuid}"!="None"    Set To Dictionary    ${query_param_list}    systemUserGUID    ${systemUserGuid}
+    Run Keyword If    "${teamId}"!="None"    Set To Dictionary    ${query_param_list}    teamId    ${teamId}
+    Run Keyword If    "${tripTypeId}"!="None"    Set To Dictionary    ${query_param_list}    tripTypeId    ${tripTypeId}
+    Run Keyword If    "${bookingDate}"!="None"    Set To Dictionary    ${query_param_list}    bookingDate    ${bookingDate}
+    Run Keyword If    "${ALL}"!="None"    Set To Dictionary    ${query_param_list}    ALL    ${ALL}
+    Run Keyword If    "${languageCode}"!="None"    Set To Dictionary    ${query_param_list}    languageCode    ${languageCode}
+    Run Keyword If    "${systemUserLoginId}"!="None"    Set To Dictionary    ${query_param_list}    SystemUserLoginIdentifier    ${systemUserLoginId}
+    Run Keyword If    "${travelerGuid}"!="None"    Set To Dictionary    ${query_param_list}    travelerGUID    ${travelerGuid}
+    Set Test Variable    ${query_param_list}
+    Log    ${query_param_list}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+    Set Test Variable    ${token}
+
+Generate Test Variables For Composite Policy Service Get Request For PB
+    [Arguments]    ${systemUserGuid}=None    ${teamId}=None    ${csuGuid}=None    ${clientAccNum}=None    ${travTypeGuid}=None    ${tripTypeId}=None
+    ...    ${travelDate}=None    ${bookingDate}=None    ${languageCode}=None    ${origin}=None    ${destination}=None    ${GDSCode}=None
+    ...    ${txn_id}=auto    ${systemUserLoginId}=None    ${travelerGuid}=None    ${ALL}=None    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}/CompositePolicyService
+    ${query_param_list}    Create Dictionary
+    ${txn_id}    Run Keyword If    "${txn_id}"!="auto"    Generate UUID
+    ...    ELSE    Set Variable    auto
+    Set Test Variable    ${txn_id}
+    Run Keyword If    "${GDSCode}"!="None"    Set To Dictionary    ${query_param_list}    GDSCode    ${GDSCode}
+    Run Keyword If    "${csuGuid}"!="None"    Set To Dictionary    ${query_param_list}    ClientSubUnitGuid    ${csuGuid}
+    Run Keyword If    "${clientAccNum}"!="None"    Set To Dictionary    ${query_param_list}    ClientAccountNumber    ${clientAccNum}
+    Run Keyword If    "${travTypeGuid}"!="None"    Set To Dictionary    ${query_param_list}    TravelerTypeGuid    ${travTypeGuid}
+    Run Keyword If    "${travelDate}"!="None"    Set To Dictionary    ${query_param_list}    TravelDate    ${travelDate}
+    Run Keyword If    "${origin}"!="None"    Set To Dictionary    ${query_param_list}    Origin    ${origin}
+    Run Keyword If    "${destination}"!="None"    Set To Dictionary    ${query_param_list}    Destination    ${destination}
+    Run Keyword If    "${systemUserGuid}"!="None"    Set To Dictionary    ${query_param_list}    SystemUserGuid    ${systemUserGuid}
+    Run Keyword If    "${teamId}"!="None"    Set To Dictionary    ${query_param_list}    TeamId    ${teamId}
+    Run Keyword If    "${tripTypeId}"!="None"    Set To Dictionary    ${query_param_list}    TripTypeId    ${tripTypeId}
+    Run Keyword If    "${bookingDate}"!="None"    Set To Dictionary    ${query_param_list}    BookingDate    ${bookingDate}
+    Run Keyword If    "${ALL}"!="None"    Set To Dictionary    ${query_param_list}    ALL    ${ALL}
+    Run Keyword If    "${languageCode}"!="None"    Set To Dictionary    ${query_param_list}    LanguageCode    ${languageCode}
+    Run Keyword If    "${systemUserLoginId}"!="None"    Set To Dictionary    ${query_param_list}    SystemUserLoginIdentifier    ${systemUserLoginId}
+    Run Keyword If    "${travelerGuid}"!="None"    Set To Dictionary    ${query_param_list}    TravelerGuid    ${travelerGuid}
+    Set Test Variable    ${query_param_list}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+    Set Test Variable    ${token}

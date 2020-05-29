@@ -1,0 +1,227 @@
+{
+  "request": {
+      "urlPattern": "/wire-mock/service/repo/airapi/personalization/score.+",
+      "method": "GET"
+    },
+    "response": {
+      "status": 200,
+      "jsonBody": {
+          "version": "v2.0",
+          "experimentGroupTypeCode": "DATASET_A",
+          "result": {
+              "score": [
+                  {
+                      "carrierCode": "AA",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.3,
+                      "cpScore": 0,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "AY",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.3,
+                      "cpScore": 0,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "BA",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.3,
+                      "cpScore": 0,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "DL",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.22500001,
+                      "cpScore": 0.3,
+                      "totalScore": 0.52500004
+                  },
+                  {
+                      "carrierCode": "IB",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.3,
+                      "cpScore": 0,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "VS",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.22500001,
+                      "cpScore": 0,
+                      "totalScore": 0.22500001
+                  },
+                  {
+                      "carrierCode": "AF",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.15,
+                      "cpScore": 0.3,
+                      "totalScore": 0.45000002
+                  },
+                  {
+                      "carrierCode": "AZ",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.15,
+                      "cpScore": 0.3,
+                      "totalScore": 0.45000002
+                  },
+                  {
+                      "carrierCode": "KL",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0.15,
+                      "cpScore": 0.3,
+                      "totalScore": 0.45000002
+                  },
+                  {
+                      "carrierCode": "EK",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0,
+                      "cpScore": 0.3,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "UX",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0,
+                      "cpScore": 0.3,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "TP",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0,
+                      "cpScore": 0.3,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "LH",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0,
+                      "cpScore": 0.3,
+                      "totalScore": 0.3
+                  },
+                  {
+                      "carrierCode": "JJ",
+                      "origin": "JFK",
+                      "destination": "LHR",
+                      "issuingCountry": "US",
+                      "apScore": 0,
+                      "cpScore": 0.3,
+                      "totalScore": 0.3
+                  }
+              ],
+              "travelerPreference": {
+                  "traveler_guid": "default",
+                  "carrier": [],
+                  "depart_ts": {
+                      "ts_window_0": 0,
+                      "ts_window_1": 0,
+                      "ts_window_2": 0
+                  },
+                  "arrival_ts": {
+                      "ts_window_0": 0,
+                      "ts_window_1": 0,
+                      "ts_window_2": 0
+                  },
+                  "num_stops": {
+                      "0": 0.75,
+                      "1": 0.25,
+                      "2": 0
+                  },
+                  "duration": 0,
+                  "price": 0
+              },
+              "meta": {
+                  "arrival_ts": {
+                      "ts_window_1": [
+                          "01:00:00/07:59:59"
+                      ],
+                      "ts_window_2": [
+                          "08:00:00/16:59:59",
+                          "23:00:00/24:00:00",
+                          "00:00:00/00:59:59"
+                      ],
+                      "ts_window_n": [
+                          "17:00:00/22:59:59"
+                      ]
+                  },
+                  "depart_ts": {
+                      "ts_window_1": [
+                          "22:00:00/24:00:00",
+                          "00:00:00/06:59:59"
+                      ],
+                      "ts_window_2": [
+                          "12:00:00/15:59:59",
+                          "21:00:00/21:59:59"
+                      ],
+                      "ts_window_n": [
+                          "07:00:00/11:59:59",
+                          "16:00:00/20:59:59"
+                      ]
+                  },
+                  "parts": [
+                      0,
+                      1,
+                      2,
+                      3,
+                      4,
+                      5,
+                      6,
+                      7,
+                      8,
+                      9,
+                      10,
+                      11,
+                      12,
+                      13,
+                      14,
+                      15,
+                      16,
+                      17,
+                      18,
+                      19
+                  ]
+              },
+              "boost": {
+                  "consumer": "MyCWT_Mobile",
+                  "tpBoost": 0.5,
+                  "cpBoost": 0.3,
+                  "apBoost": 0.3,
+                  "others": {
+                      "Factor1": "test"
+                  }
+              }
+            }
+        },
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    }
+}

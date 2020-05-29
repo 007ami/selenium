@@ -1,0 +1,82 @@
+*** Settings ***
+Test Setup        Get Initial Execution Arn
+Test Teardown     Delete Stubs
+Force Tags        regression    ingestion
+Resource          ../../resources/imports.txt
+Resource          ../resources/common.txt
+Resource          resources/batch-client.txt
+
+*** Test Cases ***
+FNC_003 Verify That All Lambda Function Is Triggered When There Is Non Matching AP, CP, TP and Boost Data From Air Meta API
+    Flush All Redis Keys
+    # Triggered All The Endpoints
+    Comment    Create Success Stub For DnA Ingestion Data    v2    file=ap/v1/v1_ingestion.json
+    Generate Test Data For Ingestion Config    ingestion_config_list=AP,v1,2017-08-17T09:20:22|CP,v1,2017-08-17T09:20:22|TP,v1,2017-08-17T09:20:22,0|BOOST,v1,2017-08-17T09:20:22
+    Comment    Create Success Stub For DnA AP Data    v1    file=ap/v1/default_air_ap_mock_data.txt
+    Upload AP File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_air_ap_mock_data.txt
+    Comment    Create Success Stub For DnA CP Data    v1    file=ap/v1/default_air_cp_mock_data.txt
+    Upload CP File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_air_cp_mock_data.txt
+    Comment    Create Success Stub For DnA TP Data    v1    file=ap/v1/default_air_tp_part0_mock_data.txt
+    Upload TP File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_air_tp_part0_mock_data.txt
+    Comment    Create Success Stub For DnA Boost Data    v1    file=ap/v1/default_weights.json
+    Upload BOOST File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_weights.json
+    Upload Metadata File In S3 Bucket    v2    ${CURDIR}/../resources/wiremock_files/ap/v2/v2_metadata.json
+    Upload Ingestion File In S3 Bucket    v2    ${CURDIR}/../resources/wiremock_files/ap/v1/v1_ingestion.json
+    Comment    Trigger Lambda Function    ${definition_etl_lambda}    #lambda_sleep=60
+    Polling ETL Lambda Status
+    Monitor Step Function Status    state_machine_arn=${state_machine_arn}
+    Verify Redis List Data    ETL::AGENCY,COMPLETE|ETL::CLIENT,COMPLETE|ETL::BOOST,COMPLETE|ETL::METADATA,COMPLETE|ETL::CLEANUP,COMPLETE
+    Verify Redis List Data    ETL::METADATA,COMPLETE    {"invokedBy":"EtlDefinitionLambdaFn","messages":[{"etl":"AP","version":"v1","message":"STARTED"},{"etl":"CP","version":"v1","message":"STARTED"},{"etl":"TP","version":"v1","message":"STARTED"},{"etl":"BOOST","version":"v1","message":"STARTED"}]}    1
+    Verify Redis List Data    ETL::TRAVELER,COMPLETE    {\"part\":\"0\",\"currentRefId\":\"1\",\"version\":\"v1\"}
+    Verify Redis Hash Data 2    ${v1_default_ap_hash.replace("V1::AGENT","1_V1::AGENT")}|${v1_default_cp_hash.replace("V1::CLIENT","1_V1::CLIENT")}|${default_meta_hash_v1}|${v1_default_tp_string}|${v1_default_boost_hash}|V1::META::TP::PARTS
+    Verify Redis Zset Data 2    V1::INDEX::AGENT::1|V1::INDEX::CLIENT::1
+    Verify Redis Set Data    V1::INDEX::BOOST::1
+    Verify Redis String Data    V1::INDEX::AP::REF    1
+    Verify Redis String Data    V1::INDEX::CP::REF    1
+    Verify Redis String Data    V1::INDEX::BOOST::REF    1
+    Verify Redis String Data    V1::INDEX::TRAVELER::REF    1
+    Verify That Redis Keys Are Correct    ${v1_default_ap_hash}|${v1_default_cp_hash}|${v1_default_tp_string}|${v1_default_boost_hash}|V1::INDEX::AGENT::1|V1::INDEX::CLIENT::1|${v2_ETL_name_list}|V1::INDEX::AP::REF|V1::INDEX::CP::REF|${default_meta_hash_v1}|V1::INDEX::BOOST::REF|V1::INDEX::BOOST::1|V1::INDEX::TRAVELER::REF|V1::META::TP::PARTS|ALGORITHM::V1::COMMON|ETL::CLEANUP
+
+FNC_013 Verify That Multiple Lambda Functions Are Triggered When Multiple Versions Exists In The Ingestion File
+    [Documentation]    Multiple AP data structure (12 vs 16 columns)
+    Flush All Redis Keys
+    Comment    Create Success Stub For DnA Ingestion Data    v2    file=ap/v1/v1_v2.2_ingestion.json
+    Generate Test Data For Ingestion Config    ingestion_config_list=AP,v1,2017-08-17T09:20:22|CP,v1,2017-08-17T09:20:22|TP,v1,2017-08-17T09:20:22,0|BOOST,v1,2017-08-17T09:20:22|AP,v2.2,2017-08-17T09:20:22|CP,v2,2017-08-17T09:20:22|TP,v2,2017-08-17T09:20:22,0|BOOST,v2,2017-08-17T09:20:22
+    #V1
+    Comment    Create Success Stub For DnA AP Data    v1    file=ap/v1/default_air_ap_mock_data.txt
+    Comment    Create Success Stub For DnA CP Data    v1    file=ap/v1/default_air_cp_mock_data.txt
+    Comment    Create Success Stub For DnA TP Data    v1    file=ap/v1/default_air_tp_part0_mock_data.txt
+    Comment    Create Success Stub For DnA Boost Data    v1    file=v1/default_weights.json
+    Upload AP File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_air_ap_mock_data.txt
+    Upload CP File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_air_cp_mock_data.txt
+    Upload TP File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_air_tp_part0_mock_data.txt
+    Upload BOOST File In S3 Bucket    v1    ${CURDIR}/../resources/wiremock_files/ap/v1/default_weights.json
+    #V2
+    Comment    Upload AP File In S3 Bucket    v2.2    file=ap/v2/default_air_ap_mock_data.txt
+    Comment    Upload CP File In S3 Bucket    v2    file=ap/v2/default_air_cp_mock_data.txt
+    Comment    Upload TP File In S3 Bucket    v2    file=ap/v2/default_air_tp_part0_mock_data.txt
+    Comment    Upload BOOST File In S3 Bucket    v2    file=ap/v2/default_weights.json
+    Upload AP File In S3 Bucket    v2.2    ${CURDIR}/../resources/wiremock_files/ap/v2/default_air_ap_mock_data.txt
+    Upload CP File In S3 Bucket    v2    ${CURDIR}/../resources/wiremock_files/ap/v2/default_air_cp_mock_data.txt
+    Upload TP File In S3 Bucket    v2    ${CURDIR}/../resources/wiremock_files/ap/v2/default_air_tp_part0_mock_data.txt
+    Upload BOOST File In S3 Bucket    v2    ${CURDIR}/../resources/wiremock_files/ap/v2/default_weights.json
+    Upload Metadata File In S3 Bucket    v2    ${CURDIR}/../resources/wiremock_files/ap/v2/v2_metadata.json
+    Upload Ingestion File In S3 Bucket    v2    ${CURDIR}/../resources/wiremock_files/ap/v1/v1_v2.2_ingestion.json
+    Comment    Trigger Lambda Function    ${definition_etl_lambda}
+    Polling ETL Lambda Status
+    Monitor Step Function Status    state_machine_arn=${state_machine_arn}
+    Verify Redis List Data    ETL::AGENCY,COMPLETE|ETL::CLIENT,COMPLETE|ETL::BOOST,COMPLETE|ETL::METADATA,COMPLETE|ETL::CLEANUP,COMPLETE
+    Verify Redis List Data    ETL::METADATA,COMPLETE    {"invokedBy":"EtlDefinitionLambdaFn","messages":[{"etl":"AP","version":"v1","message":"STARTED"},{"etl":"AP","version":"v2.2","message":"STARTED"},{"etl":"CP","version":"v1","message":"STARTED"},{"etl":"CP","version":"v2","message":"STARTED"},{"etl":"TP","version":"v1","message":"STARTED"},{"etl":"TP","version":"v2","message":"STARTED"},{"etl":"BOOST","version":"v1","message":"STARTED"},{"etl":"BOOST","version":"v2","message":"STARTED"}]}    1
+    Verify Redis List Data    ETL::TRAVELER,COMPLETE    {\"part\":\"0\",\"currentRefId\":\"1\",\"version\":\"v2\"}
+    Verify Redis Hash Data 2    ${v1_default_ap_hash.replace("V1::AGENT","1_V1::AGENT")}|${v1_default_cp_hash.replace("V1::CLIENT","1_V1::CLIENT")}|${default_meta_hash_v1}|${v1_default_tp_string}|${v1_default_boost_hash}|${v2_default_ap_hash.replace("V2::AGENT","1_V2.2::AGENT")}|${v2_default_cp_hash.replace("V2::CLIENT","1_V2::CLIENT")}|V2::BOOST::1|${default_meta_hash_v2.replace("V2::META::AP","V2.2::META::AP")}|${v2_default_tp_string}|V1::META::TP::PARTS|V2::META::TP::PARTS
+    Verify Redis Zset Data 2    V1::INDEX::AGENT::1|V1::INDEX::CLIENT::1|V2.2::INDEX::AGENT::1|V2::INDEX::CLIENT::1
+    Verify Redis Set Data    V1::INDEX::BOOST::1
+    Verify Redis String Data    V1::INDEX::AP::REF    1
+    Verify Redis String Data    V1::INDEX::CP::REF    1
+    Verify Redis String Data    V1::INDEX::BOOST::REF    1
+    Verify Redis String Data    V2.2::INDEX::AP::REF    1
+    Verify Redis String Data    V2::INDEX::CP::REF    1
+    Verify Redis String Data    V2::INDEX::BOOST::REF    1
+    Verify Redis String Data    V1::INDEX::TRAVELER::REF    1
+    Verify Redis String Data    V2::INDEX::TRAVELER::REF    1
+    Verify That Redis Keys Are Correct    ${v1_default_ap_hash}|${v1_default_cp_hash}|${v1_default_tp_string}|${v1_default_boost_hash}|V1::INDEX::AGENT::1|V1::INDEX::CLIENT::1|${v2_ETL_name_list}|V1::INDEX::AP::REF|V1::INDEX::CP::REF|${default_meta_hash_v1}|V1::INDEX::BOOST::REF|V1::INDEX::BOOST::1|${v2_default_ap_hash.replace("V2::AGENT","V2.2::AGENT")}|${v2_default_cp_hash}|${v2_default_tp_string}|V2::BOOST::1|V2.2::INDEX::AGENT::1|V2::INDEX::CLIENT::1|V2.2::INDEX::AP::REF|V2::INDEX::CP::REF|${default_meta_hash_v2.replace("V2::META::AP","V2.2::META::AP")}|V2::INDEX::BOOST::REF|V1::INDEX::TRAVELER::REF|V1::META::TP::PARTS|ALGORITHM::V1::COMMON|ETL::CLEANUP|V2::INDEX::TRAVELER::REF|V2::META::TP::PARTS

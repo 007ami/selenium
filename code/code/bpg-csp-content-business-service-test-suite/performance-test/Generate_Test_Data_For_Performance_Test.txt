@@ -1,0 +1,26 @@
+*** Settings ***
+Resource          ../acceptance-test/resources/common.txt
+Resource          ../resources/imports.txt
+Resource          ../resources/utilities.txt
+Resource          ../../../bpg-csp-air-personalization-api/bpg-csp-air-personalization-api-test-suite/acceptance-test/admin-upload/resources/admin-upload.txt
+Resource          ../../../bpg-csp-air-personalization-api/bpg-csp-air-personalization-api-test-suite/acceptance-test/personalization-score/resources/personalization-score.txt
+
+*** Test Cases ***
+Add Test Data
+    [Tags]    perf_test_data
+    [Setup]    #Flush All Redis Keys
+    Generate Hash List
+    Generate Agent Index List
+    Generate Stub List
+    Update Lambda Function Environment Variable    ${meta_data_lambda_func}    SPRING_PROFILES_ACTIVE    test
+    Update Lambda Function Environment Variable    ${ap_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${cp_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${tp_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${boost_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Update Lambda Function Environment Variable    ${travelport_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Trigger Lambda Function    ${meta_data_lambda_func}
+    Trigger Lambda Function    ${travelport_lambda_func}
+    Update Lambda Function Environment Variable    ${meta_data_lambda_func}    SPRING_PROFILES_ACTIVE    dev
+    Send Authenticate Post Request And Get Token
+    Generate Test Variables For Upload    file=perf_1000_rules.csv
+    Send POST Request For Upload

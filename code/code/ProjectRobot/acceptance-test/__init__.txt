@@ -1,0 +1,4 @@
+*** Settings ***
+Resource          ../resource/imports.txt
+Library           CSVLibrary
+Resource          ../resource/CSVLibrary.py

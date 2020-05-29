@@ -1,0 +1,478 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../resource/imports.txt
+
+*** Keywords ***
+Add Hash Data In Redis
+    [Arguments]    ${hash_name}    ${data_list}
+    ${data_dict}    Create Dictionary
+    ${data_list}    Split String    ${data_list}    |
+    : FOR    ${item}    IN    @{data_list}
+    \    ${item}    Split String    ${item}    =
+    \    Set To Dictionary    ${data_dict}    ${item[0]}    ${item[1]}
+    Set Suite Variable    ${data_dict}
+    ${status}    Set To Redis Hash    ${redis_connection}    ${hash_name}    ${data_dict}
+    Log    ${status}
+
+Add Test Data In Redis
+    Set Suite Variable    ${csu_guid}    C:1234
+    Set Suite Variable    ${dep_date}    20181212
+    Set Suite Variable    ${prefix}    A
+    Set Suite Variable    ${iss_country}    JP
+    Set Suite Variable    ${trv_guid}    A:1234
+    Set Suite Variable    ${app_id}    CWT2GO
+    Generate Test Data For Client Config
+    Generate Test Data For Dataset Config
+    Generate Test Data For Eligibility Config
+    Generate Test Data For TravelPort    OKO|NRT|HND|CEF|ZSF
+    # Multiple Matching AP Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_origin=OKO    ap_destination=SFY    ap_score=0.4
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AC    ap_origin=HND    ap_destination=NAMER    ap_score=0.6
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AE    ap_origin=NRT    ap_destination=GLOBAL    ap_score=0.8
+    # Multiple Matching CP Data
+    Generate Test Variables And Data For Client Preferences    cp_carrier_code=AA    cp_origin=TYO    cp_destination=CEF
+    Generate Test Variables And Data For Client Preferences    cp_carrier_code=AB    cp_origin=NRT    cp_destination=US
+    Generate Test Variables And Data For Client Preferences    cp_carrier_code=AD    cp_origin=OKO    cp_destination=NORAM
+    Generate Test Variables And Data For Client Preferences    cp_carrier_code=AE    cp_origin=GLOBAL    cp_destination=ZSF
+    # Single Matching Boost Data
+    Generate Test Variables And Data For Boost    boost_ap=0.7    boost_cp=0.4
+    # Non Matching Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AB    ap_origin=JP    ap_destination=CEF    ap_score=0.5
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AD    ap_origin=APAC    ap_destination=ZSF    ap_score=0.7
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AF    ap_origin=GLOBAL    ap_destination=GLOBAL    ap_score=0.9
+    Generate Test Variables And Data For Client Preferences    cp_carrier_code=AC    cp_origin=ASIA    cp_destination=CEF
+    Generate Test Variables And Data For Client Preferences    cp_carrier_code=AF    cp_origin=GLOBAL    cp_destination=GLOBAL
+    #Traveler Preference Data
+    Generate Test Data For Traveler Preference
+
+Compare 2 JSON response
+    [Arguments]    ${JSON_dict1_decoded}    ${JSON_dict2_decoded}
+    Set Test Variable    ${JSON_dict1_decoded}
+    Set Test Variable    ${JSON_dict2_decoded}
+    Log    ${JSON_dict2_decoded}
+    Log    ${JSON_dict2_decoded}
+    ${keys}    Get Dictionary Keys    ${JSON_dict1_decoded}
+    ${keys}    Convert To List    ${keys}
+    Log    ${keys}
+    : FOR    ${key}    IN    @{keys}
+    \    Comment    Set Test Variable    ${JSON_root}    ${key}
+    \    Set Test Variable    ${key}
+    \    ${JSON_dict1_parsed}    Get From Dictionary    ${JSON_dict1_decoded}    ${key}
+    \    Set Test Variable    ${JSON_dict1_parsed}
+    \    Comment    Run Keyword And Continue On Failure    Run Keyword If    "${key}"=="result" or "${key}"=="adhoc" or "${key}"=="scoreAPI" or "${key}"=="boost" or "${key}"=="travelerPreference"    Verify Array Items    ${key}
+    \    ...    ELSE    Dictionary Should Contain Item    ${JSON_dict2_decoded}    ${key}    ${JSON_dict1_parsed}
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${key}"=="result"    Verify Array Items    ${key}
+    \    ...    ELSE IF    "${key}"=="adhoc" or "${key}"=="scoreAPI" or "${key}"=="boost" or "${key}"=="travelerPreference"    Compare Dictionaries    ${key}
+    \    ...    ELSE    Dictionary Should Contain Item    ${JSON_dict2_decoded}    ${key}    ${JSON_dict1_parsed}
+
+Compare Dictionaries
+    [Arguments]    ${key}
+    ${keys}    Get Dictionary Keys    ${JSON_dict1_decoded["${key}"]}
+    ${keys}    Convert To List    ${keys}
+    Log    ${keys}
+    : FOR    ${key2}    IN    @{keys}
+    \    Set Test Variable    ${key2}
+    \    ${JSON_dict1_parsed}    Get From Dictionary    ${JSON_dict1_decoded["${key}"]}    ${key2}
+    \    Set Test Variable    ${JSON_dict1_parsed}
+    \    Run Keyword And Continue On Failure    Run Keyword If    "${key2}"=="result"    Verify Array Items    ${key}    ${key2}
+    \    ...    ELSE    Dictionary Should Contain Item    ${JSON_dict2_decoded["${key}"]}    ${key2}    ${JSON_dict1_parsed}
+
+Convert Date To Hash Date Format
+    [Arguments]    ${valid_to}=${EMPTY}    ${valid_from}=${EMPTY}
+    Set Suite Variable    ${valid_to}
+    Set Suite Variable    ${valid_from}
+    Run Keyword If    "${valid_to}"=="${EMPTY}" and "${valid_from}"=="${EMPTY}"    Generate Valid To And Valid From Dates
+    ${valid_to}    Convert Date    ${valid_to}    result_format=%Y%m%d
+    Comment    ${valid_to}    Add Time To Date    ${valid_to}    8 Hours
+    ${epoch_valid_to}    Convert Date    ${valid_to}    epoch
+    ${epoch_valid_to}    Convert To Integer    ${epoch_valid_to}
+    ${epoch_valid_to}    Convert To String    ${epoch_valid_to}
+    ${epoch_valid_to}    Catenate    SEPARATOR=    ${epoch_valid_to}    000
+    Set Suite Variable    ${epoch_valid_to}
+    ${valid_from}    Convert Date    ${valid_from}    result_format=%Y%m%d
+    Comment    ${valid_from}    Add Time To Date    ${valid_from}    8 Hours
+    ${epoch_valid_from}    Convert Date    ${valid_from}    epoch
+    ${epoch_valid_from}    Convert To Integer    ${epoch_valid_from}
+    ${epoch_valid_from}    Convert To String    ${epoch_valid_from}
+    ${epoch_valid_from}    Catenate    SEPARATOR=    ${epoch_valid_from}    000
+    Set Suite Variable    ${epoch_valid_from}
+
+Create Hash List And Agent Index List
+    Generate Hash List
+    Generate Agent Index List
+
+Create Redis Cluster Connection
+    [Arguments]    ${host}=${${env}_redis_cache_host}    ${port}=${${env}_redis_cache_port}
+    Log    ${host}
+    Log    ${port}
+    ${redis_connection}    Connect To Redis Cluster    ${host}    ${port}
+    Set Global Variable    ${redis_connection}
+
+Create Success Stub For DnA AP Data
+    [Arguments]    ${version}=v0    ${file}=air_ap_mock_data.txt
+    Create Session    wm    ${sandbox_base_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":{"url":"/wire-mock/rest/filecopy/ap-${version}/content","method":"GET"}
+    ${response_body}    Set Variable    "response":{"status":200,"headers":{"Content-Type":"application/octet-stream"},"bodyFileName": "${file}"
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Get Stub ID And Append To Stub List
+
+Create Success Stub For DnA Boost Data
+    [Arguments]    ${version}=v0    ${file}=weights.json
+    Create Session    wm    ${sandbox_base_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":{"url":"/wire-mock/rest/filecopy/air-weights-${version}/content","method":"GET"}
+    ${response_body}    Set Variable    "response":{"status":200,"headers":{"Content-Type":"application/octet-stream"},"bodyFileName": "${file}"
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Get Stub ID And Append To Stub List
+
+Create Success Stub For DnA CP Data
+    [Arguments]    ${version}=v0    ${file}=air_cp_mock_data.txt
+    Create Session    wm    ${sandbox_base_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":{"url":"/wire-mock/rest/filecopy/cp-${version}/content","method":"GET"}
+    ${response_body}    Set Variable    "response":{"status":200,"headers":{"Content-Type":"application/octet-stream"},"bodyFileName": "${file}"
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Get Stub ID And Append To Stub List
+
+Create Success Stub For DnA Meta Data
+    [Arguments]    ${file}=medata.json
+    Create Session    wm    ${sandbox_base_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":{"method": "GET","url": "/wire-mock/rest/filecopy/air-meta/content"}
+    ${response_body}    Set Variable    "response":{"status":200,"headers":{"Content-Type":"application/octet-stream"},"bodyFileName": "${file}"
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Get Stub ID And Append To Stub List
+
+Create Success Stub For DnA TP Data
+    [Arguments]    ${version}=v0    ${file}=air_tp_mock_data.txt
+    Create Session    wm    ${sandbox_base_url}    verify=True
+    ${request_body}    Set Variable    {"priority":1,"request":{"url":"/wire-mock/rest/filecopy/tp-${version}/content","method":"GET"}
+    ${response_body}    Set Variable    "response":{"status":200,"headers":{"Content-Type":"application/octet-stream"},"bodyFileName": "${file}"
+    ${jsonBody}    Set Variable    ${request_body},${response_body}}}
+    Log    ${jsonBody}
+    ${response}    Post Request    wm    /__admin/mappings    data=${jsonBody}
+    Log    ${response.content}
+    Set Test Variable    ${response}
+    Get Stub ID And Append To Stub List
+
+Delete Hash And Index From Redis
+    : FOR    ${hash}    IN    @{hash_list}
+    \    Delete From Redis    ${redis_connection}    ${hash}
+    Set Suite Variable    @{hash_list}    ${EMPTY}
+    Remove From List    ${hash_list}    0
+    : FOR    ${ap_index}    IN    @{ap_index_list}
+    \    Delete From Agent Index    ${redis_connection}    ${ap_index}
+    Set Suite Variable    @{ap_index_list}    ${EMPTY}
+    Remove From List    ${ap_index_list}    0
+    Sleep    5
+
+Delete Rules Collecton In MongoDB
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    :FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    ${connect_status}    Run Keyword And Return Status    Drop Mongodb Collection    airPersonalization    rules
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+
+Delete Wiremock Requests Logs
+    Create Session    wm    ${sandbox_base_url}    verify=True
+    Delete Request    wm    /__admin/requests
+
+Flush All Redis Keys
+    Create Redis Cluster Connection
+    ${status}    Flush All    ${redis_connection}
+    Log    ${status}
+
+Generate Agent Index List
+    @{ap_index_list}    Create List
+    Set Global Variable    @{ap_index_list}
+
+Generate Hash List
+    @{hash_list}    Create List
+    Set Global Variable    @{hash_list}
+
+Generate Test Data For Client Config
+    [Arguments]    ${client_config_list}=${csu_guid},${iss_country}
+    ${client_config_list}    Replace String    ${client_config_list}    ,    =
+    ${hash_name}    Set Variable    CONFIG::CLIENT
+    ${status}    Add Hash Data In Redis    ${hash_name}    ${client_config_list}
+    Log    ${status}
+    Append To List    ${hash_list}    ${hash_name}
+
+Generate Test Data For Dataset Config
+    [Arguments]    ${dataset_config_list}=${csu_guid},DATASET_${prefix}
+    ${dataset_config_list}    Replace String    ${dataset_config_list}    ,    =
+    ${hash_name}    Set Variable    CONFIG::DATASET
+    ${status}    Add Hash Data In Redis    ${hash_name}    ${dataset_config_list}
+    Log    ${status}
+    Append To List    ${hash_list}    ${hash_name}
+
+Generate Test Data For Eligibility Config
+    [Arguments]    ${eligibility_config_list}=${app_id},${csu_guid},${iss_country},true
+    ${eligibility_config_list}    Split String    ${eligibility_config_list}    |
+    : FOR    ${eligibility_config_item}    IN    @{eligibility_config_list}
+    \    ${eligibility_config_item}    Split String    ${eligibility_config_item}    ,
+    \    ${eligibility_config_item_key}    Set Variable    ${eligibility_config_item[0]}::${eligibility_config_item[1]}::${eligibility_config_item[2]}
+    \    ${status}    Add Hash Data In Redis    ELIGIBILITY    ELIGIBILITY::${eligibility_config_item_key}=${eligibility_config_item[3]}
+    \    Append To List    ${hash_list}    ELIGIBILITY::${eligibility_config_item_key}
+    \    Log    ${status}
+
+Generate Test Data For Meta Config
+    [Arguments]    ${meta_config_list}=A,AP,v0,2018-08-17 09:20:22
+    ${meta_config_list}    Split String    ${meta_config_list}    |
+    : FOR    ${meta_config_item}    IN    @{meta_config_list}
+    \    ${meta_config_item}    Split String    ${meta_config_item}    ,
+    \    ${hash_name}    Set Variable    ${meta_config_item[0]}::META::${meta_config_item[1]}
+    \    ${status}    Set To Redis SAdd    ${redis_connection}    ${hash_name}    {"version":"${meta_config_item[2]} ","lastUpdated":"${meta_config_item[3]} "}
+    \    Log    ${status}
+    \    Append To List    ${hash_list}    ${hash_name}
+
+Generate Test Data For TravelPort
+    [Arguments]    ${hash_key_list}=${default_hash_key_list}
+    ${hash_key_list}    Split String    ${hash_key_list}    |
+    @{city_code_list}    Create List
+    @{airline_mapping_list}    Create List
+    : FOR    ${hash_key}    IN    @{hash_key_list}
+    \    Add Hash Data In Redis    TVLPORT::${hash_key}    ${${hash_key.lower()}_mapping}
+    \    Append To List    ${hash_list}    TVLPORT::${hash_key}
+    \    Append To List    ${city_code_list}    ${${hash_key.lower()}_city_code}
+    \    Append To List    ${airline_mapping_list}    ${${${hash_key.lower()}_city_code}_airlines}
+    Generate TravelPort Index List    ${city_code_list}    ${airline_mapping_list}
+
+Generate Test Variables And Data For Agency Preferences
+    [Arguments]    ${ap_carrier_code}=DAL    ${ap_origin}=${origin}    ${ap_destination}=${destination}    ${ap_score}=0.5    ${ap_trip_type}=domestic    ${ap_policy_order}=0
+    ...    ${ap_valid_to}=${EMPTY}    ${ap_valid_from}=${EMPTY}    ${ap_iss_country}=${iss_country}    ${ap_prefix}=${prefix}
+    Run Keyword If    "${ap_valid_to}"!="${EMPTY}" and "${ap_valid_from}"!="${EMPTY}"    Convert Date To Hash Date Format    valid_to=${ap_valid_to}    valid_from=${ap_valid_from}
+    ...    ELSE    Convert Date To Hash Date Format
+    ${ap_valid_to}    Set Variable    ${epoch_valid_to}
+    ${ap_valid_from}    Set Variable    ${epoch_valid_from}
+    ${hash_name}    Set Variable    ${ap_prefix}::AGENT::${ap_origin}::${ap_destination}::${ap_iss_country}::${ap_carrier_code}
+    ${ap_id}    Set Variable    ${ap_origin}::${ap_destination}::${ap_iss_country}::${ap_carrier_code}
+    Add Hash Data In Redis    ${hash_name}    id=${ap_id}|carrierCode=${ap_carrier_code}|origin=${ap_origin}|destination=${ap_destination}|score=${ap_score}|tripType=${ap_trip_type}|policyOrder=${ap_policy_order}|validFrom=${ap_valid_from}|validTo=${ap_valid_to}|issuingCountry=${ap_iss_country}
+    Set To Redis Agent Index    ${redis_connection}    ${ap_prefix}::INDEX::AGENT    ${hash_name}
+    Append To List    ${hash_list}    ${hash_name}
+    Append To List    ${ap_index_list}    ${hash_name}
+
+Generate Test Variables And Data For Boost
+    [Arguments]    ${boost_app_id}=${app_id}    ${boost_tp}=0.5    ${boost_ap}=0.3    ${boost_cp}=0.7    ${boost_prefix}=${prefix}
+    ${hash_name}    Set Variable    ${boost_prefix}::BOOST::${boost_app_id}
+    ${boost_id}    Set Variable    BOOST::${boost_app_id}
+    Add Hash Data In Redis    ${hash_name}    id=${boost_id}|apBoost=${boost_ap}|cpBoost=${boost_cp}|tpBoost=${boost_tp}|others={"Factor1":"test"}|consumer=${boost_app_id}
+    Append To List    ${hash_list}    ${hash_name}
+    Comment    Set To Redis Boost Index    ${redis_connection}    ${boost_csu_guid}    ${hash_name}
+    Comment    ${boost_index}    Set Variable    INDEX::BOOST::${boost_csu_guid}
+    Comment    Append To List    ${hash_list}    ${boost_index}
+
+Generate Test Variables And Data For Client Preferences
+    [Arguments]    ${cp_csu_guid}=${csu_guid}    ${cp_iss_country}=${iss_country}    ${cp_origin}=${origin}    ${cp_destination}=${destination}    ${cp_carrier_code}=DAL    ${cp_score}=0.2
+    ...    ${cp_valid_to}=${EMPTY}    ${cp_valid_from}=${EMPTY}    ${cp_trip_type}=domestic    ${cp_policy_order}=0    ${cp_prefix}=${prefix}
+    Run Keyword If    "${cp_valid_to}"!="${EMPTY}" and "${cp_valid_from}"!="${EMPTY}"    Convert Date To Hash Date Format    valid_to=${cp_valid_to}    valid_from=${cp_valid_from}
+    ...    ELSE    Convert Date To Hash Date Format
+    ${cp_valid_to}    Set Variable    ${epoch_valid_to}
+    ${cp_valid_from}    Set Variable    ${epoch_valid_from}
+    ${hash_name}    Set Variable    ${cp_prefix}::CLIENT::${cp_csu_guid}::${cp_origin}::${cp_destination}::${cp_iss_country}::${cp_carrier_code}
+    ${cp_id}    Set Variable    ${cp_csu_guid}::${cp_origin}::${cp_destination}::${cp_iss_country}::${cp_carrier_code}
+    Add Hash Data In Redis    ${hash_name}    id=${cp_id}|clientId=${cp_csu_guid}|carrierCode=${cp_carrier_code}|issuingCountry=${cp_iss_country}|origin=${cp_origin}|destination=${cp_destination}|score=${cp_score}|validTo=${cp_valid_to}|validFrom=${cp_valid_from}|policyOrder=${cp_policy_order}|tripType=${cp_trip_type}
+    Append To List    ${hash_list}    ${hash_name}
+    Set To Redis Client Index    ${redis_connection}    ${cp_prefix}::INDEX::CLIENT::${cp_csu_guid}    ${hash_name}
+    ${cp_index}    Set Variable    INDEX::CLIENT::${cp_csu_guid}
+    Append To List    ${hash_list}    ${cp_index}
+
+Generate Test Variables For Post Authenticate
+    [Arguments]    ${txn_id}=auto    ${username}=${${env}_username}    ${password}=${${env}_password}
+    Set Suite Variable    ${endpoint}    ${context_path}-admin/authenticate
+    ${query_param_list}    Create Dictionary
+    Set Suite Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}    None
+    ${json_body}    Create Dictionary
+    Run Keyword If    "${username}"!="None"    Set To Dictionary    ${json_body}    username    ${username}
+    Run Keyword If    "${password}"!="None"    Set To Dictionary    ${json_body}    password    ${password}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    Set Suite Variable    ${json_body}
+    Set Suite Variable    ${username}
+    Set Suite Variable    ${password}
+
+Generate TravelPort Index List
+    [Arguments]    ${city_code_list}    ${airline_mapping_list}
+    ${ctr}    Set Variable    0
+    : FOR    ${city_code}    IN    @{city_code_list}
+    \    Set To Redis Travelport Index    ${redis_connection}    ${city_code}    ${airline_mapping_list[${ctr}]}
+    \    ${ctr}    Evaluate    ${ctr} + 1
+    \    Append To List    ${hash_list}    INDEX::TVLPORT::${city_code}
+
+Generate Valid To And Valid From Dates
+    ${valid_to}    Add Time To Date    ${dep_date}    10 Days
+    ${valid_from}    Subtract Time From Date    ${dep_date}    10 Days
+    Set Suite Variable    ${valid_to}
+    Set Suite Variable    ${valid_from}
+
+Get Authorization Token
+    Send Login Post Request
+    Get Token
+
+Get Token
+    ${is_admin}    Run Keyword And Return Status    Run Keyword And Continue On Failure    Should Contain    ${endpoint}    -admin
+    ${token_obj}    Set Variable If    "${is_admin}"=="True"    $.token    $.access_token
+    ${token}    Get Json Value    ${response.content}    ${token_obj}
+    ${token}    Remove String    ${token}    "
+    Set Global Variable    ${${env}_gw_token}    ${token}
+
+Initialize Test Environment
+    Comment    Flush All Redis Keys
+    Get Authorization Token
+    Comment    Generate Hash List
+    Comment    Generate Agent Index List
+
+Send Authenticate Post Request And Get Token
+    Generate Test Variables For Post Authenticate
+    Send Post request
+
+Send GET Request
+    [Arguments]    ${token}=${token}    ${query_param_list}=${query_param_list}
+    Set Test Variable    ${ap_uri}    ${endpoint}
+    ${headers_list}    Create Dictionary    Content-Type=application/json
+    Run Keyword If    "${token}" == "null"    Set To Dictionary    ${headers_list}    Authorization=null
+    ...    ELSE IF    "${token}" != "None"    Set To Dictionary    ${headers_list}    Authorization=Bearer ${token}
+    Comment    Run Keyword If    "${app_id}" == "null"    Set To Dictionary    ${headers_list}    appId=null
+    ...    ELSE IF    "${app_id}" != "None"    Set To Dictionary    ${headers_list}    appId=${app_id}
+    Comment    Run Keyword If    "${txn_id}" == "null"    Set To Dictionary    ${headers_list}    txnId=null
+    ...    ELSE IF    "${txn_id}" != "None"    Set To Dictionary    ${headers_list}    txnId=${txn_id}
+    Comment    Run Keyword If    "${prefix}"=="null"    Set To Dictionary    ${headers_list}    useDataSet=null
+    ...    ELSE IF    "${prefix}"!="None"    Set To Dictionary    ${headers_list}    useDataSet=DATASET_${prefix}
+    Log    ${headers_list}
+    Comment    ${environment_url}    Set Variable If    "${ap_uri}"=="/service/repo/airapi/admin/score"    ${${env}_adhoc_url}    ${${env}_base_url}
+    ${environment_url}    Set Variable    ${${env}_base_url}
+    Create Session    AP    ${environment_url}    verify=true
+    ${response}    Run Keyword If    "${query_param_list}"=="None"    Get Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    ELSE    Get Request    AP    ${ap_uri}    headers=${headers_list}    params=${query_param_list}
+    Set Test Variable    ${response}
+    Log    ${response.content}
+    Log    ${response.status_code}
+
+Send GET Request For Rules
+    [Arguments]    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules
+    Set Test Variable    ${token}
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    Send GET Request
+
+Send Login Post Request
+    [Arguments]    ${username}=${gw_username}    ${password}=${gw_password}
+    Create Session    gw    ${${env}_base_url}    verify=True
+    ${headers}    Create Dictionary    Content-Type=application/x-www-form-urlencoded    Accept=application/json
+    ${data}    Create Dictionary    client_id=${username}    client_secret=${password}    grant_type=client_credentials
+    ${response}    Post Request    gw    ${context_path}/oauth2/token    data=${data}    headers=${headers}
+    Set Suite Variable    ${response}
+    Log    ${response.headers}
+    Log    ${response.content}
+    Run Keyword If    "${response.status_code}" == "200"    Get Token
+
+Send POST Request
+    [Arguments]    ${token}=${token}    ${query_param_list}=${query_param_list}    ${json_body}=${json_body}
+    Set Suite Variable    ${ap_uri}    ${endpoint}
+    ${headers_list}    Create Dictionary    Content-Type=application/json
+    Run Keyword If    "${token}" == "null"    Set To Dictionary    ${headers_list}    Authorization=null
+    ...    ELSE IF    "${token}" != "None"    Set To Dictionary    ${headers_list}    Authorization=Bearer ${token}
+    Run Keyword If    "${txn_id}" == "null"    Set To Dictionary    ${headers_list}    txnId=null
+    ...    ELSE IF    "${txn_id}" != "None"    Set To Dictionary    ${headers_list}    txnId=${txn_id}
+    Log    ${headers_list}
+    ${json_body}    Replace String    ${json_body}    "null"    null
+    ${json_body}    Replace String    ${json_body}    "True"    true
+    ${json_body}    Replace String    ${json_body}    "False"    false
+    Set Suite Variable    ${json_body}
+    ${json_body_exist}    Run Keyword And Return Status    Should Not Be Equal    ${json_body}    None
+    ${environment_url}    Set Variable    ${${env}_base_url}
+    Create Session    AP    ${environment_url}    verify=true
+    ${response}    Run Keyword If    "${query_param_list}"=="None" and "${json_body_exist}"!="True"    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    data=${json_body}
+    ...    ELSE IF    "${query_param_list}"!="None" and "${json_body_exist}"=="False"    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    params=${query_param_list}
+    ...    ELSE    Post Request    AP    ${ap_uri}    headers=${headers_list}    params=${query_param_list}
+    ...    data=${json_body}
+    Set Suite Variable    ${response}
+    Log    ${response.content}
+    Log    ${response.status_code}
+    Run Keyword If    "${response.status_code}" == "200"    Get Token
+
+Send PUT Request
+    [Arguments]    ${token}=${token}    ${query_param_list}=${query_param_list}    ${json_body}=${json_body}
+    Set Suite Variable    ${ap_uri}    ${endpoint}
+    ${headers_list}    Create Dictionary    Content-Type=application/json
+    Run Keyword If    "${token}" == "null"    Set To Dictionary    ${headers_list}    Authorization=null
+    ...    ELSE IF    "${token}" != "None"    Set To Dictionary    ${headers_list}    Authorization=Bearer ${token}
+    Run Keyword If    "${txn_id}" == "null"    Set To Dictionary    ${headers_list}    txnId=null
+    ...    ELSE IF    "${txn_id}" != "None"    Set To Dictionary    ${headers_list}    txnId=${txn_id}
+    Log    ${headers_list}
+    ${json_body}    Replace String    ${json_body}    "null"    null
+    ${json_body}    Replace String    ${json_body}    "True"    true
+    ${json_body}    Replace String    ${json_body}    "False"    false
+    Set Suite Variable    ${json_body}
+    ${json_body_exist}    Run Keyword And Return Status    Should Not Be Equal    ${json_body}    None
+    ${environment_url}    Set Variable    ${${env}_base_url}
+    Create Session    AP    ${environment_url}    verify=true
+    ${response}    Run Keyword If    "${query_param_list}"=="None" and "${json_body_exist}"!="True"    Put Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    data=${json_body}
+    ...    ELSE IF    "${query_param_list}"!="None" and "${json_body_exist}"=="False"    Put Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    params=${query_param_list}
+    ...    ELSE    Put Request    AP    ${ap_uri}    headers=${headers_list}    params=${query_param_list}
+    ...    data=${json_body}
+    Set Suite Variable    ${response}
+    Log    ${response.content}
+    Log    ${response.status_code}
+
+Verify Array Items
+    [Arguments]    ${key}    ${key2}=${EMPTY}
+    ${JSON_dict2_parsed}    Set Variable If    "${key2}"=="${EMPTY}"    ${JSON_dict2_decoded["${key}"]}    ${JSON_dict2_decoded["${key}"]["${key2}"]}
+    Log    ${JSON_dict2_parsed}
+    ${length_1}    Get Length    ${JSON_dict1_parsed}
+    ${length_2}    Get Length    ${JSON_dict2_parsed}
+    Run Keyword And Continue On Failure    Should Be Equal    ${length_1}    ${length_2}
+    : FOR    ${dict1_items}    IN    @{JSON_dict1_parsed}
+    \    Run Keyword And Continue On Failure    List Should Contain Value    ${JSON_dict2_parsed}    ${dict1_items}
+
+Verify That Correct Status Code Are Returned
+    [Arguments]    ${status_code}=${EMPTY}
+    Verify That Actual Value Matches Expected Value    ${response.status_code}    ${status_code}
+
+Verify That Error Message Is Correct
+    [Arguments]    ${error_message}
+    ${error_message}    Split String    ${error_message}    ;
+    : FOR    ${error}    IN    @{error_message}
+    \    Verify That Json Value Matches Pattern    errorMsg    ${error}
+
+Verify That Error Response Is Returned
+    [Arguments]    ${error_code}=${EMPTY}    ${error_message}=${EMPTY}    ${error_response}=${EMPTY}
+    ${error_response}    Escape The Special Characters Of A String    ${error_response}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_response}" == "${EMPTY}"    Verify Json Value Is Correct    ${response.content}    errorCode    ${error_code}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_response}" == "${EMPTY}"    Verify That Error Message Is Correct    ${error_message}
+    Run Keyword And Continue On Failure    Run Keyword If    "${error_response}" != "${EMPTY}"    Verify That String Contains Substring    ${response.content}    ${error_response}
+
+Verify That Response Headers Are Correct
+    ${headers}    Convert To String    ${response.headers}
+    Run Keyword And Continue On Failure    Run Keyword If    "${txn_id}"!="None"    Verify That String Contains Substring    ${headers}    'txnId': '${txn_id}'
+    ...    ELSE    Verify That String Matches Pattern    ${headers}    'txnId': '.*'
+    Comment    Run Keyword And Continue On Failure    Run Keyword If    "${app_id}"!="None"    Verify That String Contains Substring    ${headers}    'appId': '${app_id}'

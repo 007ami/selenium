@@ -1,0 +1,140 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-features.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That channel Is Required When Sending Add Feature Post Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    # Letters/Special Characters
+    Generate Test Variables For Post Add Features    channel=ABC !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.not.valid.channel"]}
+    # Duplicate
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    channel=MYCWT_MOBILE
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["duplicate.feature"]}
+    # Blank
+    Generate Test Variables For Post Add Features    channel=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.required.channel"]}
+    # None
+    Generate Test Variables For Post Add Features    channel=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.required.channel"]}
+    # Null
+    Generate Test Variables For Post Add Features    channel=null
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.required.channel"]}
+
+FV_002 Verify That apiVersion Is Required When Sending Add Feature Post Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    # Letters/Special Characters
+    Generate Test Variables For Post Add Features    api_version=ABC !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # Duplicate
+    Generate Test Variables For Post Add Features    api_version=V1
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    Generate Test Variables For Post Add Features    api_version=V1
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["duplicate.feature"]}
+    # Blank
+    Generate Test Variables For Post Add Features    api_version=${EMPTY}
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.required.apiVersion"]}
+    # None
+    Generate Test Variables For Post Add Features    api_version=None
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.required.apiVersion"]}
+    # Null
+    Generate Test Variables For Post Add Features    api_version=null
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":["field.required.apiVersion"]}
+
+FV_003 Verify That oagEnabled Is Not Required When Sending Add Feature Post Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    # Letters/Special Characters
+    Generate Test Variables For Post Add Features    oag_enabled=ABC !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    # Blank
+    Generate Test Variables For Post Add Features    oag_enabled=${EMPTY}    channel=MYCWT_MOBILE
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Post Add Features    oag_enabled=None    channel=MYCWT_WEB
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Post Add Features    oag_enabled=null    channel=DESKTOP_AMADEUS
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+
+FV_004 Verify That cpPassThrough Is Not Required When Sending Add Feature Post Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    # Letters/Special Characters
+    Generate Test Variables For Post Add Features    cp_passthrough=ABC !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    # Blank
+    Generate Test Variables For Post Add Features    cp_passthrough=${EMPTY}    channel=MYCWT_MOBILE
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Post Add Features    cp_passthrough=None    channel=MYCWT_WEB
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Post Add Features    cp_passthrough=null    channel=DESKTOP_AMADEUS
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+
+FV_005 Verify That withDefaultTP Is Not Required When Sending Add Feature Post Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    # Letters/Special Characters
+    Generate Test Variables For Post Add Features    with_default_tp=ABC !@# $%^
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    # Blank
+    Generate Test Variables For Post Add Features    with_default_tp=${EMPTY}    channel=MYCWT_MOBILE
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Post Add Features    with_default_tp=None    channel=MYCWT_WEB
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Post Add Features    with_default_tp=null    channel=DESKTOP_AMADEUS
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+
+FV_006 Verify That txnId Is Not Required When Sending Add Rule Feature Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Add Features    txn_id=ABC 123 !@# $%^    channel=MYCWT_MOBILE
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Post Add Features    txn_id=${EMPTY}    channel=MYCWT_WEB
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Post Add Features    txn_id=None    channel=DESKTOP_AMADEUS
+    Send POST Request
+    Verify That Response Status Code Is Correct    200

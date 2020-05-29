@@ -1,0 +1,501 @@
+*** Settings ***
+Test Setup        Get Authorization Token
+Force Tags        functional
+Resource          resources/aggregate.txt
+Resource          ../resources/common.txt
+Resource          ../../resources/imports.txt
+Resource          ../ccr/CompositePolicyService/resources/ccr-composite-policy-service.txt
+Resource          ../portrait/membership/resources/portrait-membership.txt
+
+*** Test Cases ***
+FNC_001 Verify That Response Is Retrieve When Send Details As Portrait
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:4029AE25
+    Send GET Request
+    # Aggregate
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait    travelerGuid=A:4029AE25
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That Response Headers Are Correct For Aggregate
+    Verify That API Response Is Same With Aggregate API    Portrait
+
+FNC_002 Verify That Response Is Retrieve When Send Details As Portrait With Error
+    # Aggregate
+    ${query_list}    Create List    details=Portrait    travelerGUID=A:4029AAS
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait    travelerGuid=A:4029AAS
+    Send GET Request For Aggregate
+    # Portrait API
+    Verify That Correct Status Code Are Returned For Aggregate    204
+
+FNC_003 Verify That Response Is Retrieve When Send Details As Personalization
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    Add Rules In Redis    .*?::.*?::A1234::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::DESKTOP_AMADEUS::ON
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:160A21E    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A    app_id=Desktop_Amadeus    pcc=A1234
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    # Aggregate API
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization    csuGuid=14:18DC2    travelerGuid=A:160A21E    iss_country=US    origin=JFK    destination=LHR
+    ...    departure_date=20190801    origin_code_type=A    destination_code_type=A    app_id=Desktop_Amadeus    pcc=A1234
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Personalization
+
+FNC_004 Verify That Response Is Retrieve When Send Details As Personalization With Error
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # Aggregate API
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization    csuGuid=14:18DC2    travelerGuid=A:4076C2A7    iss_country=US    origin=JFK    destination=LHR
+    ...    departure_date=20190801    origin_code_type=A    destination_code_type=A    app_id=TEST
+    Send GET Request For Aggregate
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=400    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=400    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Response Does Not Contain Details Key    Portrait|ClientConfig
+
+FNC_005 Verify That Response Is Retrieve When Send Details As Composite Policy
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101    travelerGuid=A:406EAC5B
+    Send GET Request
+    # CBS Aggregate
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101
+    ...    travelerGuid=A:406EAC5B
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That Response Headers Are Correct For Aggregate
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+
+FNC_006 Verify That Response Is Retrieve When Send Details As Composite Policy With Error
+    # CBS Aggregate
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=XX    departure_date=20180101
+    ...    travelerGuid=A:406EAC5B
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+    Verify That Response Does Not Contain Details Key    Portrait|Personalization
+
+FNC_007 Verify That Response Is Retrieve When Send Details As Personalization and Portrait
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization|Portrait    csuGuid=14:18DC2    travelerGuid=A:406EAC5B    iss_country=US    origin=JFK    destination=LHR
+    ...    departure_date=20190801    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:406EAC5B    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Personalization
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:406EAC5B
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Portrait
+
+FNC_008 Verify That Response Is Retrieve When Send Details As Personalization and Error For Portrait
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization|Portrait    csuGuid=14:18DC2    travelerGuid=A:406    iss_country=US    origin=JFK    destination=LHR
+    ...    departure_date=20190801    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:406    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Personalization
+    # Portrait API
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That Response Does Not Contain Details Key    Portrait
+
+FNC_009 Verify That Response Is Retrieve When Send Details As Portrait And Error For Personalization
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization|Portrait    csuGuid=14:18DC2    travelerGuid=A:406EAC5B    iss_country=US    origin=JFK    destination=LHR
+    ...    departure_date=20190801    origin_code_type=A    destination_code_type=A    app_id=TEST
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Personalization
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:406EAC5B
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Portrait
+    Verify That Response Does Not Contain Details Key    ClientConfig
+
+FNC_010 Verify That Response Is Retrieve When Send Details As Personalization and Composite Policy
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:4076C2A7    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20190801    travelerGuid=A:4076C2A7
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:4076C2A7    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Personalization
+
+FNC_011 Verify That Response Is Retrieve When Send Details As Composite Policy And Error For Personalization
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:4076C2A7    origin_code_type=A    destination_code_type=A    app_id=TEST
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20190801    travelerGuid=A:4076C2A7
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    #Personalization
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+
+FNC_012 Verify That Response Is Retrieve When Send Details As Personalization and Error For Composite Policy
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=XY
+    ...    departure_date=20190801    travelerGuid=A:4076C2A7    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    #Composite Policy
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:4076C2A7    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Personalization
+    Verify That Response Does Not Contain Details Key    Portrait
+
+FNC_013 Verify That Response Is Retrieve When Send Details As Portrait And Composite Policy
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101
+    ...    travelerGuid=A:4029AE25
+    Send GET Request For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101    travelerGuid=A:4029AE25
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:4029AE25
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Portrait
+
+FNC_014 Verify That Response Is Retrieve When Send Details As Composite Policy And Error For Portrait
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101
+    ...    travelerGuid=A:4029ABC
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101    travelerGuid=A:4029ABC
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    # Portrait API
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That Response Does Not Contain Details Key    Portrait|Personalization
+
+FNC_015 Verify That Response Is Retrieve When Send Details As Portrait And Error For Composite Policy
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=XX    departure_date=20180101
+    ...    travelerGuid=A:4029AE25
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:4029AE25
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Portrait
+
+FNC_016 Verify That Response Is Retrieve When Send Details As Portrait,Composite Policy And Personalization
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:406EAC5B    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:406EAC5B    systemUserGuid=A:2DD6B    teamId=419    tripTypeId=0    languageCode=en-GB
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:406EAC5B
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Portrait
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:406EAC5B    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Personalization
+
+FNC_017 Verify That Response Is Retrieve When Send Details As Composite Policy, Personalization Error For Portrait
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:406EAAC    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:406EAAC    systemUserGuid=A:2DD6B    teamId=419    tripTypeId=0    languageCode=en-GB
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    # Portrait API
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That Response Does Not Contain Details Key    Portrait
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:406EAAC    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Personalization
+
+FNC_018 Verify That Response Is Retrieve When Send Details As Composite Policy, Portrait Error For Personalization
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:406EAC5B    origin_code_type=A    destination_code_type=A    app_id=TEST
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:406EAC5B    systemUserGuid=A:2DD6B    teamId=419    tripTypeId=0    languageCode=en-GB
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:406EAC5B
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Portrait
+    #Personalization
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+
+FNC_019 Verify That Response Is Retrieve When Send Details As Portrait, Personalization Error For Composite Policy
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=ABX
+    ...    departure_date=20190801    travelerGuid=A:406EAC5B    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    #Composite Policy
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:406EAC5B
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Portrait
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:406EAC5B    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Personalization
+
+FNC_020 Verify That Response Is Retrieve When Send Details As Composite Policy And Error For (Personalization And Portrait)
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:406EA    origin_code_type=A    destination_code_type=A    app_id=TEST
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Generate Test Variables For Composite Policy Service Get Request For CBS    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=A:5B696    systemUserGuid=A:2DD6B    teamId=419    tripTypeId=0    languageCode=en-GB
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    CompositePolicy
+    # Portrait API
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Response Does Not Contain Details Key    Portrait
+    #Personalization
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+
+FNC_021 Verify That Response Is Retrieve When Send Details As Portrait, Error For (Personalization And Composite)
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=ABX
+    ...    departure_date=20190801    travelerGuid=A:406EAC5B    origin_code_type=A    destination_code_type=A    app_id=TEST
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+    # Portrait API
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:406EAC5B
+    Send GET Request
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Portrait
+    #Personalization
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+
+FNC_022 Verify That Response Is Retrieve When Send Details As Personalization And Error For (Composite Policy, Portrait)
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=BBX
+    ...    departure_date=20190801    travelerGuid=A:406EAAC    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+    # Portrait API
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Response Does Not Contain Details Key    Portrait
+    #Personalization
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:406E    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A
+    Create Test Data For Metadata
+    Send GET Request For Personalization Score
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That API Response Is Same With Aggregate API    Personalization
+
+FNC_023 Verify That Response Is Retrieve When Send Details As Error For (Portrait, Composite Policy And Personalization)
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # CBS Aggregate
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=14:18DC2    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=XX
+    ...    departure_date=20190801    travelerGuid=A:406EAAC    origin_code_type=A    destination_code_type=A    app_id=TEST
+    Send GET Request For Aggregate
+    Verify That Response Headers Are Correct For Aggregate
+    #Composite Policy
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+    # Portrait API
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Response Does Not Contain Details Key    Portrait
+    #Personalization
+    Verify That Correct Status Code Are Returned For Aggregate    206
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=206    error_status=BAD_REQUEST    error_message={'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+
+FNC_024 Verify That Response Is Retrieve When Send Details As Personalization And Different Algorithm
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    #Personalization
+    Create TP Meta Data
+    Create Test Data For Metadata    group=B
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Get Personalization Score    trv_guid=A:4076C2A7    csu_guid=14:18DC2    iss_country=US    origin=JFK    destination=LHR    dep_date=20190801
+    ...    origin_code_type=A    destination_code_type=A    prefix=B
+    Send GET Request For Personalization Score
+    # Aggregate API
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization    csuGuid=14:18DC2    travelerGuid=A:4076C2A7    iss_country=US    origin=JFK    destination=LHR
+    ...    departure_date=20190801    origin_code_type=A    destination_code_type=A    app_id=MyCWT_Mobile    prefix=B
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify That API Response Is Same With Aggregate API    Personalization
+
+*** Keywords ***

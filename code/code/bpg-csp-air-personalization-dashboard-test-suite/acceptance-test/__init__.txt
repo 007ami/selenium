@@ -1,0 +1,5 @@
+*** Settings ***
+Suite Setup
+Suite Teardown
+Resource          resource/common.txt
+Resource          ../resource/imports.txt

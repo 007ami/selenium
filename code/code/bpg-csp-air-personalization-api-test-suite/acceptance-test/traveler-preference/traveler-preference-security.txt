@@ -1,0 +1,37 @@
+*** Settings ***
+Force Tags        security    regression
+Resource          ../../resources/imports.txt
+Resource          resources/traveler-preference.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    Generate Test Variables For Get Traveler Preference    token=${invalid_token_1}
+    Send GET request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    [Tags]    not-ready
+    Generate Test Variables For Get Traveler Preference    token=${${env}_expired_token}
+    Send GET request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    Generate Test Variables For Get Traveler Preference    token=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    Generate Test Variables For Get Traveler Preference    token=null
+    Send GET request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    Generate Test Variables For Get Traveler Preference    token=None
+    Send GET request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}

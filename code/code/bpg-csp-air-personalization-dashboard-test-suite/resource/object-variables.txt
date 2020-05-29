@@ -1,0 +1,137 @@
+*** Variables ***
+${air_personalization_bnr}    class=navbar-brand
+${sign_in_mdl_dlg}    class=col-md-6 offset-md-3 mt-3
+${sign_in_hdr}    class=modal-title
+${uname_lbl}      xpath=//label[@for="username"]
+${uname_txt}      username
+${pword_lbl}      xpath=//label[@for="password"]
+${pword_txt}      password
+${login_btn}      loginButton
+${error_lbl}      loginFormMessages
+${welcome_msg_lbl}    home
+${logout_btn}     logout
+#Navigation Links
+${rules_lnk}      xpath=//div[@id='navMenuBar']//a[text()='RULES']
+#${upload_rules_lnk}    xpath=//div[@id='navMenuBar']//a[text()='UPLOAD RULES']
+#Rules
+${rules_tbl}      table
+${rules_tbl_bdy}    //*[@id="table"]/tbody
+${rules_tbl_hdr}    xxx
+${rule_error_msg}    ruleNameErrors
+${channel_error_msg}    channelErrors
+${clientTop_error_msg}    clientTopErrors
+${clientSub_error_msg}    clientSubErrors
+${originRegion_error_msg}    originRegionErrors
+${originCountry_error_msg}    originCountryErrors
+${destRegion_error_msg}    destinationRegionErrors
+${destCountry_error_msg}    destinationCountryErrors
+${fields_error_lbl}    xpath=(//div[@class='alert alert-danger'])
+${rule_success_lbl}    //div[@id='messagesDiv']/p[1]/ngb-alert[@role='alert']
+${rule_falied_lbl}    ruleFormErrors
+${reset_btn}      resetBtn
+${channel_field_txt}    channelInput
+${clientTop_field_txt}    //ng-select[@bindvalue='clientTopGUID']
+${clientSub_field_txt}    //ng-select[@bindvalue='clientSubGUID']
+${originRegion_field_txt}    //ng-select[@bindvalue='regionCode']
+${originCountry_field_txt}    //ng-select[@bindvalue='countryCode']
+${destRegion_field_txt}    //ng-select[@labelforid='destinationRegion']
+${destCountry_field_txt}    //ng-select[@labelforid='destinationCountry']
+${destRegion_clr_btn}    //input[@id='destinationRegion']/../../../span[@class='ng-clear-wrapper']
+${destCountry_clr_btn}    //input[@id='destinationCountry']/../../../span[@class='ng-clear-wrapper']
+${originCountry_clr_btn}    //input[@id='originCountry']/../../../span[@class='ng-clear-wrapper']
+${originRegion_clr_btn}    //input[@id='originRegion']/../../../span[@class='ng-clear-wrapper']
+${clientSub_clr_btn}    //input[@id='clientSub']/../../../span[@class='ng-clear-wrapper']
+${clientTop_clr_btn}    //input[@id='clientTop']/../../../span[@class='ng-clear-wrapper']
+${channel_clr_btn}    //input[@id='channel']/../../../span[@class='ng-clear-wrapper']
+${pcc_txt}        pccInput
+${row_drpdwn}     rowAmount
+${row_amount_limit}    //div[@id='rowAmount']/div/div/following-sibling::ul/li/span
+${pagination_no._lnk}    //ul[@role='navigation']/li/a/span/following-sibling::span
+${next_arrow_btn}    //ul//li[@class='pagination-next']/a
+${previous_arrow_btn}    //ul//li[@class='pagination-previous']/a
+${choose_file_btn}    uploadFileInput
+#${upload_rules_btn}    startUploadBtn
+${upload_rules_btn}    uploadBtn
+${upload_result_msg}    uploadResultTextHolder
+${upload_err_msg}    //p[text()='An error occurred.']
+${instruction_tbl_header_txt}    modalTitle
+${instruction_tbl}    uploadInstructionsTbl
+${instruction_tbl_row_header}    //th[@class="table-col-header"]
+${instruction_tbl_header_name_content}    //*[@id="uploadInstructionsTbl"]/tbody/tr[1]/td
+${instruction_tbl_optionality_content}    //*[@id="uploadInstructionsTbl"]/tbody/tr[2]/td
+${instruction_tbl_example_content}    //*[@id="uploadInstructionsTbl"]/tbody/tr[3]/td
+${instruction_tbl_format_content}    //*[@id="uploadInstructionsTbl"]/tbody/tr[4]/td
+${instruction_tbl_multiple_values_allowed_content}    //*[@id="uploadInstructionsTbl"]/tbody/tr[5]/td
+${instruction_tbl_special_instruction_content}    //*[@id="uploadInstructionsTbl"]/tbody/tr[6]/td
+${download_btn}    ruleDownloadGroup
+${latest_rules_drpdwn_btn}    latestUploadedRulesLink
+${download_rules_template_lnk}    rulesTemplateLink
+${no_result_lbl}    //*[@class="ngx-table__table-no-results"]
+${download_rule_lbl}    //div[@id='messagesDiv']/p/ngb-alert[@class='alert alert-success alert-dismissible']
+${download_rule_process_lbl}    //div[@id='messagesDiv']/p/ngb-alert[@class='alert alert-info alert-dismissible']
+${add_rule_btn}    addRuleBtn
+${guideline_btn}    guidelinesBtn
+${search_filter_chkbx}    searchFilterCheckbox
+${multi_delete_chkbx}    multiDeleteCheckbox
+${sequence_number_txt}    sequenceNumberInput
+${rule_name_txt}    nameInput
+${csu_name_cmb_bx}    //table/tbody/tr[1]/td[4]/input
+${pos_region_txt}    posRegionInput
+${pos_country_txt}    posCountryInput
+${origin_region_txt}    originRegionInput
+${origin_country_txt}    originCountryInput
+${origin_airport_txt}    originAirportInput
+${destination_region_txt}    destinationRegionInput
+${destination_country_txt}    destinationCountryInput
+${destination_airport_txt}    destinationAirportInput
+${direction_cmb_bx}    //table/tbody/tr[1]/td[14]/input
+${channel_cmb_bx}    //ng-select[@bindvalue='name']
+${personalization_cmb_bx}    //table/tbody/tr[1]/td[16]/input
+${save_btn}       saveRuleBtn
+${cancel_btn}     cancelRuleBtn
+${edit_rule_btn}    editRuleBtnrow_number
+${delete_rule_btn}    deleteRuleBtnrow_number
+${rules_checkbox}    //table/tbody/tr[*]/td[*]/span[text()='checkbox_sequence']/../preceding-sibling::td/label/i
+${ctu_guid_cmb_bx}    //ng-select[@bindvalue='clientTopGUID']
+${ctu_guid_name_bx}    //ng-dropdown-panel/div/div[2]/div[@role='option']/div[text()='ctu_name']
+${ctu_drpdwn_list}    //ng-dropdown-panel/div/div[2]
+${ctu_txt}        clientTopInput
+${csu_txt}        clientSubInput
+${csu_guid_cmb_bx}    //ng-select[@bindvalue='clientSubGUID']
+${csu_guid_name_bx}    //ng-dropdown-panel/div/div[2]/div[@role='option']/div[text()='csu_name']
+${csu_drpdwn_list}    //ng-dropdown-panel/div/div[2]
+${channel_drpdwn_bx}    //ng-dropdown-panel/div/div[2]/div/span[text()='channel_name']
+${channel_field_txt}    channelInput
+${channel_dropdown_list}    //ng-dropdown-panel/div/div[2]
+${add_rule_error_lbl}    //div[@id='messagesDiv']/p[1]/ngb-alert
+${direction_drpdown_bx}    //ng-dropdown-panel/div/div[2]/div/span[text()='direction_name']
+${direction_bx}    //ng-select[@labelforid='directionInput']
+${direction_drpdwn_listbx}    //ng-dropdown-panel/div/div[2]
+${personalization_on_off_btn}    onOffIndLabel
+${alert_msg_lbl}    //div[@id='messagesDiv']/p/ngb-alert
+${delete_alert_yes}    modalOkBtn
+${delete_alert_no}    modalCancelBtn
+${multiple_delete_rule_btn}    multipleDeleteRuleBtn
+${ctuguid_cancel_btn}    //ng-select[@bindvalue='clientTopGUID']/div/span[@title='Clear all']
+${csuguid_cancel_btn}    //ng-select[@bindvalue='clientSubGUID']/div/span[@title='Clear all']
+${channel_cancel_btn}    //ng-select[@bindvalue='name']/div/span[@title='Clear all']
+${cache_viewer_lnk}    //div[@id='navMenuBar']//a[text()='CACHE']
+# Table Filter Fileds
+${sequence_filter_txt}    sequenceFilter
+${rule_name_filter_txt}    nameFilter
+${client_top_name_filter_txt}    clientTopNameFilter
+${client_top_guid_filter_txt}    clientTopGUIDFilter
+${client_sub_name_filter_txt}    clientSubNameFilter
+${client_sub_guid_filter_txt}    clientSubGUIDFilter
+${pos_region_filter_txt}    posRegionFilter
+${pos_country_filter_txt}    posCountryFilter
+${origin_region_filter_txt}    originRegionFilter
+${origin_country_filter_txt}    originCountryFilter
+${origin_airport_filter_txt}    originAirportFilter
+${destination_region_filter_txt}    destinationRegionFilter
+${destination_country_filter_txt}    destinationCountryFilter
+${destination_airport_filter_txt}    destinationAirportFilter
+${direction_filter_txt}    directionFilter
+${channel_filter_txt}    channelFilter
+${pcc_filter_txt}    pccFilter
+${personalization_filter_txt}    onOffIndFilter

@@ -1,0 +1,197 @@
+*** Settings ***
+Test Teardown     Close All Browsers
+Force Tags        functional    regression
+Resource          ../../resource/imports.txt
+Resource          ../resource/common.txt
+Resource          resource/authentication.txt
+Resource          ../rules/resource/rules.txt
+
+*** Test Cases ***
+FNC_001 Successful Sign In Air Personalization Dashboard Using Valid Credentials As Admin
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username    ${${env}_sadmin_username}
+    Set Password    ${${env}_sadmin_password}
+    Click Login Button
+    Verify That Login Successful Message Is Displayed
+
+FNC_002 Unsuccessful Sign In Using Invalid Username And Valid Password
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username    Verify The Table
+    Set Password    ${${env}_sadmin_password}
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+
+FNC_003 Unsuccessful Sign In Using Valid Username And Invalid Password
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username    ${${env}_sadmin_username}
+    Set Password    Verify The Table
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+
+FNC_004 Unsuccessful Sign In Using Invalid Username And Invalid Password
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username    test122
+    Set Password    Verify The Table
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+
+FNC_005 Unsuccessful Sign In When Error 400 Is Encountered
+    [Tags]    not-ready
+    Create Error Stub For Login API    400
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username
+    Set Password
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed
+
+FNC_006 Unsuccessful Sign In When Error 404 Is Encountered
+    [Tags]    not-ready
+    Create Error Stub For Login API    404
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username
+    Set Password
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed
+
+FNC_007 Unsuccessful Sign In When Error 500 Is Encountered
+    [Tags]    not-ready
+    Create Error Stub For Login API    500
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username
+    Set Password
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed
+
+FNC_008 Unsuccessful Sign In When Error 504 Is Encountered
+    [Tags]    not-ready
+    Create Error Stub For Login API    504
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username
+    Set Password
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed
+
+UI_001 Verify Login UI
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Verify That Object Text Is Correct    ${air_personalization_bnr}    Air Personalization
+    Verify That Object Text Is Correct    ${sign_in_hdr}    Sign In
+    Verify That Object Text Is Correct    ${uname_lbl}    Username
+    Verify That Object Exists    ${uname_txt}    Username Textfield
+    Verify That Object Text Is Correct    ${pword_lbl}    Password
+    Verify That Object Exists    ${pword_txt}    Password Textfield
+    Set Username
+    Verify That Object Attribute Is Correct    ${uname_txt}    value    sadmin
+    Verify That Object Attribute Is Correct    ${uname_txt}    type    text
+    Set Password
+    Verify That Object Attribute Is Correct    ${pword_txt}    type    password
+    Verify That Object Exists    ${login_btn}    Login Button
+    Verify That Object Text Is Correct    ${login_btn}    Login
+    Click Login Button
+    Verify That Login Successful Message Is Displayed
+    Verify That Object Text Is Correct    ${logout_btn}    Log Out
+
+FNC_009 Verify That Account Is Lockout After 3 Invalid Attempts
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    #1st Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    password111
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #2nd Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    Password1234
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #3rd Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    password12
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #4th Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    password12
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Your account has been locked due to failed login attempts. Please contact support for assistance.
+    #Resets Failed Attempt Manually
+    Reset Account Lockout In MongoDB    ${${env}_sadmin_username}
+    Clear Field    ${uname_txt}|${pword_txt}
+    #Resets Failed Attempt If Login Is Successful
+    Set Username    ${${env}_sadmin_username}
+    Set Password    ${${env}_sadmin_password}
+    Click Login Button
+    Click Log Out Button
+    #1st Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    password111
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #2nd Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    Password1234
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #1st Success Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    ${${env}_sadmin_password}
+    Click Login Button
+    Click Log Out Button
+    #1st Invalid Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    password111
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #2nd Invalid Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    Password1234
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #3rd Invalid Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    password12
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Invalid Credentials.
+    Clear Field    ${uname_txt}|${pword_txt}
+    #4th Invalid Attempt
+    Set Username    ${${env}_sadmin_username}
+    Set Password    password12
+    Click Login Button
+    Verify That Login Successful Message Is Not Displayed
+    Verify That Login Error Is Displayed    Failed to sign in!Reason - Your account has been locked due to failed login attempts. Please contact support for assistance.
+    [Teardown]    Reset Account Lockout In MongoDB    ${${env}_sadmin_username}
+
+FNC_010 Successful Sign In Air Personalization Dashboard Using Valid Credentials As Gsm Admin
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username    ${${env}_gsmadmin_username}
+    Set Password    ${${env}_gsmadmin_password}
+    Click Login Button
+    Verify That Login Successful Message Is Displayed
+
+FNC_011 Successful Sign In Air Personalization Dashboard Using Valid Credentials As User
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Set Username    ${${env}_user_username}
+    Set Password    ${${env}_user_password}
+    Click Login Button
+    Verify That Login Successful Message Is Displayed

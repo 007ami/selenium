@@ -1,0 +1,166 @@
+*** Variables ***
+#Dev
+#${dev_base_url}    http://internal-dev-int-cwt-bpg-lb-1412987045.us-west-2.elb.amazonaws.com
+${dev_base_url}    https://dev.int.us-west-2.bpg-aws-cwt.com
+${dev_redis_cache_host}    dev-air-api.vb6jw1.clustercfg.usw2.cache.amazonaws.com
+${dev_redis_cache_port}    6379
+${dev_gw_username}    int.cbs.content.mycwt
+${dev_gw_password}    m1S6pEFbJzhuxQwVBaTrtxrGkkW4VZE1
+${ap_dev_gw_username}    int.airapi.cbs
+${ap_dev_gw_password}    HQZ7oBLMAGJj454Qi4dZD9TK8CurivVi
+${pb_dev_gw_username}    int.powerbaseaws.cbs
+${pb_dev_gw_password}    L1wF7Py0H4r9kHJrroOEWCFIu2BgbGs6
+${dev_sadmin_username}    sadmin
+${dev_sadmin_password}    akFqakBtcHAwbmc=
+#Test Env
+#${test_base_url}    http://internal-test-int-cwt-bpg-lb-1345055561.us-west-2.elb.amazonaws.com
+${test_base_url}    https://test.int.us-west-2.bpg-aws-cwt.com
+${test_redis_cache_host}    test-air-api.vb6jw1.clustercfg.usw2.cache.amazonaws.com
+${test_redis_cache_port}    6379
+${test_gw_username}    int.cbs.content.mycwt
+${test_gw_password}    7wrND1fUED18QsXWQ5OP43j3VqV3aSR9
+${ap_test_gw_username}    int.airapi.cbs
+${ap_test_gw_password}    SlZr7oWZLKnh35QatepEM5UVpvpv7T2h
+${pb_test_gw_username}    int.powerbaseaws.cbs
+${pb_test_gw_password}    qfD9PYj64ACzTNmYtN9ddXxCBexrTHnt
+#Staging Env
+${staging_base_url}    https://staging.int.us-west-2.bpg-aws-cwt.com
+${staging_gw_username}    int.airapi.cwt2go
+${staging_gw_password}    wuz2fuQIZRKY0ikt4UZnGh8YlBXj8k7g
+#Prod Env
+${prod_base_url}    https://int.us-west-2.bpg-aws-cwt.com
+${prod_gw_username}    int.airapi.cwt2go
+${prod_gw_password}    jG6cqn3y55rz2svYIdnmCeu4Pl1MrurD
+#Context Paths
+${context_path_cbs}    /service/cbs/content
+${context_path_ap}    /service/repo/airapi
+${context_path_pb}    /service/repo/powerbaseaws
+#version
+${latest_version}    v2.0
+#Roles
+@{sadmin_role}    SUPER_ADMIN
+@{gsmadmin_role}    ADMIN
+@{user_role}      USER
+# Mongo Connection
+${dev_mongo_connection}    mongodb://devairapi:G6WZuQDqXjcy@VRNV02DN02775.int.carlsonwagonlit.com/airPersonalization
+${dev_mongo_primary_port}    27018
+${test_mongo_connection}    mongodb://qaairapi:DK4Zu3e4WNLj@VRNV02DN02782.int.carlsonwagonlit.com/airPersonalization
+${test_mongo_primary_port}    27017
+${mongo_clients_list}    {"clientTopGUID":"1:1","clientTopName":"ClientTop-test-1-1","subunits":[{"clientSubGUID":"15:3C68","clientSubName":"CSU-Test_1-1","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"2:2","clientTopName":"ClientTop-test-2-2","subunits":[{"clientSubGUID":"16:3D69","clientSubName":"CSU-Test_2-2","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"4:4","clientTopName":"ClientTop-test-4-4","subunits":[{"clientSubGUID":"18:3F62","clientSubName":"CSU-Test_4-4","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"0:0","clientTopName":"ClientTop-test-0-0","subunits":[{"clientSubGUID":"14:3B67","clientSubName":"CSU-Test_0-0","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"3:3","clientTopName":"ClientTop-test-3-3","subunits":[{"clientSubGUID":"17:3E61","clientSubName":"CSU-Test_3-3","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"6:1","clientTopName":"ClientTop-test-6-1","subunits":[{"clientSubGUID":"20:3H64","clientSubName":"CSU-Test_6-1","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"7:2","clientTopName":"ClientTop-test-7-2","subunits":[{"clientSubGUID":"21:3I65","clientSubName":"CSU-Test_7-2","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"9:4","clientTopName":"ClientTop-test-9-4","subunits":[{"clientSubGUID":"23:3K67","clientSubName":"CSU-Test_9-4","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"5:0","clientTopName":"ClientTop-test-5-0","subunits":[{"clientSubGUID":"19:3G63","clientSubName":"CSU-Test_5-0","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"8:3","clientTopName":"ClientTop-test-8-3","subunits":[{"clientSubGUID":"22:3J66","clientSubName":"CSU-Test_8-3","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}
+${mongo_travelport_list}    {"airportCode":"ICN","airportName":"Incheon Intl Arpt","cityCode":"SEL","cityName":"Seoul","countryCode":"KR","countryName":"Korea, Republic Of","subRegionCode":"ASIA","subRegionName":"ASIA REGION    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"SIN","airportName":"Changi Intl Arpt","cityCode":"SIN","cityName":"Singapore","countryCode":"SG","countryName":"Singapore","subRegionCode":"SEASI","subRegionName":"SE ASIA    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"NBP","airportName":"Battery Pk City N Cov","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"LGA","airportName":"La Guardia","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"JRA","airportName":"West 30Th St Heliport","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"JRB","airportName":"Downtown Manhattan Heliport","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"JFK","airportName":"John F Kennedy Intl","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA
+...               ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"LHR","airportName":"Heathrow","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"LGW","airportName":"Gatwick Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"LCY","airportName":"London City Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"BQH","airportName":"London Biggin Hill Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"STN","airportName":"Stansted Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"OKO","airportName":"Yokota AFB","cityCode":"TYO","cityName":"Tokyo","countryCode":"JP","countryName":"Japan","subRegionCode":"ASIA","subRegionName":"ASIA REGION    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"NRT","airportName":"Narita","cityCode":"TYO","cityName":"Tokyo","countryCode":"JP","countryName":"Japan","subRegionCode":"ASIA","subRegionName":"ASIA REGION
+...               ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"HND","airportName":"Haneda Arpt","cityCode":"TYO","cityName":"Tokyo","countryCode":"JP","countryName":"Japan","subRegionCode":"ASIA","subRegionName":"ASIA REGION    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"CEF","airportName":"Westover Metro","cityCode":"SFY","cityName":"Springfield","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"ZSF","airportName":"Pringfield Ma Rr","cityCode":"SFY","cityName":"Springfield","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"MNL","airportName":"Ninoy Aquino Intl","cityCode":"MNL","cityName":"Manila","countryCode":"PH","countryName":"Philippines","subRegionCode":"PACIF","subRegionName":"PACIFIC    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"SGL","airportName":"Sangley Point NAS","cityCode":"MNL","cityName":"Manila","countryCode":"PH","countryName":"Philippines","subRegionCode":"PACIF","subRegionName":"PACIFIC    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}
+${mongo_channels_list}    [{"name":"MYCWT_MOBILE"},{"name":"MYCWT_WEB"},{"name":"DESKTOP_AMADEUS"},{"name":"DESKTOP_SABRE"}]
+#Wiremock
+${wiremock_url}    http://172.16.6.123:8080
+${wiremock_powerbase_url}    /wire-mock/service/repo/powerbaseaws/ClientTopUnits/ClientSubUnits?
+${wiremock_travelport_url}    /wire-mock/service/repo/powerbaseaws/TravelPort/Airport
+# Security Headers
+${security_headers}    "Cache-Control":"no-cache, no-store, must-revalidate","Pragma":"no-cache","Expires":"0","Strict-Transport-Security":"max-age=0","X-Content-Type-Options":"nosniff","X-Frame-Options":"SAMEORIGIN","X-XSS-Protection":"1; mode=block"
+# Token
+${dev_token}      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqaXpZSHMyYXNQTlI2ODdCZjVQV0x5QzNjdlRZTmt2dCIsIm5hbWUiOiJhaXJhcGkiLCJpYXQiOjE1MzIyOTc4MzgsImV4cCI6NDA5MDg3NzI4NH0.UPg9QcbzqSx1X97E70ZkrfJhecKLR2kLjpIaBhP9nQ4
+${expired_token}    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRUeXBlIjoidXNlciIsImV4cCI6MTUzOTAxMTcxNH0.8bIs8hG8NWY9y14bss7l6ZOO2736K7cncwxNmYNqDIg
+${test_token}     eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqaXpZSHMyYXNQTlI2ODdCZjVQV0x5QzNjdlRZTmt2dCIsIm5hbWUiOiJhaXJhcGkiLCJpYXQiOjE1MzIyOTc4MzgsImV4cCI6NDA5MDg3NzI4NH0.UPg9QcbzqSx1X97E70ZkrfJhecKLR2kLjpIaBhP9nQ4
+#${test_expired_token}    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRUeXBlIjoidXNlciIsImV4cCI6MTUzOTAxMTcxNH0.8bIs8hG8NWY9y14bss7l6ZOO2736K7cncwxNmYNqDIg
+${invalid_token_1}    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRUeXBleCI6InVzZXIiLCJleHAiOjQwOTc1NjQ2NjAwMDB9.YjVYQOgrh4QkjQfCwdY4R6NHlf_WrSJZ0MHXB14ygYg
+${invalid_token_2}    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqaXpZSHMyYXNQTlI2ODdCZjVQV0x5QzNjdlRZTmt2dCIsIm5hbWUiOiJhaXJhcGkiLCJpYXQiOjE1MzIyOTc4Mzh9.Q4Ys8w9emzUQ4-FndGwBQmZMM2yQS6vBFEJlkNHCeOc
+${dev_gw_expired_token}    fsb37A1JHPCR33uJDB4Y5slMmMSaWnUS
+${invalid_gw_token}    1a2b3c4d5
+# TravelPort Data Mapping
+#NYC
+${nyc_airlines}    TVLPORT::NWS,TVLPORT::QNY,TVLPORT::FLU,TVLPORT::NES,TVLPORT::NBP,TVLPORT::LGA,TVLPORT::JRA,TVLPORT::JRB,TVLPORT::JFK
+${jfk_mapping}    cityCode=NYC|cityName=New York|airportCode=JFK|airportName=John F Kennedy Intl|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+${lga_mapping}    cityCode=NYC|cityName=New York|airportCode=LGA|airportName=LaGuardia Airport|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+${jrb_mapping}    cityCode=NYC|cityName=New York|airportCode=JRB|airportName=Downtown Manhattan Heliport|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+${jfk_city_code}    NYC
+${lga_city_code}    NYC
+${jrb_city_code}    NYC
+#LON
+${lon_airlines}    TVLPORT::LHR,TVLPORT::LGW,TVLPORT::LCY,TVLPORT::BQH,TVLPORT::STN
+${lhr_mapping}    cityCode=LON|cityName=London|airportCode=LHR|airportName=Heathrow|countryCode=GB|countryName=United Kingdom|subRegionCode=EUROP|subRegionName=EUROPE    |regionCode=EMEA|regionName=Europe, Middle East and Africa|gsmRegionCode=EUR|gsmRegionName=EUROPE
+${lgw_mapping}    cityCode=LON|cityName=London|airportCode=LGW|airportName=Gatwick Airport|countryCode=GB|countryName=United Kingdom|subRegionCode=EUROP|subRegionName=EUROPE    |regionCode=EMEA|regionName=Europe, Middle East and Africa|gsmRegionCode=EUR|gsmRegionName=EUROPE
+${lcy_mapping}    cityCode=LON|cityName=London|airportCode=LCY|airportName=London City Airport|countryCode=GB|countryName=United Kingdom|subRegionCode=EUROP|subRegionName=EUROPE    |regionCode=EMEA|regionName=Europe, Middle East and Africa|gsmRegionCode=EUR|gsmRegionName=EUROPE
+${bqh_mapping}    cityCode=LON|cityName=London|airportCode=BQH|airportName=London Biggin Hill Airport|countryCode=GB|countryName=United Kingdom|subRegionCode=EUROP|subRegionName=EUROPE    |regionCode=EMEA|regionName=Europe, Middle East and Africa|gsmRegionCode=EUR|gsmRegionName=EUROPE
+${stn_mapping}    cityCode=LON|cityName=London|airportCode=STN|airportName=London Stansted Airport|countryCode=GB|countryName=United Kingdom|subRegionCode=EUROP|subRegionName=EUROPE    |regionCode=EMEA|regionName=Europe, Middle East and Africa|gsmRegionCode=EUR|gsmRegionName=EUROPE
+${lhr_city_code}    LON
+${lgw_city_code}    LON
+${lcy_city_code}    LON
+${bqh_city_code}    LON
+${stn_city_code}    LON
+#TYO
+${tyo_airlines}    TVLPORT::OKO,TVLPORT::NRT,TVLPORT::HND
+${nrt_mapping}    cityCode=TYO|cityName=Tokyo|airportCode=NRT|airportName=Narita|countryCode=JP|countryName=Japan|subRegionCode=ASIA|subRegionName=ASIA REGION    |regionCode=APAC|regionName=Asia Pacific|gsmRegionCode=ASA|gsmRegionName=ASIA
+${oko_mapping}    cityCode=TYO|cityName=Tokyo|airportCode=OKO|airportName=Yokota AFB|countryCode=JP|countryName=Japan|subRegionCode=ASIA|subRegionName=ASIA REGION    |regionCode=APAC|regionName=Asia Pacific|gsmRegionCode=ASA|gsmRegionName=ASIA
+${hnd_mapping}    cityCode=TYO|cityName=Tokyo|airportCode=HND|airportName=YHaneda Arpt|countryCode=JP|countryName=Japan|subRegionCode=ASIA|subRegionName=ASIA REGION    |regionCode=APAC|regionName=Asia Pacific|gsmRegionCode=ASA|gsmRegionName=ASIA
+${nrt_city_code}    TYO
+${oko_city_code}    TYO
+${hnd_city_code}    TYO
+#SFY
+${sfy_airlines}    TVLPORT::CEF,TVLPORT::ZSF
+${cef_mapping}    cityCode=SFY|cityName=Springfield|airportCode=CEF|airportName=Westover Metro|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+${zsf_mapping}    cityCode=SFY|cityName=Springfield|airportCode=ZSF|airportName=Pringfield Ma Rr|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+${cef_mapping}    cityCode=SFY|cityName=Springfield|airportCode=CEF|airportName=Westover Metro|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+${zsf_mapping}    cityCode=SFY|cityName=Springfield|airportCode=ZSF|airportName=Pringfield Ma Rr|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America|gsmRegionCode=NAM|gsmRegionName=US/CA
+${cef_city_code}    SFY
+${zsf_city_code}    SFY
+#MNL
+${mnl_airlines}    TVLPORT::MNL,TVLPORT::SGL
+${mnl_mapping}    cityCode=MNL|cityName=Manila|airportCode=MNL|airportName=Ninoy Aquino Intl|countryCode=PH|countryName=Philippines|subRegionCode=PACIF|subRegionName=PACIFIC    |regionCode=APAC|regionName=Asia Pacific|gsmRegionCode=ASA|gsmRegionName=ASIA
+${mnl_city_code}    MNL
+#SIN
+${sin_airlines}    TVLPORT::SIN
+${sin_mapping}    cityCode=SIN|cityName=Singapore|airportCode=SIN|airportName=Ninoy Aquino Intl|countryCode=SG|countryName=Singapore|subRegionCode=PACIF|subRegionName=PACIFIC    |regionCode=APAC|regionName=Asia Pacific|gsmRegionCode=ASA|gsmRegionName=ASIA
+${sin_city_code}    SIN
+# Traveler Data
+${A:1234_trv_data}    {"traveler_guid":"A:1234","carrier":[{"code":"AF","value":0.3}],"depart_ts":{"ts_window_1":0.6,"ts_window_2":0.3,"ts_window_n":0.5},"arrival_ts":{"ts_window_1":0.9,"ts_window_2":0.2,"ts_window_n":0.5},"num_stops":{"n0":1.0,"n1":0.8,"n2":0.4},"duration":0.3,"price":0.0}
+${B:4567_trv_data}    {"traveler_guid":"B:4567","carrier":[{"code":"XX","value":0.4}],"depart_ts":{"ts_window_1":0.2,"ts_window_2":0.5,"ts_window_n":0.7},"arrival_ts":{"ts_window_1":0.8,"ts_window_2":0.4,"ts_window_n":0.1},"num_stops":{"n0":0.3,"n1":0.5,"n2":0.9},"duration":0.7,"price":0.8}
+${S:0986_trv_data}    {"traveler_guid":"S:0986","carrier":[{"code":"SS","value":0.5}],"depart_ts":{"ts_window_1":0.1,"ts_window_2":0.2,"ts_window_n":0.3},"arrival_ts":{"ts_window_1":0.4,"ts_window_2":0.5,"ts_window_n":0.6},"num_stops":{"n0":0.7,"n1":0.8,"n2":0.7},"duration":0.6,"price":0.5}
+${default_trv_data}    {"traveler_guid":"default","carrier":[],"depart_ts":{"ts_window_0":0.0,"ts_window_1":0.0,"ts_window_2":0.0},"arrival_ts":{"ts_window_0":0.0,"ts_window_1":0.0,"ts_window_2":0.0},"num_stops":{"0":0.75,"1":0.25,"2":0.0},"duration":0.0,"price":0.0}
+# MetaData
+${default_meta_config}    A,AP,v0,2018-08-17 09:20:22|A,CP,v0,2018-08-17 09:20:22|A,TP,v0,2018-08-17 09:20:22|A,BOOST,v0,2018-08-17 09:20:22
+# Lambda Functions
+${meta_data_lambda_func}    dev-airp-metadata-etl-lambda
+${ap_lambda_func}    dev-airp-ap-etl-lambda
+${cp_lambda_func}    dev-airp-cp-etl-lambda
+${tp_lambda_func}    dev-airp-tp-etl-lambda
+${boost_lambda_func}    dev-airp-boost-etl-lambda
+${travelport_lambda_func}    dev-airp-travel-port-etl-lambda
+${client_config_lambda}    dev-airp-client-config-etl-lambda
+${default_client_list}    14:3B67|15:3C68|16:3D69|17:3E61|18:3F62|19:3G63|20:3H64|21:3I65|22:3J66|23:3K67
+${default_cp_hash}    A::CLIENT::14:3B67::EUROP::GLOBAL::US::BA|A::CLIENT::15:3C68::GLOBAL::GLOBAL::US::VS|A::CLIENT::16:3D69::GLOBAL::GLOBAL::US::2E|A::CLIENT::17:3E61::GLOBAL::GLOBAL::US::2F|A::CLIENT::18:3F62::GLOBAL::GLOBAL::US::2I|A::CLIENT::19:3G63::GLOBAL::GLOBAL::US::3F|A::CLIENT::20:3H64::GLOBAL::GLOBAL::US::3N|A::CLIENT::21:3I65::GLOBAL::GLOBAL::US::3T|A::CLIENT::22:3J66::GLOBAL::GLOBAL::US::4A|A::CLIENT::23:3K67::GLOBAL::GLOBAL::US::4G
+#Upload Rules
+${match_csu_guid_A:1234}    .*?::A:1234::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::ON|E:0::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::ON
+${match_pos_country_ASA}    .*?::.*?::ASA::SG::.*?::.*?::.*?::.*?::.*?::.*?::.*?::ON
+${match_origin_airport_EUR}    .*?::.*?::.*?::.*?::EUR::GB::BQH::.*?::.*?::.*?::.*?::ON|.*?::.*?::.*?::.*?::EUR::GB::.*?::.*?::.*?::.*?::.*?::ON|.*?::.*?::.*?::.*?::NAM::.*?::.*?::.*?::.*?::.*?::.*?::ON|.*?::.*?::.*?::.*?::ASA::JP::NRT::.*?::.*?::.*?::.*?::ON
+${match_destination_airport_ASA}    .*?::.*?::.*?::.*?::.*?::.*?::.*?::NAM::US::JFK::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::EUR::.*?::.*?::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::ASA::JP::.*?::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::ASA::JP::OKO::.*?::ON
+${match_channel_Desktop_Amadeus}    .*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::MYCWT_MOBILE::OFF|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::MYCWT_MOBILE::OFF|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::DESKTOP_AMADEUS::ON
+${all_match}      .*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::ON
+${exact_match_csu_origin_destination_a}    .*?::A:1111::.*?::GB::.*?::.*?::JRB::.*?::.*?::LGW::.*?::ON|.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::LHR::.*?::ON|.*?::.*?::.*?::US::.*?::.*?::BQH::.*?::.*?::CEF::.*?::ON|.*?::.*?::.*?::JP::.*?::.*?::MNL::.*?::.*?::NRT::.*?::ON
+${partial_match_csu_origin_destination_a}    .*?::.*?::.*?::.*?::NAM::.*?::.*?::.*?::GB::LGW::.*?::ON|.*?::.*?::.*?::US::.*?::.*?::JFK::EUR::.*?::.*?::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::CEF::.*?::ON|.*?::.*?::.*?::.*?::.*?::PH::.*?::.*?::.*?::NRT::.*?::ON
+${multiple_rules_criteria}    .*?::B:1234::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::OFF|.*?::B:4567::.*?::JP::.*?::.*?::.*?::.*?::.*?::.*?::.*?::OFF|.*?::B:4567::.*?::PH::.*?::.*?::JRA::.*?::.*?::.*?::.*?::OFF|.*?::B:4567::.*?::PH::.*?::NAM::.*?::NAM::.*?::.*?::.*?::OFF|.*?::B:4567::.*?::PH::.*?::NAM::.*?::.*?::JP::.*?::DESKTOP_AMADEUS::OFF|.*?::B:4567::.*?::PH::.*?::.*?::JRA::.*?::JP::.*?::MYCWT_MOBILE::OFF|.*?::B:4567::.*?::.*?::.*?::.*?::.*?::.*?::JP::.*?::MYCWT_MOBILE::OFF|.*?::A:1111::.*?::JP::.*?::.*?::.*?::.*?::.*?::.*?::.*?::OFF|.*?::A:1111::EUR::GB::.*?::.*?::LGW::.*?::.*?::.*?::.*?::OFF|.*?::A:1111::.*?::.*?::.*?::.*?::JRB::.*?::.*?::JRA::.*?::OFF|.*?::A:1111::.*?::GB::.*?::.*?::.*?::NAM::.*?::.*?::.*?::OFF|.*?::A:1111::.*?::GB::NAM::US::JRB::NAM::ASA::.*?::.*?::OFF|.*?::A:1111::.*?::GB::ASA::.*?::.*?::EUR::.*?::.*?::.*?::OFF|.*?::A:1111::.*?::GB::.*?::GB::.*?::.*?::GB::.*?::.*?::OFF|.*?::A:1111::.*?::GB::NAM::US::JRB::EUR::GB::LGW::DESKTOP_AMADEUS::OFF|.*?::A:1111::.*?::GB::EUR::.*?::.*?::EUR::.*?::.*?::DESKTOP_AMADEUS::OFF|.*?::A:1111::.*?::.*?::.*?::.*?::.*?::.*?::JP::.*?::MYCWT_MOBILE::OFF|.*?::A:1111::.*?::GB::NAM::US::JRB::EUR::GB::LGW::MYCWT_MOBILE::OFF|A:0::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::OFF|B:1::.*?::.*?::.*?::.*?::US::.*?::.*?::.*?::NRT::.*?::OFF|.*?::.*?::NAM::.*?::EUR::.*?::.*?::.*?::PH::.*?::.*?::OFF|.*?::.*?::.*?::.*?::ASA::.*?::.*?::ASA::.*?::.*?::.*?::OFF|.*?::.*?::EUR::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::OFF
+${Single_request_one_matching}    .*?::A:1234::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::OFF|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::MYCWT_MOBILE::OFF|.*?::A:1234::.*?::SG::.*?::.*?::.*?::.*?::.*?::.*?::.*?::OFF|.*?::A:1234::.*?::.*?::.*?::.*?::BQH::.*?::.*?::.*?::.*?::OFF|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::CEF::.*?::ON
+${rules_off}      .*?::A:1234::.*?::C_SG::.*?::.*?::A_BQH::.*?::.*?::A_CEF::MYCWT_MOBILE::OFF
+${client_config_data}    A:1111,A:0|A:1234,A:1|B:4567,B:0|B:456,B:1|C:1234,C:0|E:8910,E:0|F:1234,F:0|G:4567,G:0|14:3B67,0:0|15:3C68,1:1|16:3D69,2:2|17:3E61,3:3|18:3F62,4:4|19:3G63,5:5|20:3H64,6:6|21:3I65,7:7|22:3J66,8:8|23:3K67,9:9
+${GSM::COUNTRIES_data}    US,NAM|GB,EUR|JP,ASA|PH,ASA|SG,ASA
+${match_bidirectional_JFK_LHR}    .*?::.*?::.*?::.*?::(.*?::.*?::JFK::.*?::.*?::LHR|.*?::.*?::LHR::.*?::.*?::JFK)::MYCWT_MOBILE/ON
+#TP Meta Data
+${tp_meta_data}    {\"arrival_ts\":{\"ts_window_1\":[\"01:00:00/07:59:59\"],\"ts_window_2\":[\"08:00:00/16:59:59\",\"23:00:00/24:00:00\",\"00:00:00/00:59:59\"],\"ts_window_n\":[\"17:00:00/22:59:59\"]},\"depart_ts\":{\"ts_window_1\":[\"22:00:00/24:00:00\",\"00:00:00/06:59:59\"],\"ts_window_2\":[\"12:00:00/15:59:59\",\"21:00:00/21:59:59\"],\"ts_window_n\":[\"07:00:00/11:59:59\",\"16:00:00/20:59:59\"]},\"parts\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}
+${updated_tp_meta_data}    {\"arrival_ts\":{\"ts_window_1\":[\"01:00:00/07:59:59\"],\"ts_window_2\":[\"08:00:00/16:59:59\",\"23:00:00/24:00:00\",\"00:00:00/00:59:59\"],\"ts_window_n\":[\"17:00:00/22:59:59\"]},\"depart_ts\":{\"ts_window_1\":[\"22:00:00/24:00:00\",\"00:00:00/06:59:59\"],\"ts_window_2\":[\"12:00:00/15:59:59\",\"21:00:00/21:59:59\"],\"ts_window_n\":[\"07:00:00/11:59:59\",\"16:00:00/20:59:59\"]},\"parts\":[0,1,2,3,4,5,6,7,8,9,10]}
+#Cache
+${default_cache_list}    travelPortByAirport|travelPortByCity|clientMappings|posRegion|tpMeta
+#Aggregate
+@{cbs_aggregate_query_param_list}    details    gdsCode    origin    destination    departureDate    clientSubGUID    clientAccountNumber
+...               travelerTypeGUID    bookingDate    systemUserGUID    teamId    tripTypeId    travelerGUID    languageCode
+...               originCodeType    destinationCodeType    issuingCountry    version    algorithm    appId
+#V2 Data
+${V2_default_trv_data}    {"traveler_guid":"default","carrier":[]}
+#Test Data For Staging And Dev Env
+${test_csu_guid}    A:807F6
+${test_travTypeGuid}    A:5B696
+${test_travelerGuid}    A:4029AE25
+${staging_csu_guid}    14:1F192E
+${staging_travTypeGuid}    14:1ADA7A
+${staging_travelerGuid}    A:1C6AE22F
+${prod_csu_guid}    14:1F192E
+${prod_travTypeGuid}    14:1ADA7A
+${prod_travelerGuid}    A:1C6AE22F

@@ -1,0 +1,8 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment
+Suite Teardown    #Point All Lambda Functions To Actual Endpoint
+Test Setup
+Test Teardown
+Force Tags        functional
+Resource          ../resources/imports.txt
+Resource          resources/common.txt

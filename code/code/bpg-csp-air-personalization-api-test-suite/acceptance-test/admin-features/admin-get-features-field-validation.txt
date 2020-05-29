@@ -1,0 +1,61 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-features.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That channel Is Not Required When Sending Get Features Get Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Add New Feature
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Features    channel=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Features    channel=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Features    channel=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_002 Verify That apiVersion Is Not Required When Sending Get Features Get Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Add New Feature
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Features    api_version=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Features    api_version=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Features    api_version=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_020 Verify That txnId Is Not Required When Sending Get Features Get Request
+    [Setup]    Delete Features Collecton In MongoDB And Redis
+    #Add New Feature
+    Generate Test Variables For Post Add Features
+    Send POST Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Features    txn_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Features    txn_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Features    txn_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200

@@ -1,0 +1,902 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin Upload API
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-upload.txt
+Resource          ../resources/common.txt
+Resource          ../admin-regions/resources/admin-regions.txt
+
+*** Test Cases ***
+FNC_001 File Upload Is Successfully With All Fields Are Available
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=default_rules.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=default_rules.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::ABC1234567890::AGENT1::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::A23D::AGENT2::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_002 File Upload Is Successfully With Only Mandatory Fields Are Available
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=mandatory_fileds_available.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=mandatory_fileds_available.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?/ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?/OFF|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?/ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?/OFF|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?/ON
+
+FNC_003 File Is Not Uploaded When There Are Missing Fields
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=missing_ctuguid_header.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4013    error_message=Invalid file.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_004 File Is Not Uploaded When There Are Extra Fields
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=extra_test_header.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4013    error_message=Invalid file.
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_005 File Is Not Uploaded When There Are Duplicate Sequence Number
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=duplicate_sequence_number.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["duplicate.sequence"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_006 File Upload Is Successful When There Are Duplicate Rule Names
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=duplicate_rule_name.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=duplicate_rule_name.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_007 File Upload Is Successful When There Are Duplicate Criterias
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=duplicate_criteria.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=duplicate_criteria.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_008 File Upload Is Successful When Some Fields Are Set To Blank Or ALL
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=all_blank_values.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=all_blank_values.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value 2    .*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?/ON;.*?::.*?::.*?::.*?::.*?::.*?::(.*?::.*?::.*?::.*?::.*?::.*?|.*?::.*?::.*?::.*?::.*?::.*?)::.*?/ON;.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON;.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?/ON;.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_009 File Is Not Uploaded When Sequence Are Set To Blank Or All
+    # Blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=blank_sequence_number.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.required.sequence"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # All
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=all_sequence_number.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"2":["duplicate.sequence"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_010 File Is Not Uploaded When Rule Name Are Set To Blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=blank_rule_name.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.required.rule_name"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_011 File Is Not Uploaded When Personalization Are Set To Blank Or ALL
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=blank_personalization.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.required.personalization"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=all_personalization.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.personalization"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_012 File Upload Is Successful When CTU Name And CSU Name Are Not Existing In DB
+    Create Redis Cluster Connection
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=non_existing_ctu_csu_names.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=non_existing_ctu_csu_names.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_013 File Upload Is Dependent On CTU-CSU GUID Heirarchy Validation Against Clients In DB
+    #ctu_guid_xx_csu_guid_exists
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=ctu_guid_xx_csu_guid_exists.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":1}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=ctu_guid_xx_csu_guid_exists.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #ctu_guid_xx_csu_guid_xx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=ctu_guid_xx_csu_guid_xx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.client_sub"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_xx_csu_guid_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=ctu_guid_xx_csu_guid_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.client_top"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_xx_csu_guid_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=ctu_guid_xx_csu_guid_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.client_top"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_exists_csu_guid_xx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=ctu_guid_exists_csu_guid_xx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.client_sub"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #ctu_guid_exists_csu_guid_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=ctu_guid_exists_csu_guid_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":1}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=ctu_guid_exists_csu_guid_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    0:0::.*?::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #ctu_guid_exists_csu_guid_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=ctu_guid_exists_csu_guid_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":1}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=ctu_guid_exists_csu_guid_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    0:0::.*?::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_014 File Upload Is Dependent On POS Regions-Country Heirarchy Validation Against TravelPort Data In DB
+    #pos_region_exists_country_xx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pos_region_exists_country_xx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.pos"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_exists_country_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pos_region_exists_country_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":1}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_exists_country_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::NAM::.*?::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pos_region_exists_country_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pos_region_exists_country_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":1}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_exists_country_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::NAM::.*?::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pos_region_xxx_country_xx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pos_region_xxx_country_xx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.pos"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_xxx_country_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pos_region_xxx_country_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.pos"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_xxx_country_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pos_region_xxx_country_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.pos"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pos_region_xxx_country_exists
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pos_region_xxx_country_exists.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_xxx_country_exists.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_015 File Upload Is Dependent On Origin Regions-Country-Airport Heirarchy Validation Against TravelPort Data In DB
+    #origin_region_exists_country_exists_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_exists_country_exists_airport_xxx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"3":["field.not.valid.origin"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_exists_country_exists_airport_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_exists_country_exists_airport_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_exists_country_exists_airport_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::US::.*?::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #origin_region_exists_country_exists_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_exists_country_exists_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_exists_country_exists_airport_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::US::.*?::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #origin_region_exists_country_xx_airport_exists
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_exists_country_xx_airport_exists.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_exists_country_xx_airport_exists.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #origin_region_exists_country_xx_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_exists_country_xx_airport_xxx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.origin"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_exists_country_xx_airport_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_exists_country_xx_airport_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.origin"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_exists_country_xx_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_exists_country_xx_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.origin"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_xxx_country_exists_airport_exists
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_xxx_country_exists_airport_exists.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_xxx_country_exists_airport_exists.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #origin_region_xxx_country_all_airport_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_xxx_country_all_airport_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.origin"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #origin_region_blank_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_blank_country_blank_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_blank_country_blank_airport_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::.*?::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #origin_region_all_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=origin_region_all_country_blank_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=origin_region_all_country_blank_airport_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::.*?::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_016 File Upload Is Dependent On Destination Regions-Country-Airport Heirarchy Validation Against TravelPort Data In DB
+    #destination_region_exists_country_exists_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_exists_country_exists_airport_xxx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"3":["field.not.valid.destination"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_exists_country_exists_airport_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_exists_country_exists_airport_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_exists_country_exists_airport_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::US::.*?::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #destination_region_exists_country_exists_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_exists_country_exists_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_exists_country_exists_airport_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::US::.*?::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #destination_region_exists_country_xx_airport_exists
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_exists_country_xx_airport_exists.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_exists_country_xx_airport_exists.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #destination_region_exists_country_xx_airport_xxx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_exists_country_xx_airport_xxx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.destination"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_exists_country_xx_airport_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_exists_country_xx_airport_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.destination"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_exists_country_xx_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_exists_country_xx_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.destination"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_xxx_country_exists_airport_exists
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_xxx_country_exists_airport_exists.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_xxx_country_exists_airport_exists.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #destination_region_xxx_country_all_airport_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_xxx_country_all_airport_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.destination"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #destination_region_blank_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_blank_country_blank_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_blank_country_blank_airport_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::.*?::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #destination_region_all_country_blank_airport_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=destination_region_all_country_blank_airport_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=destination_region_all_country_blank_airport_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::.*?::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_017 File Upload Is Dependent On Direction Validation
+    #direction_d_b
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=direction_d_b.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=direction_d_b.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value 2    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::LHR::MYCWT_MOBILE/ON;.*?::15:3C68::.*?::.*?::.*?::US::(.*?::.*?::JFK::.*?::.*?::LHR|.*?::.*?::LHR::.*?::.*?::JFK)::MYCWT_MOBILE/ON;.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::LHR::MYCWT_MOBILE/ON;.*?::17:3E61::.*?::.*?::.*?::US::(.*?::.*?::JFK::.*?::.*?::LHR|.*?::.*?::LHR::.*?::.*?::JFK)::MYCWT_MOBILE/ON;.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::LHR::MYCWT_MOBILE/ON
+    #direction_x
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=direction_x.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"4":["field.not.valid.direction"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #direction_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=direction_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=direction_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #direction_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=direction_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"4":["field.not.valid.direction"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_018 File Upload Is Dependent On Channel Validation Against Channel In DB
+    #channel_xxx
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=channel_xxx.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.channel"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #channel_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=channel_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=channel_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON
+    #channel_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=channel_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=channel_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON
+
+FNC_023 File Upload Is Dependent On pcc And Channel Name
+    Delete Rules Collecton In MongoDB
+    #pcc_all_channel_all_blank
+    Generate Test Variables For Upload    file=pcc_all_channel_all_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_all_channel_all_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON
+    #pcc_all_channel_desktop
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_all_channel_desktop.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_all_channel_desktop.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pcc_all_channel_digital
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_all_channel_digital.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_all_channel_digital.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pcc_blank_channel_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_blank_channel_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_blank_channel_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::ABC1234567890::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::A23D::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pcc_blank_channel_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_blank_channel_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_blank_channel_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::ABC1234567890::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::A23D::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pcc_blank_channel_desktop_digital
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_blank_channel_desktop_digital.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_blank_channel_desktop_digital.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pcc_exists_channel_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_exists_channel_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"2":["field.not.valid.pccagent_id.assoc.channel"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pcc_exists_channel_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_exists_channel_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.pccagent_id.assoc.channel"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #pcc_exists_channel_desktop
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_exists_channel_desktop.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pcc_exists_channel_desktop.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::ABC1234567890::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::A23D::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #pcc_exists_channel_digital
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=pcc_exists_channel_digital.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_024 File Upload Is Dependent On agentId And Channel Name
+    Delete Rules Collecton In MongoDB
+    #agent_id_all_channel_all_blank
+    Generate Test Variables For Upload    file=agent_id_all_channel_all_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=agent_id_all_channel_all_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON
+    #agent_id_all_channel_desktop
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_all_channel_desktop.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=agent_id_all_channel_desktop.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #agent_id_all_channel_digital
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_all_channel_digital.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=agent_id_all_channel_digital.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #agent_id_blank_channel_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_blank_channel_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=agent_id_blank_channel_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::AGENT1::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::AGENT2::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #agent_id_blank_channel_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_blank_channel_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=agent_id_blank_channel_blank.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::.*?/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::AGENT1::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::AGENT2::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #agent_id_blank_channel_desktop_digital
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_blank_channel_desktop_digital.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=agent_id_blank_channel_desktop_digital.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #agent_id_exists_channel_all
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_exists_channel_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"2":["field.not.valid.pccagent_id.assoc.channel"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #agent_id_exists_channel_blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_exists_channel_blank.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"5":["field.not.valid.pccagent_id.assoc.channel"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    #agent_id_exists_channel_desktop
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_exists_channel_desktop.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=agent_id_exists_channel_desktop.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::.*?::AGENT1::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::.*?::AGENT2::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    #agent_id_exists_channel_digital
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=agent_id_exists_channel_digital.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    417
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Encountered errors","total":0,"failedLineEntries":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FNC_019 File Upload Is Successful And Overrides The Existing Rules In DB
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=default_rules.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Generate Test Variables For Upload    file=pos_region_exists_country_all.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":1}
+    Generate Test Variables For Get Rules
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    Verify Rules List Is Correct    file=pos_region_exists_country_all.csv
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::NAM::.*?::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_020 File Is Not Uploaded And The Existing Rules In Redis Are Not Removed
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    file=default_rules.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    200
+    Verify That File Upload Response For Post Request Is Correct    {"msg":"Successfully uploaded rules","total":5}
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::ABC1234567890::AGENT1::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::A23D::AGENT2::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+    Generate Test Variables For Upload    file=missing_ctuguid_header.csv
+    Send POST Request For Upload
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4013    error_message=Invalid file.
+    Verify Redis Rules Meta Value
+    Verify Redis Rules List Value    .*?::14:3B67::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON|.*?::15:3C68::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_WEB/ON|.*?::16:3D69::ABC1234567890::AGENT1::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_AMADEUS/ON|.*?::17:3E61::A23D::AGENT2::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::DESKTOP_SABRE/ON|.*?::18:3F62::.*?::.*?::.*?::US::.*?::.*?::JFK::.*?::.*?::JFK::MYCWT_MOBILE/ON
+
+FNC_021 Response Contains The Same Transaction ID Supplied In The Request
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    txn_id=ABCD12345
+    Send POST Request For Upload
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+
+FNC_022 Response Contains A System Generated Transaction ID When Not Supplied In The Request
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Upload    txn_id=None
+    Send POST Request For Upload
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct

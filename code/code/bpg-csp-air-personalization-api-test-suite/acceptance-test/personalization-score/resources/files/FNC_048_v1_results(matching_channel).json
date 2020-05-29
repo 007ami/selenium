@@ -1,0 +1,29 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DATASET_A",
+	"result": {
+		"score": [{
+				"carrierCode": "AA",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "US",
+				"apValue": 0,
+				"cpValue": 1,
+				"apScore": 0.0,
+				"cpScore": 0.5,
+				"totalScore": 0.5
+			}
+		],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"consumer": "Desktop_Amadeus",
+			"tpBoost": 0.5,
+			"cpBoost": 0.5,
+			"apBoost": 0.3,
+			"others": {
+				"Factor1": "test"
+			}
+		},
+		"meta": tp_meta_data
+	}
+}

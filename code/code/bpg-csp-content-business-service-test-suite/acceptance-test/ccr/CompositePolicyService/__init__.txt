@@ -1,0 +1,2 @@
+*** Settings ***
+Force Tags        composite_policy_service

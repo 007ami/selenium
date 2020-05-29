@@ -1,0 +1,60 @@
+*** Settings ***
+Force Tags        security    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-rules.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    Generate Test Variables For Put Rules    token=${invalid_token_1}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    Generate Test Variables For Put Rules    token=${expired_token}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    Generate Test Variables For Put Rules    token=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    Generate Test Variables For Put Rules    token=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    Generate Test Variables For Put Rules    token=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    401    Unauthorized Access
+
+SEC_006 Verify That SUPER_ADMIN AND ADMIN User Roles Are Given Access
+    Generate Rule Id List
+    Generate Rules List
+    Send Authenticate Post Request And Get Token    ${${env}_sadmin_username}    ${${env}_sadmin_password}
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    #SUPER_ADMIN
+    Send Authenticate Post Request And Get Token    ${${env}_sadmin_username}    ${${env}_sadmin_password}
+    Generate Test Variables For Put Rules
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    #ADMIN
+    Send Authenticate Post Request And Get Token    ${${env}_gsmadmin_username}    ${${env}_gsmadmin_password}
+    Generate Test Variables For Put Rules
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    #USER
+    Send Authenticate Post Request And Get Token    ${${env}_user_username}    ${${env}_user_password}
+    Generate Test Variables For Put Rules
+    Send PUT Request
+    Verify That Response Status Code Is Correct    403
+    Verify That Error Response Is Returned    403    Access is Denied

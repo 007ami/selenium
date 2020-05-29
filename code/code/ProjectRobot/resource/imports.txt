@@ -1,0 +1,11 @@
+*** Settings ***
+Library           Collections
+Library           DateTime
+Library           OperatingSystem
+Library           String
+Library           Process
+Resource          environment-variables.txt
+Resource          utilities.txt
+Library           Selenium2Library
+Resource          object-variables.txt
+Resource          csvfileops.py

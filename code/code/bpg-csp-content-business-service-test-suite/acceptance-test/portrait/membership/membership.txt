@@ -1,0 +1,26 @@
+*** Settings ***
+Test Setup        Get Authorization Token
+Force Tags        functional    regression
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/portrait-membership.txt
+
+*** Test Cases ***
+FNC_001 Portrait Membership Is Successfully Retrieved Based From TravelerGUID
+    Generate Test Variables For Get Portrait Membership    trv_guid=A:4029AE25
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Portrait Membership Is Returned    [{"otherAttributes":{},"type":"Rail","vendorCode":"9F","number":"456","programName":"Eurostar Frequent Traveller","programLevel":"Carte Freq Traveler","preferred":false},{"otherAttributes":{},"type":"Airline","vendorCode":"AA","number":"123","programName":"AAdvantage","programLevel":"Executive Platinum","preferred":true},{"otherAttributes":{},"type":"Hotel Chain","vendorCode":"ABB","number":"123","preferred":true},{"otherAttributes":{},"type":"Airline","vendorCode":"PR","number":"456","programName":"Unknown","programLevel":"Preferred","preferred":true},{"otherAttributes":{},"type":"Car","vendorCode":"AO","number":"123","preferred":true},{"otherAttributes":{},"type":"Rail","vendorCode":"2V","number":"123","programName":"Guest Rewards","programLevel":"Select Plus","preferred":true},{"otherAttributes":{},"type":"Hotel Chain","vendorCode":"RAD","number":"456","preferred":true},{"otherAttributes":{},"type":"Car","vendorCode":"AD","number":"456","preferred":false}]
+
+FNC_002 Response Contains The Same Transaction ID Supplied In The Request
+    Generate Test Variables For Get Portrait Membership    txn_id=ABCD12345
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+
+FNC_003 Response Contains A System Generated Transaction ID When Not Supplied In The Request
+    Generate Test Variables For Get Portrait Membership    txn_id=None
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct

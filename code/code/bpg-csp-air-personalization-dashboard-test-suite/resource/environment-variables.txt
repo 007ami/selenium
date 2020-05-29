@@ -1,0 +1,128 @@
+*** Variables ***
+#${dev_base_url}    http://internal-dev-int-cwt-bpg-lb-1412987045.us-west-2.elb.amazonaws.com
+${dev_base_url}    https://dev.int.us-west-2.bpg-aws-cwt.com
+${test_base_url}    https://test.int.us-west-2.bpg-aws-cwt.com
+${valid_uname}    sadmin
+${valid_pword}    jAjj@mpp0ng
+${dev_redis_cache_host}    dev-air-api.vb6jw1.clustercfg.usw2.cache.amazonaws.com
+${dev_redis_cache_port}    6379
+${test_redis_cache_host}    test-air-api.vb6jw1.clustercfg.usw2.cache.amazonaws.com
+${test_redis_cache_port}    6379
+${test_gw_username}    int.airapi.cwt2go
+${test_gw_password}    8OjO3JAFarTQiGxDYKdGgXHsW1KRBQrm
+${gw_username}    int.airapi.cwt2go
+${gw_password}    whxZ2fgG0vZthcoRDMnrnv7yDkVDFH39
+${dev_username}    sadmin
+${dev_password}    akFqakBtcHAwbmc=
+${test_username}    sadmin
+${test_password}    akFqakBtcHAwbmc=
+#Dev/Test Env UI
+${dev_gw_username}    int.airapi.cwt2go
+${dev_gw_password}    jQkYdBYQHe48KFDt1buCXgOIj0Uj4WEK
+${dev_sadmin_username}    sadmin
+${dev_sadmin_password}    jAjj@mpp0ng
+${dev_gsmadmin_username}    gsmadmin
+${dev_gsmadmin_password}    oneK!mch1
+${dev_user_username}    user
+${dev_user_password}    r0@stB3ef
+${test_sadmin_username}    sadmin
+${test_sadmin_password}    jAjj@mpp0ng
+${test_gsmadmin_username}    gsmadmin
+${test_gsmadmin_password}    oneK!mch1
+${test_user_username}    user
+${test_user_password}    r0@stB3ef
+#${context_path}    /p13n
+${context_path}    /service/repo/airapi
+${int_base_url}    https://int.bpg-services.us-west-2.cbt-aws-cwt.com
+${preprod_base_url}    https://preprod.bpg-services.us-west-2.cbt-aws-cwt.com
+${perf_base_url}    https://perf.bpg-services.us-west-2.cbt-aws-cwt.com
+${sec_base_url}    https://sec.bpg-services.us-west-2.cbt-aws-cwt.com
+# Mongo Connection
+${dev_mongo_connection}    mongodb://devairapi:G6WZuQDqXjcy@VRNV02DN02775.int.carlsonwagonlit.com/airPersonalization
+${dev_mongo_ports_list}    27017|27018|27019
+${test_mongo_connection}    mongodb://qaairapi:DK4Zu3e4WNLj@VRNV02DN02782.int.carlsonwagonlit.com/airPersonalization
+${test_mongo_ports_list}    27017|27018|27019
+${mongo_clients_list}    {"clientTopGUID":"1:1","clientTopName":"ClientTop-test-1-1","subunits":[{"clientSubGUID":"15:3C68","clientSubName":"CSU-Test_1-1","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"2:2","clientTopName":"ClientTop-test-2-2","subunits":[{"clientSubGUID":"16:3D69","clientSubName":"CSU-Test_2-2","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"4:4","clientTopName":"ClientTop-test-4-4","subunits":[{"clientSubGUID":"18:3F62","clientSubName":"CSU-Test_4-4","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"0:0","clientTopName":"ClientTop-test-0-0","subunits":[{"clientSubGUID":"14:3B67","clientSubName":"CSU-Test_0-0","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"3:3","clientTopName":"ClientTop-test-3-3","subunits":[{"clientSubGUID":"17:3E61","clientSubName":"CSU-Test_3-3","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"6:1","clientTopName":"ClientTop-test-6-1","subunits":[{"clientSubGUID":"20:3H64","clientSubName":"CSU-Test_6-1","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"7:2","clientTopName":"ClientTop-test-7-2","subunits":[{"clientSubGUID":"21:3I65","clientSubName":"CSU-Test_7-2","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"9:4","clientTopName":"ClientTop-test-9-4","subunits":[{"clientSubGUID":"23:3K67","clientSubName":"CSU-Test_9-4","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"5:0","clientTopName":"ClientTop-test-5-0","subunits":[{"clientSubGUID":"19:3G63","clientSubName":"CSU-Test_5-0","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}|{"clientTopGUID":"8:3","clientTopName":"ClientTop-test-8-3","subunits":[{"clientSubGUID":"22:3J66","clientSubName":"CSU-Test_8-3","country":{"countryCode":"US","countryName":"United States"}}],"_class":"com.cwt.personalization.model.ClientTop"}
+${mongo_travelport_list}    {"airportCode":"ICN","airportName":"Incheon Intl Arpt","cityCode":"SEL","cityName":"Seoul","countryCode":"KR","countryName":"Korea, Republic Of","subRegionCode":"ASIA","subRegionName":"ASIA REGION    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"SIN","airportName":"Changi Intl Arpt","cityCode":"SIN","cityName":"Singapore","countryCode":"SG","countryName":"Singapore","subRegionCode":"SEASI","subRegionName":"SE ASIA    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"NBP","airportName":"Battery Pk City N Cov","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"LGA","airportName":"La Guardia","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"JRA","airportName":"West 30Th St Heliport","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"JRB","airportName":"Downtown Manhattan Heliport","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"JFK","airportName":"John F Kennedy Intl","cityCode":"NYC","cityName":"New York","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA
+...               ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"LHR","airportName":"Heathrow","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"LGW","airportName":"Gatwick Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"LCY","airportName":"London City Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"BQH","airportName":"London Biggin Hill Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"STN","airportName":"Stansted Arpt","cityCode":"LON","cityName":"London","countryCode":"GB","countryName":"United Kingdom","subRegionCode":"EUROP","subRegionName":"EUROPE    ","regionCode":"EMEA","regionName":"Europe, Middle East and Africa","gsmRegionCode":"EUR","gsmRegionName":"EUROPE"}|{"airportCode":"OKO","airportName":"Yokota AFB","cityCode":"TYO","cityName":"Tokyo","countryCode":"JP","countryName":"Japan","subRegionCode":"ASIA","subRegionName":"ASIA REGION    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"NRT","airportName":"Narita","cityCode":"TYO","cityName":"Tokyo","countryCode":"JP","countryName":"Japan","subRegionCode":"ASIA","subRegionName":"ASIA REGION
+...               ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"HND","airportName":"Haneda Arpt","cityCode":"TYO","cityName":"Tokyo","countryCode":"JP","countryName":"Japan","subRegionCode":"ASIA","subRegionName":"ASIA REGION    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"CEF","airportName":"Westover Metro","cityCode":"SFY","cityName":"Springfield","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"ZSF","airportName":"Pringfield Ma Rr","cityCode":"SFY","cityName":"Springfield","countryCode":"US","countryName":"United States","subRegionCode":"NAMER","subRegionName":"NORTH AMERICA    ","regionCode":"NORAM","regionName":"North America","gsmRegionCode":"NAM","gsmRegionName":"US/CA"}|{"airportCode":"MNL","airportName":"Ninoy Aquino Intl","cityCode":"MNL","cityName":"Manila","countryCode":"PH","countryName":"Philippines","subRegionCode":"PACIF","subRegionName":"PACIFIC    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}|{"airportCode":"SGL","airportName":"Sangley Point NAS","cityCode":"MNL","cityName":"Manila","countryCode":"PH","countryName":"Philippines","subRegionCode":"PACIF","subRegionName":"PACIFIC    ","regionCode":"APAC","regionName":"Asia Pacific","gsmRegionCode":"ASA","gsmRegionName":"ASIA"}
+${mongo_channels_list}    [{"name":"MYCWT_MOBILE"},{"name":"MYCWT_WEB"},{"name":"DESKTOP_AMADEUS"},{"name":"DESKTOP_SABRE"}]
+# Sandbox (for wiremock and suspend)
+${sandbox_base_url}    http://localhost:9999
+${wiremock_url}    http://172.16.6.123:8080
+${wiremock_powerbase_url}    /wire-mock/service/repo/powerbaseaws/ClientTopUnits/ClientSubUnits?
+${wiremock_travelport_url}    /wire-mock/service/repo/powerbaseaws/TravelPort/Airport
+#https://sandbox.bpg-services.us-west-2.cbt-aws-cwt.com
+# Security Headers
+${security_headers}    "Cache-Control":"no-cache, no-store, must-revalidate","Pragma":"no-cache","Expires":"0","Strict-Transport-Security":"max-age=0","X-Content-Type-Options":"nosniff","X-Frame-Options":"SAMEORIGIN","X-XSS-Protection":"1; mode=block"
+# Token
+${dev_token}      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqaXpZSHMyYXNQTlI2ODdCZjVQV0x5QzNjdlRZTmt2dCIsIm5hbWUiOiJhaXJhcGkiLCJpYXQiOjE1MzIyOTc4MzgsImV4cCI6NDA5MDg3NzI4NH0.UPg9QcbzqSx1X97E70ZkrfJhecKLR2kLjpIaBhP9nQ4
+${dev_expired_token}    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqaXpZSHMyYXNQTlI2ODdCZjVQV0x5QzNjdlRZTmt2dCIsIm5hbWUiOiJhaXJhcGkiLCJpYXQiOjE1MzIyOTc4MzgsImV4cCI6MTUzNDczMzI4NH0.uomvycvo2H7-VOYMC_DxK-lqfYDJE2zmjbWFgpboxKI
+${invalid_token_1}    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWlyYXBpIiwiaWF0IjoxNTMyMjk3ODM4fQ.5m6m6xcWfTbiQDR_AOrnweUOQ4tzbYhe0EL_oobBX0A
+${invalid_token_2}    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJqaXpZSHMyYXNQTlI2ODdCZjVQV0x5QzNjdlRZTmt2dCIsIm5hbWUiOiJhaXJhcGkiLCJpYXQiOjE1MzIyOTc4Mzh9.Q4Ys8w9emzUQ4-FndGwBQmZMM2yQS6vBFEJlkNHCeOc
+${dev_gw_expired_token}    fsb37A1JHPCR33uJDB4Y5slMmMSaWnUS
+${invalid_gw_token}    1a2b3c4d5
+# TravelPort Data Mapping
+#NYC
+${nyc_airlines}    TVLPORT::NWS,TVLPORT::QNY,TVLPORT::FLU,TVLPORT::NES,TVLPORT::NBP,TVLPORT::LGA,TVLPORT::JRA,TVLPORT::JRB,TVLPORT::JFK
+${jfk_mapping}    cityCode=NYC|cityName=New York|airportCode=JFK|airportName=John F Kennedy Intl|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America
+${jfk_city_code}    NYC
+#LON
+${lon_airlines}    TVLPORT::LHR,TVLPORT::LGW,TVLPORT::LCY,TVLPORT::BQH,TVLPORT::STN
+${lhr_mapping}    cityCode=LON|cityName=London|airportCode=LHR|airportName=Heathrow|countryCode=GB|countryName=United Kingdom|subRegionCode=EUROP|subRegionName=EUROPE    |regionCode=EMEA|regionName=Europe, Middle East and Africa
+${lhr_city_code}    LON
+#TYO
+${tyo_airlines}    TVLPORT::OKO,TVLPORT::NRT,TVLPORT::HND
+${nrt_mapping}    cityCode=TYO|cityName=Tokyo|airportCode=NRT|airportName=Narita|countryCode=JP|countryName=Japan|subRegionCode=ASIA|subRegionName=ASIA REGION    |regionCode=APAC|regionName=Asia Pacific
+${oko_mapping}    cityCode=TYO|cityName=Tokyo|airportCode=OKO|airportName=Yokota AFB|countryCode=JP|countryName=Japan|subRegionCode=ASIA|subRegionName=ASIA REGION    |regionCode=APAC|regionName=Asia Pacific
+${hnd_mapping}    cityCode=TYO|cityName=Tokyo|airportCode=HND|airportName=YHaneda Arpt|countryCode=JP|countryName=Japan|subRegionCode=ASIA|subRegionName=ASIA REGION    |regionCode=APAC|regionName=Asia Pacific
+${nrt_city_code}    TYO
+${oko_city_code}    TYO
+${hnd_city_code}    TYO
+#SFY
+${sfy_airlines}    TVLPORT::CEF,TVLPORT::ZSF
+${cef_mapping}    cityCode=SFY|cityName=Springfield|airportCode=CEF|airportName=Westover Metro|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America
+${zsf_mapping}    cityCode=SFY|cityName=Springfield|airportCode=ZSF|airportName=Pringfield Ma Rr|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America
+${cef_mapping}    cityCode=SFY|cityName=Springfield|airportCode=CEF|airportName=Westover Metro|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America
+${zsf_mapping}    cityCode=SFY|cityName=Springfield|airportCode=ZSF|airportName=Pringfield Ma Rr|countryCode=US|countryName=United States|subRegionCode=NAMER|subRegionName=NORTH AMERICA    |regionCode=NORAM|regionName=North America
+${cef_city_code}    SFY
+${zsf_city_code}    SFY
+#MNL
+${mnl_airlines}    TVLPORT::MNL,TVLPORT::SGL
+${mnl_mapping}    cityCode=MNL|cityName=Manila|airportCode=MNL|airportName=Ninoy Aquino Intl|countryCode=PH|countryName=Philippines|subRegionCode=PACIF|subRegionName=PACIFIC    |regionCode=APAC|regionName=Asia Pacific
+${mnl_city_code}    MNL
+# Traveler Data
+${A:1234_trv_data}    {"traveller_guid":"A:1234","carrier":[{"code":"AF","value":0.3}],"depart_ts":{"ts_window_1":0.6,"ts_window_2":0.3,"ts_window_n":0.5},"arrival_ts":{"ts_window_1":0.9,"ts_window_2":0.2,"ts_window_n":0.5},"num_stops":{"n0":1.0,"n1":0.8,"n2":0.4},"duration":0.3,"price":0.0}
+${B:4567_trv_data}    {"traveller_guid":"B:4567","carrier":[{"code":"XX","value":0.4}],"depart_ts":{"ts_window_1":0.2,"ts_window_2":0.5,"ts_window_n":0.7},"arrival_ts":{"ts_window_1":0.8,"ts_window_2":0.4,"ts_window_n":0.1},"num_stops":{"n0":0.3,"n1":0.5,"n2":0.9},"duration":0.7,"price":0.8}
+# MetaData
+${default_meta_config}    A,AP,v0,2018-08-17 09:20:22|A,CP,v0,2018-08-17 09:20:22|A,TP,v0,2018-08-17 09:20:22|A,BOOST,v0,2018-08-17 09:20:22
+# Lambda Functions
+${meta_data_lambda_func}    dev-airp-metadata-etl-lambda
+${ap_lambda_func}    dev-airp-ap-etl-lambda
+${cp_lambda_func}    dev-airp-cp-etl-lambda
+${tp_lambda_func}    dev-airp-tp-etl-lambda
+${boost_lambda_func}    dev-airp-boost-etl-lambda
+${travelport_lambda_func}    dev-airp-travel-port-etl-lambda
+${client_config_lambda}    dev-airp-client-config-etl-lambda
+${default_client_list}    14:3B67|15:3C68|16:3D69|17:3E61|18:3F62|19:3G63|20:3H64|21:3I65|22:3J66|23:3K67
+${default_cp_hash}    A::CLIENT::14:3B67::EUROP::GLOBAL::US::BA|A::CLIENT::15:3C68::GLOBAL::GLOBAL::US::VS|A::CLIENT::16:3D69::GLOBAL::GLOBAL::US::2E|A::CLIENT::17:3E61::GLOBAL::GLOBAL::US::2F|A::CLIENT::18:3F62::GLOBAL::GLOBAL::US::2I|A::CLIENT::19:3G63::GLOBAL::GLOBAL::US::3F|A::CLIENT::20:3H64::GLOBAL::GLOBAL::US::3N|A::CLIENT::21:3I65::GLOBAL::GLOBAL::US::3T|A::CLIENT::22:3J66::GLOBAL::GLOBAL::US::4A|A::CLIENT::23:3K67::GLOBAL::GLOBAL::US::4G
+#Admin Upload Instructions
+${instruction_row_headers}    Header name|Optionality|Example|Format|Multiple values allowed|Special Instruction
+${sequence_instructions}    SEQUENCE|Required|1|Number|No|This is a number that will allow the processing system to process the rows in the order that they appear in the spreadsheet. This is required to support that if a traveler search matches to more than one row then the topmost row (lowest sequence number) will be used to determine ON/OFF. This value MUST be unique for each row.
+${rule_name_instructions}    RULE_NAME|Required|US POS GB DE BIDIRECTIONAL|Text|No|Please do not input Comma "," value for Rule Name.
+${ct_name_instructions}    CLIENT_TOP_NAME|Optional|Facebook|Text|No|The client top name is informational only and to assist file maintainers. To specify a top client you must indicate the top client GUID in the next column. See Client tab for a list of the clients for creating the sample file.
+${ct_guid_instructions}    CLIENT_TOP_GUID|Optional|14:F67C|Text|No|If this field is blank or has "ALL" then the rule will apply to all client tops.
+${cs_name_instructions}    CLIENT_SUBUNIT_NAME|Optional|US-Facebook|Text|No|The client subunit name is informational only and to assist file maintainers. To actually specify a client subunit you must indicate the    subunit GUID in the next column.
+${csu_guid_instructions}    CLIENT_SUBUNIT_GUID|Optional|14:F4D8|Text|No|If this field is blank or has "ALL" then the rule will apply to all client subunits. If Client_Top_Guid is populated in the same row, then blank or ALL will mean all subunits for the particular top client.
+${oid_pcc_instructions}    OID_PCC|Optional|3W7F for Sabre, LONWL2220 for Amadeus|Text|No|OID/PCC is applicable only for Desktop Channels. If this field is blank or has "ALL" then the rule will apply to all PCCs/OIDs.
+${pos_region_instructions}    POS_REGION|Optional|NAM|Text|No|If this field is blank or has "ALL" then the rule will apply to all POS regions. This field can also be left blank when POS is defined at the country level, i.e. you don't have to populate with NAM when the POS_Country = US.
+${pos_country_instructions}    POS_COUNTRY|Optional|US|Text|No|If this field is blank or has "ALL" then the rule will apply to all countries or all countries within the specified POS region.
+${origin_region_instructions}    ORIGIN_REGION|Optional|EUR|Text|No|If this field is blank or has "ALL" then the rule will apply to all Origin regions. This field can also be left blank when Origin is defined at the country level or airport level, i.e. you don't have to populate with EUR when the Origin_Country = GB or Origin_Airport = LHR.
+${origin_country_instructions}    ORIGIN_COUNTRY|Optional|GB|Text|No|If this field is blank or has "ALL" then the rule will apply to all countries or all countries (if Origin_region is specified then it means all countries within the specified Origin_region). This field can also be left blank when Origin is defined at the airport level, i.e. you don't have to populate with GB when the Origin_Airport = LHR.
+${origin_airport_instructions}    ORIGIN_AIRPORT|Optional|LHR|Text|No|If this field is blank or has "ALL" then the rule will apply to all airports. If Origin_region and/or origin_country are specified, then it means all countries in the specific region and/or country.
+${destination_region_instructions}    DESTINATION_REGION|Optional|SAM|Text|No|If this field is blank or has "ALL" then the rule will apply to all Destination regions. This field can also be left blank when Destination is defined at the country level or airport level, i.e. you don't have to populate with SAM when the Destination_Country = BR or Destination_Airport = GIG.
+${destination_country_instructions}    DESTINATION_COUNTRY|Optional|BR|Text|No|If this field is blank or has "ALL" then the rule will apply to all countries or all countries (if Destination_region is specified then it means all countries within the specified Destination_region). This field can also be left blank when Destination is defined at the airport level, i.e. you don't have to populate with GB when the Destination_Airport = GIG.
+${destination_airport_instructions}    DESTINATION_AIRPORT|Optional|GIG|Text|No|If this field is blank or has "ALL" then the rule will apply to all airports. If Destination_region and/or Destination_country are specified, then it means all countries in the specific region and/or country.
+${direction_instructions}    DIRECTION|Optional|D, B|Text|No|If this field is blank, then it will be treated as Directional. Input "D" for Directional or “B” for Bi-directional value.
+${channel_instructions}    CHANNEL|Optional|MyCWT_Mobile, MyCWT_Web, Desktop_Amadeus, Desktop_Sabre|Text|No|Make sure to always check for the latest accepted values for Channel. Blank means the rule applies to all channels.
+${personalization_instructions}    PERSONALIZATION|Required|ON, OFF|Text|No|N/A

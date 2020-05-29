@@ -1,0 +1,68 @@
+*** Settings ***
+Test Teardown     Delete Stubs
+Force Tags        oag    regression    not-ready
+Resource          resources/batch-client.txt
+
+*** Test Cases ***
+FNC_001 Verify OAG Lambda Function Is Triggered And OAG Data Is Added In Redis
+    Flush All Redis Keys
+    Create Success Stub For DnA OAG Data    file=oag_tvlport_files/oag_mock_data.json
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Verify That Redis Keys Are Correct    ${oag_zset_data}|ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,COMPLETE
+    Verify Redis Zset Data For OAG    ${oag_zset_data}
+
+FNC_002 Verify That New OAG Data Is Added And Updated When Lambda Is Triggered
+    Flush All Redis Keys
+    Create Success Stub For DnA OAG Data    file=oag_tvlport_files/oag_mock_data.json
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Verify That Redis Keys Are Correct    ${oag_zset_data}|ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,COMPLETE
+    Verify Redis Zset Data For OAG    ${oag_zset_data}
+    #New OAG Stub
+    Create Success Stub For DnA OAG Data    file=oag_tvlport_files/new_oag_mock_data.json
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Replace Strings In Variables    CARRIERS::JFK::LHR,20190505::20190402::AA,20190505::20190402::BA|CARRIERS::JFK::LHR,20190727::20190714::AA,20190727::20190714::BA|CARRIERS::JFK::LHR,20191020::20190902::AA,20191020::20190902::BA|CARRIERS::JFK::LHR,20200120::20191027::AA,20200120::20191027::BA|CARRIERS::JFK::LHR,20190505::20190404::AB,20190505::20190404::BB|CARRIERS::JFK::LHR,20190807::20190711::AB,20190807::20190711::BB|CARRIERS::JFK::LHR,20190913::20190809::AB,20190913::20190809::BB|CARRIERS::JFK::LHR,20190628::20190506::AI,20190628::20190506::BC|CARRIERS::JFK::LHR,20190824::20190711::AI,20190824::20190711::BC|CARRIERS::JFK::LHR,20190929::20190902::AI,20190929::20190902::BC|CARRIERS::JFK::LHR,20200214::20200106::AI,20200214::20200106::BC|CARRIERS::JFK::LHR,20200327::20200217::AI,20210327::20200217::BC|CARRIERS::MNL::SIN,29991231::19000101::AJ,29991231::19010101::JJ
+    Verify That Redis Keys Are Correct    ${oag_zset_data}|ETL::CARRIERS|CARRIERS::ADK::AKN|CARRIERS::AGB::LEJ|CARRIERS::AGB::MHG|CARRIERS::AGB::SCN|CARRIERS::ALA::MHD
+    Verify Redis List Data    ETL::CARRIERS,COMPLETE
+    Verify Redis Zset Data For OAG    ${oag_zset_data}|CARRIERS::ADK::AKN|CARRIERS::AGB::LEJ|CARRIERS::AGB::MHG|CARRIERS::AGB::SCN|CARRIERS::ALA::MHD
+
+FNC_003 Verify That Error Response For Wiremock Stub OAG Url
+    Flush All Redis Keys
+    # Error 400 Bad Request
+    Create Error Stub For Endpoints    400    stub_url=${wiremock_oag_url}
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Verify That Redis Keys Are Correct    ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,FAILED
+    # Error 404 Request Not Found
+    Create Error Stub For Endpoints    404    stub_url=${wiremock_oag_url}
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Verify That Redis Keys Are Correct    ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,FAILED
+    # Error 500 Request Internal Server Error
+    Create Error Stub For Endpoints    500    stub_url=${wiremock_oag_url}
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Verify That Redis Keys Are Correct    ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,FAILED
+    # Error 504 Gateway Timeout Error
+    Create Error Stub For Endpoints    504    stub_url=${wiremock_oag_url}
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Verify That Redis Keys Are Correct    ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,FAILED
+
+FNC_004 Verify That Data Is Skipped When There Is Missing Data In OAG File
+    Flush All Redis Keys
+    Create Success Stub For DnA OAG Data    file=oag_tvlport_files/oag_missing_mock_data.json
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Replace Strings In Variables    CARRIERS::JFK::LHR,20190505::20190402::AA,${EMPTY}|CARRIERS::JFK::LHR,20190727::20190714::AA,${EMPTY}|CARRIERS::JFK::LHR,20191020::20190902::AA,${EMPTY}|CARRIERS::JFK::LHR,20200120::20191027::AA,${EMPTY}|CARRIERS::JFK::LHR,20190505::20190404::AB,${EMPTY}|CARRIERS::JFK::LHR,20190628::20190506::AI,${EMPTY}|oag_zset_data,CARRIERS::AIC::MAJ,${EMPTY}|oag_zset_data,CARRIERS::LHR::OKO,${EMPTY}
+    Verify That Redis Keys Are Correct    ${oag_zset_data}|ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,COMPLETE
+    Verify Redis Zset Data For OAG    ${oag_zset_data}
+
+FNC_005 Verify That Extra Data Is Skipped When There Is Extra Data In OAG File
+    Flush All Redis Keys
+    Create Success Stub For DnA OAG Data    file=oag_tvlport_files/oag_extra_mock_data.json
+    Trigger Lambda Function    ${oag_carriers_lambda_func}
+    Verify That Redis Keys Are Correct    ${oag_zset_data}|ETL::CARRIERS
+    Verify Redis List Data    ETL::CARRIERS,COMPLETE
+    Verify Redis Zset Data For OAG    ${oag_zset_data}

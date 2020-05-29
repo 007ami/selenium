@@ -1,0 +1,10 @@
+client_subunit_guid,policy_valid_from_date,policy_valid_to_date,origin,destination,carrier,cp_value,policy_order,origin_type,destination_type,B_D
+B:4567,01/01/2018,31/12/2020,LGA,NRT,AA,0.2,1,Airport,Airport,D
+B:4567,01/01/2018,31/12/2020,LGA,NRT,AB,0.2,2,Airport,Airport,D
+A:1111,01/01/2018,31/12/2020,JRB,LGW,AC,0.6,1,Airport,Airport,D
+B:456,01/01/2018,31/12/2020,JFK,LHR,AD,0.7,1,Airport,Airport,D
+A:1111,01/01/2018,31/12/2020,JFK,LHR,AE,0.8,1,Airport,Airport,D
+B:456,01/01/2018,31/12/2020,LGA,NRT,AF,0.9,1,Airport,Airport,D
+B:456,01/01/2018,31/12/2020,LGW,MNL,AG,0.9,1,Airport,Airport,D
+B:456,01/01/2018,31/12/2020,MNL,NRT,AH,0.9,1,Airport,Airport,D
+A:1131,01/01/2018,31/12/2020,JFK,LHR,BD,0.7,1,Airport,Airport,D

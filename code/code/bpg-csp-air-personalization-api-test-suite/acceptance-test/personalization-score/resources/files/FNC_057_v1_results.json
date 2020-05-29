@@ -1,0 +1,18 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DATASET_A",
+	"result": {
+		"score": [],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"consumer": "MyCWT_Mobile",
+			"tpBoost": 0.7,
+			"cpBoost": 0.9,
+			"apBoost": 0.8,
+			"others": {
+				"Factor1": "test"
+			}
+		},
+		"meta": tp_meta_data
+	}
+}

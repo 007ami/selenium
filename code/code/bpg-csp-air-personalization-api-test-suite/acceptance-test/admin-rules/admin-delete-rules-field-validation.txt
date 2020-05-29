@@ -1,0 +1,73 @@
+*** Settings ***
+Suite Setup       Send Authenticate Post Request And Get Token
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-rules.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That id Is Required When Sending Delete Rule Delete Request
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Delete Rules    rule_id=ABC 123 !@# $%^
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4004    error_message=No Rule Exists.
+    # Blank
+    Generate Test Variables For Delete Rules    rule_id=${EMPTY}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4004    error_message=No Rule Exists.
+    # None
+    Generate Test Variables For Delete Rules    rule_id=None
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4004    error_message=No Rule Exists.
+    # Null
+    Generate Test Variables For Delete Rules    rule_id=null
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4004    error_message=No Rule Exists.
+
+FV_002 Verify That user Is Required When Sending Delete Rule Delete Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Delete Rules    user=ABC 123 !@# $%^
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Delete Rules    user=${EMPTY}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=deleteRule.user: must not be blank
+    # None
+    Generate Test Variables For Delete Rules    user=None
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    400
+
+FV_003 Verify That txnId Is Not Required When Sending A Delete Rule Delete Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Delete Rules    txn_id=ABC 123 !@# $%^
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    Generate Test Variables For Delete Rules    txn_id=${EMPTY}
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    Generate Test Variables For Delete Rules    txn_id=None
+    Send DELETE Request
+    Verify That Response Status Code Is Correct    200

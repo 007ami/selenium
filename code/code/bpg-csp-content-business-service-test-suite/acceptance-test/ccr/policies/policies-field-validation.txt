@@ -1,0 +1,141 @@
+*** Settings ***
+Suite Setup       Get Authorization Token
+Force Tags        field_validation    regression
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/policies.txt
+
+*** Test Cases ***
+FV_001 Verify That ClientSubUnitGuid Is Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    csuGuid=ABC 123 !@#$
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    csuGuid=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    csuGuid=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required String parameter 'ClientSubUnitGuid' is not present"}
+
+FV_002 Verify That CityCode Is Not Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    cityCode=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    cityCode=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    cityCode=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_003 Verify That SystemUserGuid Is Not Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    systemUserGuid=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    #CCR no validation
+    Comment    Verify That Response Status Code Is Correct    200
+    Verify That Response Status Code Is Correct    500
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    systemUserGuid=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    systemUserGuid=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_004 Verify That TeamId Is Not Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    teamId=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC !!@# 123' for 'TeamId'"}
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    teamId=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value '' for 'TeamId'"}
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    teamId=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_005 Verify That ClientAccountNumber Is Not Required When Sending Policies Request
+    [Tags]    not-ready
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    clientAccNum=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    clientAccNum=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    clientAccNum=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_006 Verify That TravelerTypeGuid Is Not Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    travTypeGuid=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    travTypeGuid=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    travTypeGuid=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_007 Verify That TripTypeId Is Not Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    tripTypeId=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value 'ABC !!@# 123' for 'TripTypeId'"}
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    tripTypeId=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "INPUT_VALIDATION_ERROR", "Description": "Invalid param value '' for 'TripTypeId'"}
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    tripTypeId=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_008 Verify That LanguageCode Is Not Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    languageCode=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    languageCode=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    languageCode=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_009 Verify That All Is Not Required When Sending Policies Request
+    # Format Check
+    Generate Test Variables For Policies To Get Request For CBS    ALL=ABC !!@# 123    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##Empty
+    Generate Test Variables For Policies To Get Request For CBS    ALL=${EMPTY}    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    ##None
+    Generate Test Variables For Policies To Get Request For CBS    ALL=None    csuGuid=A:807F6
+    Send GET Request
+    Verify That Response Status Code Is Correct    200

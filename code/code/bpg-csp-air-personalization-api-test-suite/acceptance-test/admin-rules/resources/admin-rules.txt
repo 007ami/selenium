@@ -1,0 +1,382 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Rules List
+    @{rules_list}    Create List
+    Set Global Variable    @{rules_list}
+
+Generate Test Variables For Delete Rules
+    [Arguments]    ${rule_id_list}=${rule_id_list}    ${user}=User Test1    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ${rule_id_list}    Convert To String    ${rule_id_list}
+    ${rule_id_list}    Remove String    ${rule_id_list}    '
+    ${rule_id_list}    Remove String    ${rule_id_list}    [
+    ${rule_id_list}    Remove String    ${rule_id_list}    ]
+    ${rule_id_list}    Remove String    ${rule_id_list}    ${SPACE}
+    Set Test Variable    ${rule_id_list}
+    ${rule_ids}    Set Variable If    "${rule_id_list}" != "None"    /${rule_id_list}    ${EMPTY}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules${rule_ids}
+    Set Test Variable    ${json_body}    None
+    ${query_param_list}    Create Dictionary
+    Run Keyword If    "${user}"!="None"    Set To Dictionary    ${query_param_list}    user    ${user}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${query_param_list}
+    Set Test Variable    ${rule_ids}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${user}
+
+Generate Test Variables For Download Rules
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules/download
+    Set Test Variable    ${json_body}    None
+    Set Test Variable    ${query_param_list}    None
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+
+Generate Test Variables For Get Rules
+    [Arguments]    ${seq_num}=None    ${rule_id}=None    ${rule_name}=None    ${ctu_guid}=None    ${ctu_name}=None    ${csu_guid}=None
+    ...    ${csu_name}=None    ${channel}=None    ${origin_region}=None    ${origin_country}=None    ${origin_airport}=None    ${destination_region}=None
+    ...    ${destination_country}=None    ${destination_airport}=None    ${pos_region}=None    ${pos_country}=None    ${direction}=None    ${active}=None
+    ...    ${on_off_ind}=None    ${create_user}=None    ${update_user}=None    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${sort}=None
+    ...    ${order}=None    ${limit}=None    ${offset}=None    ${pcc}=None    ${agent_id}=None
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules
+    Set Test Variable    ${json_body}    None
+    ${query_param_list}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    Run Keyword If    "${seq_num}"!="None"    Set To Dictionary    ${query_param_list}    sequence    ${seq_num}
+    Run Keyword If    "${rule_id}"!="None"    Set To Dictionary    ${query_param_list}    id    ${rule_id}
+    Run Keyword If    "${rule_name}"!="None"    Set To Dictionary    ${query_param_list}    name    ${rule_name}
+    Run Keyword If    "${ctu_guid}"!="None"    Set To Dictionary    ${query_param_list}    clientTopGUID    ${ctu_guid}
+    Run Keyword If    "${ctu_name}"!="None"    Set To Dictionary    ${query_param_list}    clientTopName    ${ctu_name}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${query_param_list}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${csu_name}"!="None"    Set To Dictionary    ${query_param_list}    clientSubName    ${csu_name}
+    Run Keyword If    "${channel}"!="None"    Set To Dictionary    ${query_param_list}    channel    ${channel}
+    Run Keyword If    "${pos_region}"!="None"    Set To Dictionary    ${query_param_list}    posRegion    ${pos_region}
+    Run Keyword If    "${pos_country}"!="None"    Set To Dictionary    ${query_param_list}    posCountry    ${pos_country}
+    Run Keyword If    "${origin_region}"!="None"    Set To Dictionary    ${query_param_list}    originRegion    ${origin_region}
+    Run Keyword If    "${origin_country}"!="None"    Set To Dictionary    ${query_param_list}    originCountry    ${origin_country}
+    Run Keyword If    "${origin_airport}"!="None"    Set To Dictionary    ${query_param_list}    originAirport    ${origin_airport}
+    Run Keyword If    "${destination_region}"!="None"    Set To Dictionary    ${query_param_list}    destinationRegion    ${destination_region}
+    Run Keyword If    "${destination_country}"!="None"    Set To Dictionary    ${query_param_list}    destinationCountry    ${destination_country}
+    Run Keyword If    "${destination_airport}"!="None"    Set To Dictionary    ${query_param_list}    destinationAirport    ${destination_airport}
+    Run Keyword If    "${direction}"!="None"    Set To Dictionary    ${query_param_list}    direction    ${direction}
+    Run Keyword If    "${active}"!="None"    Set To Dictionary    ${query_param_list}    isActive    ${active}
+    Run Keyword If    "${on_off_ind}"!="None"    Set To Dictionary    ${query_param_list}    onOffInd    ${on_off_ind}
+    Run Keyword If    "${create_user}"!="None"    Set To Dictionary    ${audit_log_body}    createdBy    ${create_user}
+    Run Keyword If    "${update_user}"!="None"    Set To Dictionary    ${audit_log_body}    updatedBy    ${update_user}
+    Run Keyword If    "${audit_log_body}"!="None"    Set To Dictionary    ${query_param_list}    auditLog    ${audit_log_body}
+    Run Keyword If    "${sort}"!="None"    Set To Dictionary    ${query_param_list}    sort    ${sort}
+    Run Keyword If    "${order}"!="None"    Set To Dictionary    ${query_param_list}    order    ${order}
+    Run Keyword If    "${limit}"!="None"    Set To Dictionary    ${query_param_list}    limit    ${limit}
+    Run Keyword If    "${offset}"!="None"    Set To Dictionary    ${query_param_list}    offset    ${offset}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${query_param_list}    pcc    ${pcc}
+    Run Keyword If    "${agent_id}"!="None"    Set To Dictionary    ${query_param_list}    agentId    ${agent_id}
+    Set Test Variable    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${seq_num}
+    Set Test Variable    ${rule_name}
+    Set Test Variable    ${ctu_guid}
+    Set Test Variable    ${ctu_name}
+    Set Test Variable    ${csu_guid}
+    Set Test Variable    ${csu_name}
+    Set Test Variable    ${channel}
+    Set Test Variable    ${pos_region}
+    Set Test Variable    ${pos_country}
+    Set Test Variable    ${origin_region}
+    Set Test Variable    ${origin_country}
+    Set Test Variable    ${origin_airport}
+    Set Test Variable    ${destination_region}
+    Set Test Variable    ${destination_country}
+    Set Test Variable    ${destination_airport}
+    Set Test Variable    ${direction}
+    Set Test Variable    ${active}
+    Set Test Variable    ${on_off_ind}
+    Set Test Variable    ${create_user}
+    Set Test Variable    ${update_user}
+    Set Test Variable    ${sort}
+    Set Test Variable    ${order}
+    Set Test Variable    ${limit}
+    Set Test Variable    ${offset}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+    Set Test Variable    ${pcc}
+    Set Test Variable    ${agent_id}
+
+Generate Test Variables For Post Rules
+    [Arguments]    ${seq_num}=0    ${rule_name}=Rule Test1    ${ctu_guid}=0:0    ${ctu_name}=CTU Test1    ${csu_guid}=14:3B67    ${csu_name}=CSU Test1
+    ...    ${channel}=MyCWT_Mobile    ${origin_region}=NAM    ${origin_country}=US    ${origin_airport}=JFK    ${destination_region}=EUR    ${destination_country}=GB
+    ...    ${destination_airport}=LHR    ${pos_region}=NAM    ${pos_country}=US    ${direction}=D    ${active}=True    ${on_off_ind}=True
+    ...    ${create_user}=User Test1    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${pcc}=None    ${agent_id}=None
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules
+    Set Test Variable    ${query_param_list}    None
+    ${json_body}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    Run Keyword If    "${seq_num}"!="None"    Set To Dictionary    ${json_body}    sequence    ${seq_num}
+    Run Keyword If    "${rule_name}"!="None"    Set To Dictionary    ${json_body}    name    ${rule_name}
+    Run Keyword If    "${ctu_guid}"!="None"    Set To Dictionary    ${json_body}    clientTopGUID    ${ctu_guid}
+    Run Keyword If    "${ctu_name}"!="None"    Set To Dictionary    ${json_body}    clientTopName    ${ctu_name}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${json_body}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${csu_name}"!="None"    Set To Dictionary    ${json_body}    clientSubName    ${csu_name}
+    Run Keyword If    "${channel}"!="None"    Set To Dictionary    ${json_body}    channel    ${channel}
+    Run Keyword If    "${pos_region}"!="None"    Set To Dictionary    ${json_body}    posRegion    ${pos_region}
+    Run Keyword If    "${pos_country}"!="None"    Set To Dictionary    ${json_body}    posCountry    ${pos_country}
+    Run Keyword If    "${origin_region}"!="None"    Set To Dictionary    ${json_body}    originRegion    ${origin_region}
+    Run Keyword If    "${origin_country}"!="None"    Set To Dictionary    ${json_body}    originCountry    ${origin_country}
+    Run Keyword If    "${origin_airport}"!="None"    Set To Dictionary    ${json_body}    originAirport    ${origin_airport}
+    Run Keyword If    "${destination_region}"!="None"    Set To Dictionary    ${json_body}    destinationRegion    ${destination_region}
+    Run Keyword If    "${destination_country}"!="None"    Set To Dictionary    ${json_body}    destinationCountry    ${destination_country}
+    Run Keyword If    "${destination_airport}"!="None"    Set To Dictionary    ${json_body}    destinationAirport    ${destination_airport}
+    Run Keyword If    "${direction}"!="None"    Set To Dictionary    ${json_body}    direction    ${direction}
+    Run Keyword If    "${active}"!="None"    Set To Dictionary    ${json_body}    isActive    ${active}
+    Run Keyword If    "${on_off_ind}"!="None"    Set To Dictionary    ${json_body}    onOffInd    ${on_off_ind}
+    Run Keyword If    "${create_user}"!="None"    Set To Dictionary    ${audit_log_body}    createdBy    ${create_user}
+    Run Keyword If    "${audit_log_body}"!="None"    Set To Dictionary    ${json_body}    auditLog    ${audit_log_body}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${json_body}    pcc    ${pcc}
+    Run Keyword If    "${agent_id}"!="None"    Set To Dictionary    ${json_body}    agentId    ${agent_id}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    ${json_body}    Replace String    ${json_body}    "${seq_num}"    ${seq_num}
+    Set Test Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${seq_num}
+    Set Test Variable    ${rule_name}
+    Set Test Variable    ${ctu_guid}
+    Set Test Variable    ${ctu_name}
+    Set Test Variable    ${csu_guid}
+    Set Test Variable    ${csu_name}
+    Set Test Variable    ${channel}
+    Set Test Variable    ${pos_region}
+    Set Test Variable    ${pos_country}
+    Set Test Variable    ${origin_region}
+    Set Test Variable    ${origin_country}
+    Set Test Variable    ${origin_airport}
+    Set Test Variable    ${destination_region}
+    Set Test Variable    ${destination_country}
+    Set Test Variable    ${destination_airport}
+    Set Test Variable    ${direction}
+    Set Test Variable    ${active}
+    Set Test Variable    ${on_off_ind}
+    Set Test Variable    ${create_user}
+    Set Test Variable    ${pcc}
+    Set Test Variable    ${agent_id}
+
+Generate Test Variables For Put Rules
+    [Arguments]    ${rule_id_list}=${rule_id_list}    ${seq_num}=0    ${rule_name}=Rule Test1    ${ctu_guid}=0:0    ${ctu_name}=CTU Test1    ${csu_guid}=14:3B67
+    ...    ${csu_name}=CSU Test1    ${channel}=MyCWT_Mobile    ${origin_region}=NAM    ${origin_country}=US    ${origin_airport}=JFK    ${destination_region}=EUR
+    ...    ${destination_country}=GB    ${destination_airport}=LHR    ${pos_region}=NAM    ${pos_country}=US    ${direction}=D    ${active}=True
+    ...    ${on_off_ind}=True    ${update_user}=User Test1    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${pcc}=None    ${agent_id}=None
+    ${rule_id_list_new}    Convert To String    ${rule_id_list}
+    ${rule_id_list_new}    Remove String    ${rule_id_list_new}    '
+    ${rule_id_list_new}    Remove String    ${rule_id_list_new}    [
+    ${rule_id_list_new}    Remove String    ${rule_id_list_new}    ]
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules
+    Set Test Variable    ${query_param_list}    None
+    ${json_body}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    Run Keyword If    "${rule_id_list}"!="None"    Set To Dictionary    ${json_body}    id    ${rule_id_list_new}
+    Run Keyword If    "${seq_num}"!="None"    Set To Dictionary    ${json_body}    sequence    ${seq_num}
+    Run Keyword If    "${rule_name}"!="None"    Set To Dictionary    ${json_body}    name    ${rule_name}
+    Run Keyword If    "${ctu_guid}"!="None"    Set To Dictionary    ${json_body}    clientTopGUID    ${ctu_guid}
+    Run Keyword If    "${ctu_name}"!="None"    Set To Dictionary    ${json_body}    clientTopName    ${ctu_name}
+    Run Keyword If    "${csu_guid}"!="None"    Set To Dictionary    ${json_body}    clientSubGUID    ${csu_guid}
+    Run Keyword If    "${csu_name}"!="None"    Set To Dictionary    ${json_body}    clientSubName    ${csu_name}
+    Run Keyword If    "${channel}"!="None"    Set To Dictionary    ${json_body}    channel    ${channel}
+    Run Keyword If    "${pos_region}"!="None"    Set To Dictionary    ${json_body}    posRegion    ${pos_region}
+    Run Keyword If    "${pos_country}"!="None"    Set To Dictionary    ${json_body}    posCountry    ${pos_country}
+    Run Keyword If    "${origin_region}"!="None"    Set To Dictionary    ${json_body}    originRegion    ${origin_region}
+    Run Keyword If    "${origin_country}"!="None"    Set To Dictionary    ${json_body}    originCountry    ${origin_country}
+    Run Keyword If    "${origin_airport}"!="None"    Set To Dictionary    ${json_body}    originAirport    ${origin_airport}
+    Run Keyword If    "${destination_region}"!="None"    Set To Dictionary    ${json_body}    destinationRegion    ${destination_region}
+    Run Keyword If    "${destination_country}"!="None"    Set To Dictionary    ${json_body}    destinationCountry    ${destination_country}
+    Run Keyword If    "${destination_airport}"!="None"    Set To Dictionary    ${json_body}    destinationAirport    ${destination_airport}
+    Run Keyword If    "${direction}"!="None"    Set To Dictionary    ${json_body}    direction    ${direction}
+    Run Keyword If    "${active}"!="None"    Set To Dictionary    ${json_body}    isActive    ${active}
+    Run Keyword If    "${on_off_ind}"!="None"    Set To Dictionary    ${json_body}    onOffInd    ${on_off_ind}
+    Run Keyword If    "${update_user}"!="None"    Set To Dictionary    ${audit_log_body}    updatedBy    ${update_user}
+    Run Keyword If    "${audit_log_body}"!="None"    Set To Dictionary    ${json_body}    auditLog    ${audit_log_body}
+    Run Keyword If    "${pcc}"!="None"    Set To Dictionary    ${json_body}    pcc    ${pcc}
+    Run Keyword If    "${agent_id}"!="None"    Set To Dictionary    ${json_body}    agentId    ${agent_id}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    ${json_body}    Replace String    ${json_body}    "${seq_num}"    ${seq_num}
+    Set Test Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${rule_id_list_new}
+    Set Test Variable    ${rule_name}
+    Set Test Variable    ${ctu_guid}
+    Set Test Variable    ${ctu_name}
+    Set Test Variable    ${csu_guid}
+    Set Test Variable    ${csu_name}
+    Set Test Variable    ${channel}
+    Set Test Variable    ${pos_region}
+    Set Test Variable    ${pos_country}
+    Set Test Variable    ${origin_region}
+    Set Test Variable    ${origin_country}
+    Set Test Variable    ${origin_airport}
+    Set Test Variable    ${destination_region}
+    Set Test Variable    ${destination_country}
+    Set Test Variable    ${destination_airport}
+    Set Test Variable    ${direction}
+    Set Test Variable    ${active}
+    Set Test Variable    ${on_off_ind}
+    Set Test Variable    ${update_user}
+    Set Test Variable    ${pcc}
+    Set Test Variable    ${agent_id}
+
+Get Rule ID
+    [Arguments]    ${rule_index}=0
+    ${id}    Get Json Value    ${response.content}    $.rules.[${rule_index}].id
+    ${id}    Remove String    ${id}    "
+    Append To List    ${rule_id_list}    ${id}
+    Set Test Variable    ${rule_id_list}
+
+Sort Rules List
+    [Arguments]    ${sort_index_list}
+    @{new_rules_list}    Create List
+    ${sort_index_list}    Split String    ${sort_index_list}    ,
+    : FOR    ${sort_index_list_item}    IN    @{sort_index_list}
+    \    ${rules_item}    Get From List    ${rules_list}    ${sort_index_list_item}
+    \    Append To List    ${new_rules_list}    ${rules_item}
+    Set Test Variable    ${rules_list}    ${new_rules_list}
+
+Update Rules In Rules List Manually
+    [Arguments]    ${rule_index}=0    ${key}=${EMPTY}    ${value}=${EMPTY}
+    ${rule}    Get From List    ${rules_list}    ${rule_index}
+    Set To Dictionary    ${rule}    ${key}    ${value}
+    Set List Value    ${rules_list}    ${rule_index}    ${rule}
+
+Verify Downloaded Rules File Is Correct
+    [Arguments]    ${file}=default_rules.csv
+    ${files_rules_list}    Get File    ${CURDIR}${/}..//..//admin-upload/files//${file}
+    ${files_rules_list}    Convert To String    ${files_rules_list}
+    ${downloaded_files_rules_list}    Convert To String    ${response.content}
+    Run Keyword And Continue On Failure    Should be Equal    ${files_rules_list}    ${downloaded_files_rules_list}
+
+Verify Rules List Exceeding Limit
+    [Arguments]    ${rules_limit_count}    ${offset}=0
+    : FOR    ${ctr}    IN RANGE    ${offset}    ${offset}+${rules_limit_count}
+    \    Log    ${rules_list[${ctr}]}
+    \    Log    ${rules_array}
+    \    Run Keyword And Continue On Failure    List Should Contain Value    ${rules_array}    ${rules_list[${ctr}]}
+
+Verify Rules List From File
+    ${rules_list}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    ${files_rules_list}    Get File    ${CURDIR}${/}..//..//admin-upload/files//${file}
+    ${files_rules_list}    Split To Lines    ${files_rules_list}    1
+    Set Test Variable    ${files_rules_list}
+    ${ctr}    Set Variable    0
+    : FOR    ${files_rules_list_item}    IN    @{files_rules_list}
+    \    ${files_rules_list_item}    Split String    ${files_rules_list_item}    ,
+    \    Set To Dictionary    ${rules_list}    sequence    ${${files_rules_list_item[0]}}
+    \    Set To Dictionary    ${rules_list}    name    ${files_rules_list_item[1]}
+    \    Set To Dictionary    ${rules_list}    clientTopName    ${files_rules_list_item[2]}
+    \    Set To Dictionary    ${rules_list}    clientTopGUID    ${files_rules_list_item[3]}
+    \    Set To Dictionary    ${rules_list}    clientSubName    ${files_rules_list_item[4]}
+    \    Set To Dictionary    ${rules_list}    clientSubGUID    ${files_rules_list_item[5]}
+    \    Set To Dictionary    ${rules_list}    pcc    ${files_rules_list_item[6]}
+    \    Set To Dictionary    ${rules_list}    agentId    ${files_rules_list_item[7]}
+    \    Set To Dictionary    ${rules_list}    posRegion    ${files_rules_list_item[8]}
+    \    Set To Dictionary    ${rules_list}    posCountry    ${files_rules_list_item[9]}
+    \    Set To Dictionary    ${rules_list}    originRegion    ${files_rules_list_item[10]}
+    \    Set To Dictionary    ${rules_list}    originCountry    ${files_rules_list_item[11]}
+    \    Set To Dictionary    ${rules_list}    originAirport    ${files_rules_list_item[12]}
+    \    Set To Dictionary    ${rules_list}    destinationRegion    ${files_rules_list_item[13]}
+    \    Set To Dictionary    ${rules_list}    destinationCountry    ${files_rules_list_item[14]}
+    \    Set To Dictionary    ${rules_list}    destinationAirport    ${files_rules_list_item[15]}
+    \    Set To Dictionary    ${rules_list}    direction    ${files_rules_list_item[16]}
+    \    Set To Dictionary    ${rules_list}    channel    ${files_rules_list_item[17]}
+    \    Set To Dictionary    ${audit_log_body}    createdBy    ${user}
+    \    Run Keyword If    "${files_rules_list_item[18]}" == "ON"    Set To Dictionary    ${rules_list}    onOffInd    ${TRUE}
+    \    ...    ELSE    Set To Dictionary    ${rules_list}    onOffInd    ${FALSE}
+    \    Run Keyword If    "${files_rules_list_item[16]}"=="${EMPTY}"    Set To Dictionary    ${rules_list}    direction    D
+    \    Set To Dictionary    ${rules_list}    isActive    ${TRUE}
+    \    Log    ${rules_array}
+    \    Log    ${rules_list}
+    \    Log    ${rules_array[${ctr}]}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain Sub Dictionary    ${rules_array[${ctr}]}    ${rules_list}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${rules_array[${ctr}]}    id
+    \    ${json_body}    Convert JSON To String    ${rules_array[${ctr}]}
+    \    ${json_body}    Replace String    ${json_body}    '    "
+    \    Run Keyword And Continue On Failure    Verify Json Value Is Correct    ${json_body}    $.auditLog.createdBy    ${user}
+    \    ${created_timestamp}    Get Json Value    ${json_body}    $.auditLog.createdTimestamp
+    \    Run Keyword And Continue On Failure    Should Not Be Empty    ${created_timestamp}    Missing createdTimestamp
+    \    ${ctr}    Evaluate    ${ctr}+1
+
+Verify Rules List From Post Requests
+    ${rule_count}    Get Length    ${rules_list}
+    ${rules_limit_count}    Get Length    ${rules_array}
+    Log    ${rules_list}
+    Set Test Variable    ${rules_limit_count}
+    ${limit_status}    Run Keyword And Return Status    Should Be True    "${rules_limit_count}"<="${limit}"
+    Run Keyword If    "${limit_status}" == "True"    Run Keyword And Continue On Failure    Log    Rules List is limited to the limit ${limit}
+    ...    ELSE    Fail    Rules List is NOT limited to the limit ${limit}
+    Run Keyword If    "${rule_count}" <= "${limit}"    Run Keyword And Continue On Failure    Lists Should Be Equal    ${rules_array}    ${rules_list}
+    ...    ELSE    Run Keyword And Continue On Failure    Verify Rules List Exceeding Limit    ${rules_limit_count}    ${offset}
+    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${response.json()}    totalCount    ${rule_count}
+    Set Test Variable    ${rule_count}
+
+Verify Rules List Is Correct
+    [Arguments]    ${rules_list}=${rules_list}    ${limit}=5    ${offset}=0    ${file}=None
+    Set Test Variable    ${file}
+    Set Test Variable    ${offset}
+    ${rules_array}    Get Value From Json    ${response.json()}    $.rules
+    Log    ${rules_array}
+    ${rules_array}    Convert JSON To String    ${rules_array}
+    ${rules_array}    Replace String    ${rules_array}    [    ${EMPTY}    1
+    ${rules_array}    Replace String    ${rules_array}    ]    ${EMPTY}    1
+    ${rules_array}    To Json    ${rules_array}
+    Set Test Variable    ${rules_array}
+    Run Keyword If    "${file}"!="None"    Verify Rules List From File
+    ...    ELSE    Verify Rules List From Post Requests
+
+Verify That Rules Response For Post Request Is Correct
+    Append To List    ${rules_list}    ${response.json()['rules'][0]}
+    Log    ${response.json()['rules'][0]}
+    ${json_body}    Replace String    ${json_body}    "True"    true
+    ${json_body}    Replace String    ${json_body}    "False"    false
+    ${json_body}    Replace String    ${json_body}    "direction": ""    "direction": "D"
+    ${json_body}    Evaluate    json.loads('''${json_body}''')    json
+    Set Test Variable    ${new_json_body}    ${json_body}
+    Remove From Dictionary    ${new_json_body}    auditLog
+    Run Keyword And Continue On Failure    Dictionary Should Contain Sub Dictionary    ${response.json()['rules'][0]}    ${new_json_body}    Actual Value is not equal to the Expected Value
+    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${response.json()['rules'][0]}    id
+    Run Keyword And Continue On Failure    Verify Json Value Is Correct    ${response.content}    $.rules.[0].auditLog.createdBy    ${create_user}
+    ${created_timestamp}    Get Json Value    ${response.content}    $.rules.[0].auditLog.createdTimestamp
+    Run Keyword And Continue On Failure    Should Not Be Empty    ${created_timestamp}    Missing createdTimestamp
+
+Verify That Rules Response For Put Request Is Correct
+    Append To List    ${rules_list}    ${response.json()['rules'][0]}
+    ${json_body}    Replace String    ${json_body}    "True"    true
+    ${json_body}    Replace String    ${json_body}    "False"    false
+    ${json_body}    Replace String    ${json_body}    "direction": ""    "direction": "D"
+    ${json_body}    Evaluate    json.loads('''${json_body}''')    json
+    Set Test Variable    ${new_json_body}    ${json_body}
+    Remove From Dictionary    ${new_json_body}    auditLog
+    Run Keyword And Continue On Failure    Dictionary Should Contain Sub Dictionary    ${response.json()['rules'][0]}    ${new_json_body}    Actual Value is not equal to the Expected Value
+    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${response.json()['rules'][0]}    id
+    Run Keyword And Continue On Failure    Verify Json Value Is Correct    ${response.content}    $.rules.[0].auditLog.updatedBy    ${update_user}
+    ${updated_timestamp}    Get Json Value    ${response.content}    $.rules.[0].auditLog.updatedTimestamp
+    Run Keyword And Continue On Failure    Should Not Be Empty    ${updated_timestamp}    Missing updatedTimestamp

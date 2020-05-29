@@ -1,0 +1,10 @@
+row_id,departure _start _date,departure_ end_ date,origin,destination,origin_type,destination_ type,point_ of_ sale_ code,point_ of_ sale_ type,marketing_ carrier_ code,direction_ type,policy_ order,cabin_ class,booking_ start_ date,booking_ end_ date,validating_ carrier_ code
+0,01/01/2018,31/12/2020,JFK,LHR,Airport,Airport,SG,Country,AA,D,1,F,01/01/2018,31/08/2030,AA
+0,01/01/2018,01/01/2021,LHR,JFK,Airport,Airport,US,Country,AA,D,1,F,01/01/2018,01/09/2030,AA
+0,01/01/2018,31/12/2020,JFK,LHR,Airport,Airport,US,Country,AB,D,1,F,01/01/2018,31/08/2030,AA
+0,01/01/2018,31/12/2020,OKO,LHR,Airport,Airport,US,Country,AC,D,1,F,01/01/2018,31/08/2030,AA
+0,01/01/2018,31/12/2020,MNL,LHR,Airport,Airport,US,Country,AC,D,1,F,01/01/2018,31/08/2030,AA
+0,01/01/2018,31/12/2020,HND,LHR,Airport,Airport,US,Country,AD,D,1,F,01/01/2018,31/08/2030,AA
+0,01/01/2018,01/01/2021,JFK,LHR,Airport,Airport,JP,Country,BA,D,1,F,01/01/2018,01/09/2030,AA
+0,01/01/2018,01/01/2021,JFK,LHR,Airport,Airport,JP,Country,BB,D,1,F,01/01/2018,01/09/2030,AA
+0,01/01/2018,01/01/2021,JFK,LHR,Airport,Airport,GB,Country,AD,D,1,F,01/01/2018,01/09/2030,AA

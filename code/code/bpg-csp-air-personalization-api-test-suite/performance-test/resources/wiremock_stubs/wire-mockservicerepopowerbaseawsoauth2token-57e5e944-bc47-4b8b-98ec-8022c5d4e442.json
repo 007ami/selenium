@@ -1,0 +1,16 @@
+{
+  "id" : "57e5e944-bc47-4b8b-98ec-8022c5d4e442",
+  "request" : {
+    "url" : "/wire-mock/service/repo/powerbaseaws/oauth2/token",
+    "method" : "POST"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"token_type\":\"bearer\",\"access_token\":\"9HlYXZd3TdmeCAnouIH96jk0ox4GIGXR\",\"expires_in\":900}",
+    "headers" : {
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "57e5e944-bc47-4b8b-98ec-8022c5d4e442",
+  "insertionIndex" : 64381
+}

@@ -1,0 +1,460 @@
+*** Settings ***
+Suite Setup       Initialize Test Data For Score API
+Test Setup        Get Authorization Token
+Force Tags        field-validation
+Resource          ../../resources/imports.txt
+Resource          ../resources/common.txt
+Resource          resources/aggregate.txt
+
+*** Test Cases ***
+FV_001 Verify Details Is Required When Sending Aggregate Request
+    Create Test Data For Metadata
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    details=ABC%20123%20!%40%20%24%25%5E1234567789    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    GDSCode=1G    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.details
+    # Mandatory Check
+    # EMPTY
+    Generate Test Variables For Aggregate Get Request For CBS    details=${EMPTY}    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    GDSCode=1G    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.details
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    details=None    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC    destination=SIN
+    ...    GDSCode=1G    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.details
+    # Validation Check For Composite Policy
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.clientAccountNumber, param.required.departureDate, param.required.origin, param.required.clientSubGUID, param.required.destination, param.required.travelerTypeGUID, param.required.gdsCode
+    # Validation Check For Personalization
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destinationCodeType, param.required.departureDate, param.required.origin, param.required.clientSubGUID, param.required.destination, param.required.appId, param.required.travelerGUID, param.required.issuingCountry, param.required.originCodeType
+    # Validation Check For Portrait
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.travelerGUID
+
+FV_002 Verify That Field Validation Works When GDSCode Filter Is Used
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    GDSCode=ABC 123 !@ $%^1234567789    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    destination=SIN    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Error': 'INPUT_VALIDATION_ERROR', 'Description': "Invalid param value 'ABC 123 !@ $%^1234567789' for 'GDSCode'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    GDSCode=${EMPTY}    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    destination=SIN    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.gdsCode
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    GDSCode=None    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    destination=SIN    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.gdsCode
+    #Invalid GDS Code
+    Generate Test Variables For Aggregate Get Request For CBS    GDSCode=XX    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696    origin=NYC
+    ...    destination=SIN    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Code': 302, 'Error': 'BAD_REQUEST', 'Description': 'Invalid GDS Code'}
+
+FV_003 Verify That Field Validation Works When Origin Filter Is Used
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    origin=ABC 123 !@ $%^ 1234567789    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    destination=SIN    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Error': 'INPUT_VALIDATION_ERROR', 'Description': "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'Origin'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    origin=${EMPTY}    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    destination=SIN    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_response=param.required.origin
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    origin=None    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    ...    destination=SIN    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_response=param.required.origin
+
+FV_004 Verify That Field Validation Works When Destination Filter Is Used
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    destination=ABC 123 !@ $%^ 1234567789    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA
+    ...    travTypeGuid=A:5B696    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Error': 'INPUT_VALIDATION_ERROR', 'Description': "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'Destination'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    destination=${EMPTY}    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA
+    ...    travTypeGuid=A:5B696    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destination
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    destination=None    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6    clientAccNum=U1FVA
+    ...    travTypeGuid=A:5B696    departure_date=20180101
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destination
+
+FV_005 Verify That Field Validation Works When departureDate Filter Is Used
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    departure_date=ABC 123 !@ $%^ 1234567789    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.departureDate
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    departure_date=${EMPTY}    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.departureDate, param.invalid.departureDate
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    departure_date=None    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.departureDate
+
+FV_006 Verify That Field Validation Works When ClientSubUnitGuid Filter Is Used
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    csuGuid=ABC 123 !@ $%^ 1234567789    departure_date=20180101    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Error': 'INPUT_VALIDATION_ERROR', 'Description': "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'ClientSubUnitGuid'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    csuGuid=${EMPTY}    departure_date=20180101    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.clientSubGUID
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    csuGuid=None    departure_date=20180101    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.clientSubGUID
+
+FV_007 Verify That Field Validation Works When ClientAccountNumber Filter Is Used
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    clientAccNum=ABC 123 !@ $%^ 1234567789    csuGuid=A:807F6    departure_date=20180101    destination=SIN    origin=NYC    GDSCode=1G
+    ...    details=CompositePolicy    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Error': 'INPUT_VALIDATION_ERROR', 'Description': "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'ClientAccountNumber'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    clientAccNum=${EMPTY}    csuGuid=A:807F6    departure_date=20180101    destination=SIN    origin=NYC    GDSCode=1G
+    ...    details=CompositePolicy    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.clientAccountNumber
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    clientAccNum=None    csuGuid=A:807F6    departure_date=20180101    destination=SIN    origin=NYC    GDSCode=1G
+    ...    details=CompositePolicy    travTypeGuid=A:5B696
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.clientAccountNumber
+
+FV_008 Verify That Field Validation Works When TravelerTypeGuid Filter Is Used
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    travTypeGuid=ABC 123 !@ $%^ 1234567789    clientAccNum=U1FVA    csuGuid=A:807F6    departure_date=20180101    destination=SIN    origin=NYC
+    ...    GDSCode=1G    details=CompositePolicy
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Composite Aggregate    BAD_REQUEST    {'Error': 'INPUT_VALIDATION_ERROR', 'Description': "Invalid param value 'ABC 123 !@ $%^ 1234567789' for 'TravelerTypeGuid'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    travTypeGuid=${EMPTY}    clientAccNum=U1FVA    csuGuid=A:807F6    departure_date=20180101    destination=SIN    origin=NYC
+    ...    GDSCode=1G    details=CompositePolicy
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.travelerTypeGUID
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    travTypeGuid=None    clientAccNum=U1FVA    csuGuid=A:807F6    departure_date=20180101    destination=SIN    origin=NYC
+    ...    GDSCode=1G    details=CompositePolicy
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.travelerTypeGUID
+
+FV_009 Verify That travelerGUID Is Required When Sending Request For Portrait
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait    travelerGuid=ABC 123 !@ $%^ 1234567789
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    204
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait    travelerGuid=${EMPTY}
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.travelerGUID
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait    travelerGuid=None
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.travelerGUID
+
+FV_010 Verify That issuingCountry Is Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    [Setup]    Initialize Test Data For Personalization
+    # Letters/Numbers/Special Characters
+    Get Authorization Token
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization    iss_country=ABC 123 !@ $%^ 1234567789    csuGuid=A:807F6    travelerGuid=A:40760A    departure_date=20180101    destination=SIN
+    ...    origin=NYC    origin_code_type=C    destination_code_type=C    app_id=Desktop_Amadeus
+    Create Test Data For Metadata    app_id=Desktop_Amadeus
+    Generate Test Variables And Data For Boost    boost_app_id=Desktop_Amadeus
+    Generate Test Data For Features    app_id=Desktop_Amadeus
+    Generate Test Data For Traveler Preference    V1,DEFAULT
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization    iss_country=${EMPTY}    csuGuid=A:807F6    travelerGuid=A:40760A    departure_date=20180101    destination=SIN
+    ...    origin=NYC    origin_code_type=C    destination_code_type=C    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.issuingCountry
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization    iss_country=None    csuGuid=A:807F6    travelerGuid=A:40760A    departure_date=20180101    destination=SIN
+    ...    origin=NYC    origin_code_type=C    destination_code_type=C    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.issuingCountry
+
+FV_011 Verify That originCodeType Is Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    origin_code_type=ABC 123 !@ $%^ 1234567789    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7    departure_date=20180101
+    ...    destination=SIN    origin=NYC    destination_code_type=A    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.originCodeType
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Aggregate Get Request For CBS    origin_code_type=B    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7    departure_date=20180101
+    ...    destination=SIN    origin=NYC    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.originCodeType
+    #Numbers
+    Generate Test Variables For Aggregate Get Request For CBS    origin_code_type=123    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7    departure_date=20180101
+    ...    destination=SIN    origin=NYC    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.originCodeType
+    #Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    origin_code_type=!    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7    departure_date=20180101
+    ...    destination=SIN    origin=NYC    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.originCodeType
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    origin_code_type=${EMPTY}    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7    departure_date=20180101
+    ...    destination=SIN    origin=NYC    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.originCodeType, param.required.originCodeType
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    origin_code_type=None    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7    departure_date=20180101
+    ...    destination=SIN    origin=NYC    destination_code_type=A    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.originCodeType
+
+FV_012 Verify That destinationCodeType Is Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    destination_code_type=ABC 123 !@ $%^ 1234567789    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7
+    ...    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.destinationCodeType
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Aggregate Get Request For CBS    destination_code_type=B    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7
+    ...    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.destinationCodeType
+    #Numbers
+    Generate Test Variables For Aggregate Get Request For CBS    destination_code_type=123    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7
+    ...    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.destinationCodeType
+    #Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    destination_code_type=!    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7
+    ...    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.destinationCodeType
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    destination_code_type=${EMPTY}    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7
+    ...    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destinationCodeType, param.invalid.destinationCodeType
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    destination_code_type=None    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6    travelerGuid=A:4076C2A7
+    ...    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destinationCodeType
+
+FV_014 Verify That appId Is Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    app_id=ABC 123 !@# $%^    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC
+    Create Test Data For Metadata    app_id=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost    boost_app_id=ABC 123 !@# $%^
+    Send GET Request For Aggregate
+    Verify That Error Response Is Returned For Personalization Aggregate V2    400    BAD_REQUEST    {'errorCode': '4018', 'errorMsg': 'No Personalization configuration found'}
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    app_id=${EMPTY}    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.appId
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    app_id=None    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.appId
+
+FV_015 Verify That experimentGroupTypeCode Is Not Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    prefix=ABC 123 !@# $%^    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+    Comment    Verify That Error Response Is Returned For Personalization Aggregate V2    400    BAD_REQUEST    error_message={'errorCode': 'INPUT_VALIDATION_ERROR', 'errorMsg': 'experimentGroupTypeCode: allowed values: A or B'}
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    prefix=${EMPTY}    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+    Comment    Verify That Error Response Is Returned For Personalization Aggregate V2    400    BAD_REQUEST    error_message={'errorCode': 'INPUT_VALIDATION_ERROR', 'errorMsg': 'experimentGroupTypeCode: allowed values: A or B'}
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    prefix=None    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+
+FV_016 Verify That version Is Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    #Lowercase
+    Generate Test Variables For Aggregate Get Request For CBS    version=${version.lower()}    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+    #Uppercase
+    Generate Test Variables For Aggregate Get Request For CBS    version=${version.upper()}    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+    # Letters/Numbers
+    Generate Test Variables For Aggregate Get Request For CBS    version=ABC 123    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Error Response Is Returned For Personalization Aggregate V1    status_code=400    error_status=BAD_REQUEST    error_message=Invalid version requested.
+    Verify That Error Response Is Returned For Personalization Aggregate V2    status_code=400    error_status=BAD_REQUEST    error_message=Invalid version requested.
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    version=${EMPTY}    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.version
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    version=None    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.version
+
+FV_017 Verify That pcc Is Not Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Aggregate Get Request For CBS    pcc=ABC 123 !@# $%^    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Aggregate Get Request For CBS    pcc=${EMPTY}    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Aggregate Get Request For CBS    pcc=None    destination_code_type=A    origin_code_type=A    iss_country=US    details=Personalization    csuGuid=A:807F6
+    ...    travelerGuid=A:4076C2A7    departure_date=20180101    destination=SIN    origin=NYC    app_id=MyCWT_Mobile
+    Generate Test Variables And Data For Boost
+    Send GET Request For Aggregate
+    Verify That Response Status Code Is Correct    200
+
+FV_013 Verify Required Perameters When Send Multiple Details
+    # Validation Check For Composite Policy
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Portrait
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.clientAccountNumber, param.required.departureDate, param.required.origin, param.required.clientSubGUID, param.required.destination, param.required.travelerTypeGUID, param.required.gdsCode, param.required.travelerGUID
+    # Validation Check For Personalization
+    Generate Test Variables For Aggregate Get Request For CBS    details=Personalization|CompositePolicy
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destinationCodeType, param.required.clientAccountNumber, param.required.departureDate, param.required.origin, param.required.clientSubGUID, param.required.destination, param.required.travelerTypeGUID, param.required.gdsCode, param.required.appId, param.required.travelerGUID, param.required.issuingCountry, param.required.originCodeType
+    # Validation Check For Portrait
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait|Personalization
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destinationCodeType, param.required.departureDate, param.required.origin, param.required.clientSubGUID, param.required.destination, param.required.appId, param.required.travelerGUID, param.required.issuingCountry, param.required.originCodeType
+    # Validation Check For All
+    Generate Test Variables For Aggregate Get Request For CBS    details=Portrait|Personalization|CompositePolicy
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.required.destinationCodeType, param.required.clientAccountNumber, param.required.departureDate, param.required.origin, param.required.clientSubGUID, param.required.destination, param.required.travelerTypeGUID, param.required.gdsCode, param.required.appId, param.required.travelerGUID, param.required.issuingCountry, param.required.originCodeType
+
+FV_018 Verify That bookingDate Is Not Required When Sending A Get Request For Personalization Score
+    [Tags]    personalization
+    # Format Check
+    Generate Test Variables For Aggregate Get Request For CBS    booking_date=ABC 123 !@ $%^ 1234567789    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696    departure_date=20190801
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.bookingDate
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Aggregate Get Request For CBS    booking_date=${EMPTY}    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696    departure_date=20190801
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    400
+    Verify That Error Response Is Returned For Aggregate    AGGREGATE    BAD_REQUEST    error_message=param.invalid.bookingDate
+    ##None
+    Generate Test Variables For Aggregate Get Request For CBS    booking_date=None    destination=SIN    origin=NYC    GDSCode=1G    details=CompositePolicy    csuGuid=A:807F6
+    ...    clientAccNum=U1FVA    travTypeGuid=A:5B696    departure_date=20190801
+    Send GET Request For Aggregate    ${${env}_gw_token}
+    Verify That Correct Status Code Are Returned For Aggregate    200

@@ -1,0 +1,5 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Test Setup        Delete Rules Collecton In MongoDB
+Force Tags        admin_rules
+Resource          ../resources/common.txt

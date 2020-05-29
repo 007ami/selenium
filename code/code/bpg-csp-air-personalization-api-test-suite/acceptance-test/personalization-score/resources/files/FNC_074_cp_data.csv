@@ -1,0 +1,34 @@
+client_subunit_guid,policy_valid_from_date,policy_valid_to_date,origin,destination,carrier,cp_value,policy_order,origin_type,destination_type,B_D
+A:1234,01/01/2018,31/12/2020,JFK,LHR,AA,0.2,2,Airport,Airport,D
+A:1234,01/01/2018,31/12/2020,JFK,LHR,BA,0.2,1,Airport,Airport,D
+A:1234,01/01/2018,31/12/2020,LHR,JFK,AA,0.2,1,Airport,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,LHR,AA,0.2,1,Airport,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,LON,AB,0.2,2,Airport,City,D
+A:1234,01/01/2018,31/12/2020,JFK,LON,BB,0.2,1,Airport,City,D
+A:1234,01/01/2018,31/12/2020,LON,JFK,AB,0.2,1,City,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,LON,AB,0.2,1,Airport,City,B
+A:1234,01/01/2018,31/12/2020,NYC,LHR,AC,0.2,3,City,Airport,D
+A:1234,01/01/2018,31/12/2020,NYC,LHR,BC,0.2,2,City,Airport,D
+A:1234,01/01/2018,31/12/2020,LHR,NYC,AC,0.2,1,Airport,City,B
+A:1234,01/01/2018,31/12/2020,NYC,LHR,AC,0.2,1,City,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,GB,AD,0.2,5,Airport,Country,D
+A:1234,01/01/2018,31/12/2020,JFK,GB,BD,0.2,4,Airport,Country,D
+A:1234,01/01/2018,31/12/2020,GB,JFK,AD,0.2,4,Country,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,GB,AD,0.2,4,Airport,Country,B
+A:1234,01/01/2018,31/12/2020,US,LHR,AE,0.2,6,Country,Airport,D
+A:1234,01/01/2018,31/12/2020,US,LHR,BE,0.2,5,Country,Airport,D
+A:1234,01/01/2018,31/12/2020,LHR,US,AE,0.2,5,Airport,Country,B
+A:1234,01/01/2018,31/12/2020,US,LHR,AE,0.2,5,Country,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,EUROP,AF,0.2,2,Airport,Global Sub-Region,D
+A:1234,01/01/2018,31/12/2020,JFK,EUROP,BF,0.2,1,Airport,Global Sub-Region,D
+A:1234,01/01/2018,31/12/2020,EUROP,JFK,AF,0.2,1,Global Sub-Region,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,EUROP,AF,0.2,1,Airport,Global Sub-Region,B
+A:1234,01/01/2018,31/12/2020,NAMER,LHR,AG,0.2,3,Global Sub-Region,Airport,D
+A:1234,01/01/2018,31/12/2020,NAMER,LHR,BG,0.2,1,Global Sub-Region,Airport,D
+A:1234,01/01/2018,31/12/2020,LHR,NAMER,AG,0.2,1,Airport,Global Sub-Region,B
+A:1234,01/01/2018,31/12/2020,NAMER,LHR,AG,0.2,1,Global Sub-Region,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,EMEA,AH,0.2,8,Airport,Global Region,D
+A:1234,01/01/2018,31/12/2020,JFK,EMEA,BH,0.2,7,Airport,Global Region,D
+A:1234,01/01/2018,31/12/2020,EMEA,JFK,AH,0.2,6,Global Region,Airport,B
+A:1234,01/01/2018,31/12/2020,JFK,EMEA,AH,0.2,6,Airport,Global Region,B
+A:2235,01/01/2018,31/12/2020,YYYY,YYYY,BA,0.2,1,Global,Global,B

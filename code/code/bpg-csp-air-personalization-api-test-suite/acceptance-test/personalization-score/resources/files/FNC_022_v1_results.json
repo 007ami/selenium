@@ -1,0 +1,49 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DATASET_prefix",
+	"result": {
+		"score": [{
+				"carrierCode": "AA",
+				"origin": "OKO",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 1,
+				"cpValue": 1,
+				"apScore": 0.5,
+				"cpScore": 1.0,
+				"totalScore": 1.5
+			}, {
+				"carrierCode": "AB",
+				"origin": "NRT",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 1,
+				"cpValue": 1,
+				"apScore": 0.5,
+				"cpScore": 1.0,
+				"totalScore": 1.5
+			}, {
+				"carrierCode": "AC",
+				"origin": "HND",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 1,
+				"cpValue": 1,
+				"apScore": 0.5,
+				"cpScore": 1.0,
+				"totalScore": 1.5
+			}
+		],
+		"boost": {
+			"consumer": "MyCWT_Mobile",
+			"tpBoost": 0.5,
+			"cpBoost": 1.0,
+			"apBoost": 0.5,
+			"others": {
+				"Factor1": "test"
+			}
+		},
+		"meta": tp_meta_data
+		
+	}
+}

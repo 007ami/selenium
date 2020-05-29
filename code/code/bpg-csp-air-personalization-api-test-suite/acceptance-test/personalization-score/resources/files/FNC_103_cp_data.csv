@@ -1,0 +1,18 @@
+client_subunit_guid,policy_valid_from_date,policy_valid_to_date,origin,destination,carrier,cp_value,policy_order,origin_type,destination_type,B_D
+A:1234,01/01/2018,31/12/2020,JP,APAC,AC,0.2,2,Country,Global Region,D
+A:1234,01/01/2018,31/12/2020,YYYY,JP,AF,0.2,3,Global,Country,B
+A:1234,01/01/2018,31/12/2020,JP,YYYY,AF,0.2,3,Country,Global,B
+A:1234,01/01/2018,31/12/2020,JP,APAC,BA,0.2,4,Country,Global Region,B
+A:1234,01/01/2018,31/12/2020,APAC,JP,BA,0.2,4,Global Region,Country,B
+A:1234,01/01/2018,31/12/2020,JP,ASIA,BB,0.2,5,Country,Global Sub-Region,B
+A:1234,01/01/2018,31/12/2020,ASIA,JP,BB,0.2,5,Global Sub-Region,Country,B
+A:1234,01/01/2018,31/12/2020,ASIA,APAC,BD,0.2,1,Global Sub-Region,Global Region,B
+A:1234,01/01/2018,31/12/2020,APAC,ASIA,BD,0.2,1,Global Region,Global Sub-Region,B
+A:1234,01/01/2018,31/12/2020,TYO,ASIA,BE,0.2,9,City,Global Sub-Region,B
+A:1234,01/01/2018,31/12/2020,ASIA,TYO,BE,0.2,9,Global Sub-Region,City,B
+A:1234,01/01/2018,31/12/2020,JP,TYO,BF,0.2,6,Country,City,B
+A:1234,01/01/2018,31/12/2020,TYO,JP,BF,0.2,6,City,Country,B
+A:1234,01/01/2018,31/12/2020,ASIA,YYYY,BG,0.2,7,Global Sub-Region,Global,B
+A:1234,01/01/2018,31/12/2020,YYYY,ASIA,BG,0.2,7,Global,Global Sub-Region,B
+A:1234,01/01/2018,31/12/2020,APAC,YYYY,BH,0.2,8,Global Region,Global,B
+A:1234,01/01/2018,31/12/2020,YYYY,APAC,BH,0.2,8,Global,Global Region,B

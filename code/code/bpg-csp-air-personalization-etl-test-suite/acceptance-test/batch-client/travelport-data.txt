@@ -1,0 +1,106 @@
+*** Settings ***
+Suite Setup
+Test Setup        Initialize Test Environment For TravelPort
+Test Teardown     Delete Stubs
+Force Tags        travel_port    regression
+Resource          ../../resources/imports.txt
+Resource          ../resources/common.txt
+Resource          resources/batch-client.txt
+
+*** Test Cases ***
+FNC_001 Verify That ETL Process Is Successful When Lambda Function Is Triggered
+    Create Success Stub For Powerbase API    request={"urlPattern":"${wiremock_pb_url}${wiremock_tport_oauth}.+","method":"POST"}    response=${pb_oauth_response}
+    Create Success Stub For Powerbase API TravelPort Data    file=oag_tvlport_files/default_travelport_data.txt
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Replace Strings In Variables    INDEX::TVLPORT::NYC_data,TVLPORT::EWR,${EMPTY}
+    Verify Redis Hash Data    ${default_travelport_hash_data}
+    Verify Redis Set Data    ${default_travelport_set_data}
+    Verify That Redis Keys Are Correct    ${default_travelport_hash_data}|${default_travelport_set_data}|ETL::TRAVELPORT|GSM::COUNTRIES
+    Verify Redis Hash Data    GSM::COUNTRIES
+    Verify Redis List Data    ETL::TRAVELPORT,COMPLETE
+    Send GET Request For Admin Regions
+    Verify That Correct TravelPort Data Is Returned    [{'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]
+
+FNC_002 Verify That ETL Process Is Not Successful When Error Is Encountered In Powerbase API
+    Flush All Redis Keys
+    # Error 400 Bad Request
+    Create Error Stub For Endpoints    400    ${wiremock_pb_url}${wiremock_tport_uri}
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Verify That Redis Keys Are Correct    ETL::TRAVELPORT
+    Verify Redis List Data    ETL::TRAVELPORT,FAILED
+    # Error 404 Request Not Found
+    Create Error Stub For Endpoints    404    ${wiremock_pb_url}${wiremock_tport_uri}
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Verify That Redis Keys Are Correct    ETL::TRAVELPORT
+    Verify Redis List Data    ETL::TRAVELPORT,FAILED
+    # Error 500 Request Internal Server Error
+    Create Error Stub For Endpoints    500    ${wiremock_pb_url}${wiremock_tport_uri}
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Verify That Redis Keys Are Correct    ETL::TRAVELPORT
+    Verify Redis List Data    ETL::TRAVELPORT,FAILED
+    # Error 504 Gateway Timeout Error
+    Create Error Stub For Endpoints    504    ${wiremock_pb_url}${wiremock_tport_uri}
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Verify That Redis Keys Are Correct    ETL::TRAVELPORT
+    Verify Redis List Data    ETL::TRAVELPORT,FAILED
+    Send GET Request For Admin Regions
+    Verify That Correct Status Code Are Returned    204
+
+FNC_003 Verify That ETL Process Is Not Successful No Content Is Returned By Powerbase API
+    Flush All Redis Keys
+    Create Success Stub For Powerbase API    request={"urlPattern":"${wiremock_pb_url}${wiremock_tport_oauth}.+","method":"POST"}    response=${pb_oauth_response}
+    Create Success Stub For Powerbase API TravelPort Data    file=oag_tvlport_files/default_travelport_data.txt
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    # 204 No Content
+    Create Error Stub For Endpoints    204    ${wiremock_pb_url}${wiremock_tport_uri}
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Replace Strings In Variables    INDEX::TVLPORT::NYC_data,TVLPORT::EWR,${EMPTY}
+    Verify Redis Hash Data    ${default_travelport_hash_data}
+    Verify Redis Set Data    ${default_travelport_set_data}
+    Verify That Redis Keys Are Correct    ${default_travelport_hash_data}|${default_travelport_set_data}|ETL::TRAVELPORT|GSM::COUNTRIES
+    Verify Redis Hash Data    GSM::COUNTRIES
+    Verify Redis List Data    ETL::TRAVELPORT,FAILED
+    Send GET Request For Admin Regions
+    Verify That Correct TravelPort Data Is Returned    [{'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]
+
+FNC_004 Verify That Data Is Not Skipped When There Are Missing Fields And Saved As Null
+    [Tags]    not-ready
+    Create Success Stub For Powerbase API    request={"urlPattern":"${wiremock_pb_url}${wiremock_tport_oauth}.+","method":"POST"}    response=${pb_oauth_response}
+    Create Success Stub For Powerbase API TravelPort Data    file=oag_tvlport_files/missing_fields_travelport_data.txt
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Replace Strings In Variables    TVLPORT::NBP_data,"cityName":"New York",${EMPTY}|TVLPORT::ZSF_data,"regionCode":"NORAM",${EMPTY}|TVLPORT::SGL_data,"countryCode":"PH",${EMPTY}|TVLPORT::SGL_data,"gsmRegionCode":"ASA","gsmRegionCode":"PACIF"|TVLPORT::SGL_data,"gsmRegionName":"ASIA","gsmRegionName":"PACIFIC${SPACE*43}"|INDEX::TVLPORT::NYC_data,TVLPORT::EWR,${EMPTY}
+    Verify Redis Hash Data    ${default_travelport_hash_data}
+    Verify Redis Set Data    ${default_travelport_set_data}
+    Verify That Redis Keys Are Correct    ${default_travelport_hash_data}|${default_travelport_set_data}|ETL::TRAVELPORT|GSM::COUNTRIES
+    Verify Redis Hash Data    GSM::COUNTRIES
+    Verify Redis List Data    ETL::TRAVELPORT,FAILED
+    Send GET Request For Admin Regions
+    #Issue on excess response of region API is unlikely to happen
+    Comment    Verify That Correct TravelPort Data Is Returned    [{'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]
+    Verify That Correct TravelPort Data Is Returned    [{'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}, {'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryName': 'Philippines'}, {'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]
+
+FNC_005 Verify That Data Is Not Skipped When There Are Extra Fields
+    Create Success Stub For Powerbase API    request={"urlPattern":"${wiremock_pb_url}${wiremock_tport_oauth}.+","method":"POST"}    response=${pb_oauth_response}
+    Create Success Stub For Powerbase API TravelPort Data    file=oag_tvlport_files/extra_fields_travelport_data.txt
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Replace Strings In Variables    INDEX::TVLPORT::NYC_data,TVLPORT::EWR,${EMPTY}
+    Verify Redis Hash Data    ${default_travelport_hash_data}
+    Verify Redis Set Data    ${default_travelport_set_data}
+    Verify That Redis Keys Are Correct    ${default_travelport_hash_data}|${default_travelport_set_data}|ETL::TRAVELPORT|GSM::COUNTRIES
+    Verify Redis Hash Data    GSM::COUNTRIES
+    Verify Redis List Data    ETL::TRAVELPORT,COMPLETE
+    Send GET Request For Admin Regions
+    Verify That Correct TravelPort Data Is Returned    [{'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]
+
+FNC_006 Verify The TravelPort Data When CityCode And Metropolitan Area Code Is Different
+    Create Success Stub For Powerbase API    request={"urlPattern":"${wiremock_pb_url}${wiremock_tport_oauth}.+","method":"POST"}    response=${pb_oauth_response}
+    Create Success Stub For Powerbase API TravelPort Data    file=oag_tvlport_files/metropolitan.txt
+    Trigger Lambda Function    ${travelport_lambda_func}    ETL::TRAVELPORT
+    Replace Strings In Variables    TVLPORT::LGA_data,"gsmRegionName":"US/CA","gsmRegionName":"US/CA","metropolitanArea":"NYC"
+    Verify Redis Hash Data    ${default_travelport_hash_data}|TVLPORT::EWR|TVLPORT::OGG
+    Verify Redis Set Data    ${default_travelport_set_data}|INDEX::TVLPORT::EWR|INDEX::TVLPORT::OGG|INDEX::TVLPORT::QKA
+    Verify That Redis Keys Are Correct    ${default_travelport_hash_data}|${default_travelport_set_data}|ETL::TRAVELPORT|GSM::COUNTRIES|INDEX::TVLPORT::EWR|TVLPORT::EWR|INDEX::TVLPORT::OGG|INDEX::TVLPORT::QKA|TVLPORT::OGG
+    Verify Redis Hash Data    GSM::COUNTRIES
+    Verify Redis List Data    ETL::TRAVELPORT,COMPLETE
+    Send GET Request For Admin Regions
+    Verify That Correct TravelPort Data Is Returned    [{'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]

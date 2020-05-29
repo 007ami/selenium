@@ -1,0 +1,5 @@
+*** Settings ***
+Force Tags        aggregate    regression
+Resource          resources/aggregate.txt
+Resource          ../resources/common.txt
+Resource          ../../resources/imports.txt

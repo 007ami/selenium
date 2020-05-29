@@ -1,0 +1,37 @@
+*** Settings ***
+Force Tags        security    regression
+Resource          ../../resources/imports.txt
+Resource          resources/personalization-score.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    Generate Test Variables For Get Personalization Score    token=${invalid_gw_token}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    [Tags]    not-ready
+    Generate Test Variables For Get Personalization Score    token=${${env}_gw_expired_token}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is invalid or has expired","error":"invalid_token"}
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    Generate Test Variables For Get Personalization Score    token=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    Generate Test Variables For Get Personalization Score    token=null
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    Generate Test Variables For Get Personalization Score    token=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={"error_description":"The access token is missing","error":"invalid_request"}

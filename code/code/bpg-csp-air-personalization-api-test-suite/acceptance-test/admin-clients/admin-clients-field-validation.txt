@@ -1,0 +1,51 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-clients.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That clientTopId Is Not Required When Retrieving Client Top Data
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Clients    ctu_guid=ABC 123 !@#%
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Clients    ctu_guid=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Clients    ctu_guid=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+
+FV_002 Verify That clientSubId Is Not Required When Retrieving Client Sub Data
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Clients    ctu_guid=test1    csu_guid=ABC 123 !@#%
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # Blank
+    Generate Test Variables For Get Clients    ctu_guid=test1    csu_guid=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+    # None
+    Generate Test Variables For Get Clients    ctu_guid=test1    csu_guid=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    204
+
+FV_003 Verify That txnId Is Not Required When Retrieving Client Data
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Clients    txn_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Get Clients    txn_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Delete Rules Collecton In MongoDB
+    Generate Test Variables For Get Clients    txn_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200

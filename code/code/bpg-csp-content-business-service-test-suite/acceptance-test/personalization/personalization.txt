@@ -1,0 +1,207 @@
+*** Settings ***
+Force Tags        functional    regression    V1    V2    V2.2    V3
+Resource          ../../resources/imports.txt
+Resource          ../resources/common.txt
+Resource          resources/personalization.txt
+
+*** Test Cases ***
+FNC_007 Response Contains The Same Transaction ID Supplied In The Request
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    txn_id=ABCD12345
+    Generate Test Variables And Data For Boost
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+
+FNC_008 Response Contains A System Generated Transaction ID When Not Supplied In The Request
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    txn_id=None
+    Generate Test Variables And Data For Boost
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+
+FNC_009 Score Is Successfully Retrieved When experimentGroupTypeCode Is Available
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Personalization Score    prefix=B    csu_guid=C:1234
+    Create Test Data For Metadata    group=B
+    # Single Matching AP, CP and Boost Data
+    Generate Test Variables And Data For Agency Preferences    ap_version=V1    ap_carrier_code=DAL    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_version=V1    cp_carrier_code=DAL    cp_policy_order=1
+    Generate Test Variables And Data For Boost    boost_tp=0.5    boost_ap=0.3    boost_cp=0.7
+    # Non-Matching AP, CP and Boost Data
+    Generate Test Variables And Data For Agency Preferences    ap_version=V0    ap_carrier_code=AD    ap_score=0.2    ap_version_override=true
+    Generate Test Variables And Data For Client Preferences    cp_version=V0    cp_carrier_code=AD    cp_score=0.8
+    Generate Test Variables And Data For Boost    boost_version=V0    boost_tp=0.4    boost_ap=0.2    boost_cp=0.8
+    Send Personalization Score Request
+    #Content Personalization Request
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    prefix=B    csu_guid=C:1234
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Content Personalization Response Is Same As Personalization Score
+
+FNC_013 Verify The Eligibility And Score When Origin-Destination Code Type Is City
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Create TP Meta Data
+    Add Rules In Redis    .*?::.*?::.*?::.*?::.*?::.*?::.*?::OKO::.*?::.*?::CEF::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::HND::.*?::.*?::.*?::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::CEF::.*?::ON|.*?::.*?::.*?::.*?::.*?::.*?::.*?::NRT::.*?::.*?::ZSF::.*?::ON
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Personalization Score    csu_guid=C:1234    iss_country=JP    origin=TYO    destination=SFY    dep_date=20181212    app_id=MyCWT_Mobile
+    ...    origin_code_type=C    destination_code_type=C
+    Create Test Data For Metadata
+    # Multiple Matching AP Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_origin=A_OKO    ap_destination=A_CEF    ap_score=0.4
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AB    ap_origin=A_NRT    ap_destination=A_CEF    ap_score=0.5
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AC    ap_origin=A_HND    ap_destination=A_CEF    ap_score=0.6
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AD    ap_origin=A_OKO    ap_destination=A_ZSF    ap_score=0.7
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AE    ap_origin=A_NRT    ap_destination=A_ZSF    ap_score=0.8
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AF    ap_origin=A_HND    ap_destination=A_ZSF    ap_score=0.9
+    # Multiple Matching CP Data
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=C:1234    cp_carrier_code=AA    cp_origin=A_OKO    cp_destination=A_CEF    cp_score=0.4
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=C:1234    cp_carrier_code=AB    cp_origin=A_NRT    cp_destination=A_CEF    cp_score=0.5
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=C:1234    cp_carrier_code=AC    cp_origin=A_HND    cp_destination=A_CEF    cp_score=0.6
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=C:1234    cp_carrier_code=AD    cp_origin=A_OKO    cp_destination=A_ZSF    cp_score=0.7
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=C:1234    cp_carrier_code=AE    cp_origin=A_NRT    cp_destination=A_ZSF    cp_score=0.8
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=C:1234    cp_carrier_code=AF    cp_origin=A_HND    cp_destination=A_ZSF    cp_score=0.9
+    # Single Matching Boost Data
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.7    boost_cp=0.4
+    Send Personalization Score Request
+    #Content Personalization Request
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    csu_guid=C:1234    iss_country=JP    origin=TYO    destination=SFY    dep_date=20181212    app_id=MyCWT_Mobile
+    ...    origin_code_type=C    destination_code_type=C
+    Send Content Personalization Score Request
+    Verify That Response Headers Are Correct
+    Verify That Content Personalization Response Is Same As Personalization Score
+
+FNC_015 Verify The Error Message When There Is No Feature Configuration Data
+    Comment    Delete All Redis Keys Using Pattern    V1::BOOST::CWT_TEST::1
+    Comment    Delete All Redis Keys Using Pattern    V2::BOOST::1
+    Add Rules In Redis    ${all_match}
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Create TP Meta Data
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    app_id=CWT_TEST
+    Create Test Data For Metadata    app_id=CWT_TEST
+    # Single Matching AP Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_US    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Send Content Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4018", "errorMsg": "No Personalization configuration found"}
+
+FNC_016 No Traveler Preference Is Retrieved When Traveler Guid And Default TP Data Is Not Available In Redis
+    Delete All Redis Keys Using Pattern    V1::TRAVELER::${v1_tp_ref_key}
+    Delete All Redis Keys Using Pattern    V2::TRAVELER::${v2_tp_ref_key}
+    Add Rules In Redis    ${all_match}
+    Create TP Meta Data
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    trv_guid=B:5678
+    Create Test Data For Metadata
+    Generate Test Data For Traveler Preference    V1,A:1234
+    # Non-Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_US    ap_origin=A_SIN    ap_destination=A_MNL    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AA    cp_origin=A_SIN    cp_destination=A_MNL    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    400
+    Verify That Response Headers Are Correct
+    Verify That Error Response Is Returned    error_endpoint=PERSONALIZATION    error_status=BAD_REQUEST    error_message={"errorCode": "4014", "errorMsg": "Traveler/Default preference not found"}
+    Generate Test Data For Traveler Preference    V1,DEFAULT
+    Generate Test Data For Traveler Preference    V2,DEFAULT
+
+FNC_017 Default Traveler Preference Is Retrieved When Traveler Guid Is Not Available In Redis
+    Add Rules In Redis    ${all_match}
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Data For Features
+    Generate Test Variables For Personalization Score    trv_guid=B:5678
+    Create Test Data For Metadata
+    # Single Matching AP, CP And Bosst Data
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_US    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_csu_guid=A:1234    cp_carrier_code=AA    cp_origin=A_JFK    cp_destination=A_LHR    cp_score=0.2
+    Generate Test Variables And Data For Boost    boost_app_id=MyCWT_Mobile    boost_ap=0.9    boost_cp=0.8
+    Send Personalization Score Request
+    #Content Personalization Request
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    trv_guid=B:5678
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Content Personalization Response Is Same As Personalization Score
+
+FNC_018 Score Is Successfully Retrieved With AP And CP Data With Dynamic Score
+    Add Rules In Redis    ${all_match}
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Create TP Meta Data
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Personalization Score    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR
+    # Multiple Matching AP Data With Origin Airport
+    Generate Test Data For Agency Preferences From File    file=FNC_075_ap_data.csv
+    # Multiple Matching CP Data
+    Generate Test Data For Client Preferences From File    file=FNC_075_cp_data.csv
+    #Matching Boost Data
+    Generate Test Variables And Data For Boost    boost_ap=0.3    boost_cp=0.3
+    Send Personalization Score Request
+    #Content Personalization Request
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    csu_guid=A:1234    iss_country=GB    origin=JFK    destination=LHR
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Content Personalization Response Is Same As Personalization Score
+
+FNC_104 Verify The Eligibility Using Specific pcc Rule Only For Desktop_Amadeus
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Add Rules In Redis    .*?::.*?::A1234::.*?::.*?::.*?::.*?::.*?::.*?::.*?::.*?::DESKTOP_AMADEUS::ON
+    Get Authorization Token
+    Generate Test Data For Features    app_id=Desktop_Amadeus
+    #Matching pcc rules
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Personalization Score    pcc=A1234    app_id=Desktop_Amadeus
+    Create TP Meta Data
+    Create Test Data For Metadata    app_id=Desktop_Amadeus
+    Create Test Data For Metadata    app_id=Desktop_Amadeus    group=DEFAULT
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=BC    ap_score=0.1
+    Generate Test Variables And Data For Client Preferences    cp_carrier_code=BC    cp_policy_order=1
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    #Content Personalization Request
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    pcc=A1234    app_id=Desktop_Amadeus
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Content Personalization Response Is Same As Personalization Score
+
+FNC_108 Score Is Successfully Retrieved When Duplicate Data Exists Per Distinct Sets (MC,CC,VC) (v2.2)
+    [Documentation]    *Request* -- Airport To Airport
+    ...
+    ...    *Scenario:*
+    ...    -- Multiple AP Duplicates Matches For Each Cabin Class
+    ...    -- Multiple CP Duplicates Matches with hierarchy and different/same Policy Order For Each Carrier Code
+    [Tags]    V1    V2    V2.2    V3
+    Add Rules In Redis    ${all_match}
+    Generate Test Data For Traveler Preference    V1,S:0986
+    Get Authorization Token For Personalization Score
+    Generate Test Variables For Personalization Score    csu_guid=A:1234    iss_country=US    origin=JFK    destination=LHR    dep_date=20190912    booking_date=20180712
+    Create TP Meta Data
+    Create Test Data For Metadata
+    # Multiple Matching CP Data
+    Generate Test Data For Agency Preferences From File    file=FNC_108_ap_data.csv
+    # Multiple Matching CP Data
+    Generate Test Data For Client Preferences From File    file=FNC_108_cp_data.csv
+    #Matching Boost Data
+    Generate Test Variables And Data For Boost    boost_ap=0.3    boost_cp=0.3
+    Send Personalization Score Request
+    #Content Personalization Request
+    Get Authorization Token For Content Personalization
+    Generate Test Variables For Content Personalization Score    csu_guid=A:1234    iss_country=US    origin=JFK    destination=LHR    dep_date=20190912    booking_date=20180712
+    Send Content Personalization Score Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Content Personalization Response Is Same As Personalization Score

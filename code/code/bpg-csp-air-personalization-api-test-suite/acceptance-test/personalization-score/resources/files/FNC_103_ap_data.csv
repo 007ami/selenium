@@ -1,0 +1,11 @@
+row_id,departure _start _date,departure_ end_ date,origin,destination,origin_type,destination_ type,point_ of_ sale_ code,point_ of_ sale_ type,marketing_ carrier_ code,direction_ type,policy_ order,cabin_ class,booking_ start_ date,booking_ end_ date,validating_ carrier_ code
+2,01/01/2018,31/12/2020,JP,OKO,Country,Airport,SG,Country,AA,D,3,F,01/01/2018,31/08/2020,AA
+2,01/01/2018,31/12/2020,JP,JP,Country,Country,SG,Country,AB,D,3,F,01/01/2018,31/08/2020,AA
+2,01/01/2018,31/12/2020,JP,ASA,Country,Region,SG,Country,AC,B,3,F,01/01/2018,31/08/2020,AA
+2,01/01/2018,31/12/2020,ASA,JP,Region,Country,SG,Country,AC,B,3,F,01/01/2018,31/08/2020,AA
+2,01/01/2018,31/12/2020,JP,YYYY,Country,Global,SG,Country,AD,D,3,F,09/01/2018,31/08/2020,AA
+4,01/01/2018,31/12/2020,YYYY,OKO,Global,Airport,SG,Country,AE,D,5,F,09/01/2018,31/08/2020,AA
+4,01/01/2018,31/12/2020,YYYY,JP,Global,Country,SG,Country,AF,B,5,F,01/01/2018,31/08/2020,AA
+4,01/01/2018,31/12/2020,JP,YYYY,Country,Global,SG,Country,AF,B,5,F,01/01/2018,31/08/2020,AA
+4,01/01/2018,31/12/2020,YYYY,ASA,Global,Region,SG,Country,AG,D,5,F,01/01/2018,31/08/2020,AA
+4,01/01/2018,31/12/2020,YYYY,YYYY,Global,Global,SG,Country,AH,D,5,F,01/01/2018,31/08/2020,AA

@@ -1,0 +1,10 @@
+client_subunit_guid,policy_valid_from_date,policy_valid_to_date,origin,destination,carrier,cp_value,policy_order,origin_type,destination_type,B_D
+B:456,01/01/2018,31/12/2020,JFK,LHR,BC,0.2,1,Airport,Airport,D
+C:1234,12/12/2018,15/12/2018,JFK,LHR,AN,0.2,1,Airport,Airport,D
+C:1234,01/01/2018,31/12/2020,OKO,NORAM,BK,0.6,3,Airport,Region,D
+C:1234,01/01/2018,31/12/2020,YYYY,ZSF,BL,0.7,4,Global,City,D
+C:1234,01/01/2018,31/12/2020,OKO,LHR,BA,0.7,3,Airport,Airport,D
+C:1234,01/01/2018,31/12/2020,NRT,LHR,BB,0.8,1,Airport,Airport,D
+C:1234,01/01/2018,31/12/2020,HND,LHR,BC,0.9,2,Airport,Airport,D
+D:1234,01/01/2018,31/12/2020,ASIA,CEF,BD,0.9,2,Globa Sub-Region,Airport,D
+D:1235,01/01/2018,31/12/2020,YYYY,YYYY,BE,0.9,2,Global,Global,D

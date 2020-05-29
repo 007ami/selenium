@@ -1,0 +1,35 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../../resources/imports.txt
+Resource          ../../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Get Portrait Membership
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${trv_guid}=A:4029AE25
+    Set Test Variable    ${context_path}    ${context_path_cbs}
+    Set Test Variable    ${endpoint}    ${context_path}/portrait/membership
+    ${query_param_list}    Create Dictionary
+    Run Keyword If    "${trv_guid}"!="None"    Set To Dictionary    ${query_param_list}    travelerGUID    ${trv_guid}
+    Set Test Variable    ${query_param_list}
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${trv_guid}
+    Set Test Variable    ${token}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+    Set Test Variable    ${token}
+
+Verify That Portrait Membership Is Returned
+    [Arguments]    ${expected_result}
+    Set Test Variable    ${expected_result}
+    ${expected_result}    Evaluate    json.loads('''${expected_result}''')    json
+    Set Test Variable    ${JSON_dict1_parsed}    ${expected_result}
+    Set Test Variable    ${JSON_dict2_parsed}    ${response.json()}
+    Run Keyword And Continue On Failure    Verify Array Items    key=${EMPTY}

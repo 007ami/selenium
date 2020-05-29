@@ -1,0 +1,5 @@
+*** Settings ***
+Suite Setup       Initialize Test Data For Score API
+Force Tags        personalization_score
+Resource          ../resources/common.txt
+Resource          ../admin-features/resources/admin-features.txt

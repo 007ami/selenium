@@ -1,0 +1,3 @@
+*** Settings ***
+Force Tags        admin_clients
+Resource          ../authenticate/resources/authenticate.txt

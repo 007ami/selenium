@@ -1,0 +1,29 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DATASET_A",
+	"result": {
+		"score": [{
+				"carrierCode": "BC",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "US",
+				"apValue": 1,
+				"cpValue": 1,
+				"apScore": 0.3,
+				"cpScore": 0.7,
+				"totalScore": 1.0
+			}
+		],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"consumer": "Desktop_Amadeus",
+			"tpBoost": 0.5,
+			"cpBoost": 0.7,
+			"apBoost": 0.3,
+			"others": {
+				"Factor1": "test"
+			}
+		},
+		"meta": tp_meta_data
+	}
+}

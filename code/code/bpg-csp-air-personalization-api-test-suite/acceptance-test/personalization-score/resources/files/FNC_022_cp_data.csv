@@ -1,0 +1,5 @@
+client_subunit_guid,policy_valid_from_date,policy_valid_to_date,origin,destination,carrier,cp_value,policy_order,origin_type,destination_type,B_D
+C:1234,01/01/2018,31/12/2020,OKO,CEF,AA,0.3,1,Airport,Airport,D
+C:1234,01/01/2018,31/12/2020,NRT,CEF,AB,0.4,2,Airport,Airport,D
+C:1234,01/01/2018,31/12/2020,HND,CEF,AC,0.2,3,Airport,Airport,D
+C:1234,01/01/2018,31/12/2020,SFY,TYO,CA,0.6,1,City,City,D

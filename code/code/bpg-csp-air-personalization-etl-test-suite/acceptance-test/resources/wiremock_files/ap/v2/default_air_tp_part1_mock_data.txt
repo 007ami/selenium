@@ -1,0 +1,10 @@
+{"traveler_guid":"51:2228E954","carrier":[{"code":"CA","value":0.9}]}
+{"traveler_guid":"52:2333A18F","carrier":[{"code":"CB","value":0.8}]}
+{"traveler_guid":"53:1E2C3CA4","carrier":[{"code":"CC","value":0.1}]}
+{"traveler_guid":"54:22D5382E","carrier":[{"code":"CD","value":0.8}]}
+{"traveler_guid":"55:22D5CF7C","carrier":[{"code":"CE","value":0.8}]}
+{"traveler_guid":"56:1FD01222","carrier":[{"code":"CF","value":0.3}]}
+{"traveler_guid":"57:22D614AA","carrier":[{"code":"CH","value":0.2}]}
+{"traveler_guid":"58:23E8EA37","carrier":[{"code":"CI","value":0.3}]}
+{"traveler_guid":"59:21BF7F72","carrier":[{"code":"CJ","value":0.6}]}
+{"traveler_guid":"60:22D5CAD9","carrier":[{"code":"CK","value":0.4}]}

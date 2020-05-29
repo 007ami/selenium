@@ -1,0 +1,4 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        admin_score    not-ready
+Resource          ../resources/common.txt

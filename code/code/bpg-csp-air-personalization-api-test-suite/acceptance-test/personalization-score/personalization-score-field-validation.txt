@@ -1,0 +1,671 @@
+*** Settings ***
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/personalization-score.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That travelerGUID Is Correct When Sending A Personalization Score Request
+    [Documentation]    >> Required For Get Request (V1,V2.V2.2)
+    ...
+    ...    >> Not Required For Post Request V3
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    trv_guid=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+    Verify Error Message When Version Is V2    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+    Verify Error Message When Version Is V2.2    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+    Verify Error Message When Version Is V3    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+    # Blank
+    Generate Test Variables For Personalization Score    trv_guid=${EMPTY}
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+    Verify Error Message When Version Is V2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+    Verify Error Message When Version Is V2.2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+    Verify Error Message When Version Is V3    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+    # None
+    Generate Test Variables For Personalization Score    trv_guid=None
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+    Verify Error Message When Version Is V2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+    Verify Error Message When Version Is V2.2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=travelerGUID: must not be blank
+    Verify Error Message When Version Is V3    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+    # Null
+    Generate Test Variables For Personalization Score    trv_guid=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=4014    error_message=Traveler/Default preference not found
+
+FV_002 Verify That clientSubGUID Is Correct When Sending A Personalization Score Request
+    [Documentation]    >> Required For Get Request (V1,V2.V2.2)
+    ...
+    ...    >> Not Required For Post Request V3
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    csu_guid=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    csu_guid=${EMPTY}
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+    Verify Error Message When Version Is V2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+    Verify Error Message When Version Is V2.2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+    Verify The Personalization Score When Version Is V3
+    # None
+    Generate Test Variables For Personalization Score    csu_guid=None
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+    Verify Error Message When Version Is V2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+    Verify Error Message When Version Is V2.2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=clientSubGUID: must not be blank
+    Verify The Personalization Score When Version Is V3
+    # Null
+    Generate Test Variables For Personalization Score    csu_guid=null
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V3
+
+FV_003 Verify That issuingCountry Is Required When Sending A Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    iss_country=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    iss_country=${EMPTY}
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+    Verify Error Message When Version Is V2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+    Verify Error Message When Version Is V2.2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=ticketIssuingCountry: must not be blank
+    # None
+    Generate Test Variables For Personalization Score    iss_country=None
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+    Verify Error Message When Version Is V2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+    Verify Error Message When Version Is V2.2    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=issuingCountry: must not be blank
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=ticketIssuingCountry: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    iss_country=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=ticketIssuingCountry: must not be blank
+
+FV_004 Verify That departureDate Is Required When Sending A Personalization Score Request
+    [Documentation]    >> Required For Both Get/ Post Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters (Invalid Date Format)
+    Generate Test Variables For Personalization Score    dep_date=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: should be a valid date format - yyyyMMdd
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Personalization Score    dep_date=12/12/2018
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: should be a valid date format - yyyyMMdd
+    # Blank
+    Generate Test Variables For Personalization Score    dep_date=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: must not be blank
+    # None
+    Generate Test Variables For Personalization Score    dep_date=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    dep_date=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=departureDate: must not be blank
+
+FV_005 Verify That arrivalDate Is Correct When Sending A Personalization Score Request
+    [Documentation]    >> Not Required For Get Request
+    ...
+    ...    >> Required For Post Request
+    [Tags]    V1    V2    V2.2
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Personalization Score    arr_date=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalDate: should be a valid date format - yyyyMMdd
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Personalization Score    arr_date=12/12/2018
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalDate: should be a valid date format - yyyyMMdd
+    # Blank
+    Generate Test Variables For Personalization Score    arr_date=${EMPTY}
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V1
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalDate: must not be blank
+    # None
+    Generate Test Variables For Personalization Score    arr_date=None
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V1
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalDate: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    arr_date=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalDate: must not be blank
+
+FV_006 Verify That cabinType Is Not Required When Sending A Personalization Score Request
+    [Tags]    not-ready
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Get Personalization Score    cabin_type=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Get Personalization Score    cabin_type=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Personalization Score    cabin_type=None
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+
+FV_007 Verify That origin Is Required When Sending A Personalization Score Request
+    [Documentation]    Required For Both Get/Post Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    origin=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4020    error_message=No matching travel ports for origin in request
+    # Blank
+    Generate Test Variables For Personalization Score    origin=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=origin: must not be blank
+    # None
+    Generate Test Variables For Personalization Score    origin=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=origin: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    origin=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=origin: must not be blank
+    # Same Origin And Destination Airport
+    Generate Test Variables For Personalization Score    origin=JFK    destination=JFK
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=invalidRouteRequest: origin and destination must be different
+
+FV_008 Verify That destination Is Required When Sending A Personalization Score Request
+    [Documentation]    Required For Both Get/Post Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    destination=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4021    error_message=No matching travel ports for destination in request
+    # Blank
+    Generate Test Variables For Personalization Score    destination=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destination: must not be blank
+    # None
+    Generate Test Variables For Personalization Score    destination=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destination: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    destination=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=destination: must not be blank
+    # Same Origin And Destination City
+    Generate Test Variables For Personalization Score    origin=NYC    origin_code_type=C    destination=NYC    destination_code_type=C
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=invalidRouteRequest: origin and destination must be different
+
+FV_009 Verify That numberOfRows Is Not Required When Sending A Personalization Score Request
+    [Tags]    not-ready
+    # Letters
+    Generate Test Variables For Get Personalization Score    rows=ABC
+    Generate Test Variables And Data For Boost
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=numberOfRows: should be a counting number
+    # Special Characters
+    Generate Test Variables For Get Personalization Score    rows=!@# $%^
+    Send GET request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=numberOfRows: should be a counting number
+    # Blank
+    Generate Test Variables For Get Personalization Score    rows=${EMPTY}
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Get Personalization Score    rows=None
+    Send GET request
+    Verify That Response Status Code Is Correct    200
+
+FV_010 Verify That originCodeType Is Required When Sending A Personalization Score Request
+    [Documentation]    Required For Both Get/Post Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    origin_code_type=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Personalization Score    origin_code_type=B
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    #Numbers
+    Generate Test Variables For Personalization Score    origin_code_type=123
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    #Special Characters
+    Generate Test Variables For Personalization Score    origin_code_type=!
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    # Blank
+    Generate Test Variables For Personalization Score    origin_code_type=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: must not be blank;originCodeType: should be 'A' when origin is an airport code, 'C' when city code
+    # None
+    Generate Test Variables For Personalization Score    origin_code_type=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    origin_code_type=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=originCodeType: must not be blank
+
+FV_011 Verify That destinationCodeType Is Required When Sending A Personalization Score Request
+    [Documentation]    Required For Both Get/Post Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    destination_code_type=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    #Any Letters Aside From "A" and "C"
+    Generate Test Variables For Personalization Score    destination_code_type=B
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    #Numbers
+    Generate Test Variables For Personalization Score    destination_code_type=123
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    #Special Characters
+    Generate Test Variables For Personalization Score    destination_code_type=!
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    # Blank
+    Generate Test Variables For Personalization Score    destination_code_type=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: must not be blank;destinationCodeType: should be 'A' when destination is an airport code, 'C' when city code
+    # None
+    Generate Test Variables For Personalization Score    destination_code_type=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    destination_code_type=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=destinationCodeType: must not be blank
+
+FV_012 Verify That txnId Is Not Required When Sending A Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    txn_id=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    txn_id=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Personalization Score    txn_id=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_013 Verify That appId Is Required When Sending A Personalization Score Request
+    [Documentation]    Required For Both Get/Post Request
+    [Tags]    V1    V2    V2.2    V3
+    Generate Test Data For Features    app_id=ABC 123 !@# $%^    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    app_id=ABC 123 !@# $%^
+    Create Test Data For Metadata    app_id=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    app_id=${EMPTY}
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    400    error_code=INPUT_VALIDATION_ERROR    error_message=getScoreV1.appId: must not be blank
+    Verify Error Message When Version Is V2    400    error_code=INPUT_VALIDATION_ERROR    error_message=getScore.appId: must not be blank
+    Verify Error Message When Version Is V2.2    400    error_code=INPUT_VALIDATION_ERROR    error_message=getScoreV2r2.appId: must not be blank
+    Verify Error Message When Version Is V3    400    error_code=INPUT_VALIDATION_ERROR    error_message=appId: must not be blank
+    # None
+    Generate Test Variables For Personalization Score    app_id=None
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    400    error_code=INPUT_VALIDATION_ERROR    error_message=Missing request header 'appId' for method parameter of type String
+    Verify Error Message When Version Is V2    400    error_code=INPUT_VALIDATION_ERROR    error_message=Required String parameter 'appId' is not present
+    Verify Error Message When Version Is V2.2    400    error_code=INPUT_VALIDATION_ERROR    error_message=Required String parameter 'appId' is not present
+    Verify Error Message When Version Is V3    400    error_code=INPUT_VALIDATION_ERROR    error_message=appId: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    app_id=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    400    error_code=INPUT_VALIDATION_ERROR    error_message=appId: must not be blank
+
+FV_015 Verify That Project Algorithm Is Required When Sending A Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    Delete All Redis Keys Using Pattern    ALGORITHM::*
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Generate Test Variables For Personalization Score
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_US    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    400    error_code=4017    error_message=Project Algorithm not found
+    Verify Error Message When Version Is V2    400    error_code=4019    error_message=No data available for experiment type code in request, control and default groups
+    Verify Error Message When Version Is V2.2    400    error_code=4019    error_message=No data available for experiment type code in request, control and default groups
+    Verify Error Message When Version Is V3    400    error_code=4019    error_message=No data available for experiment type code in request, control and default groups
+
+FV_016 Verify That Feature Is Required When Sending A Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    Delete All Redis Keys Using Pattern    CONFIG::FEATURE*
+    Clear Cache
+    Get Authorization Token
+    Generate Test Variables For Personalization Score
+    Generate Test Variables And Data For Agency Preferences    ap_carrier_code=AA    ap_iss_country=C_US    ap_origin=A_JFK    ap_destination=A_LHR    ap_score=0.1
+    Create Test Data For Metadata
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4018    error_message=No Personalization configuration found
+
+FV_017 Verify That experimentGroupTypeCode Is Not Required When Sending A Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    Create Test Data For Metadata
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    prefix=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    400    error_code=INPUT_VALIDATION_ERROR    error_message=getScoreV1.useDataSet: allowed values: DATASET_A and DATASET_B or A-Z
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify The Personalization Score When Version Is V3
+    # Blank
+    Generate Test Variables For Personalization Score    prefix=${EMPTY}
+    Send Personalization Score Request
+    Verify Error Message When Version Is V1    400    error_code=INPUT_VALIDATION_ERROR    error_message=getScoreV1.useDataSet: allowed values: DATASET_A and DATASET_B or A-Z
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify The Personalization Score When Version Is V3
+    # None
+    Generate Test Variables For Personalization Score    prefix=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Personalization Score    prefix=null
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V3
+
+FV_018 Verify That pcc Is Correct When Sending A Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    Create Test Data For Metadata
+    # Letters/Special Characters/Numbers
+    Generate Test Variables For Personalization Score    pcc=ABC !@# $% 123
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    pcc=${EMPTY}
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V1
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=pcc: must not be blank
+    # None
+    Generate Test Variables For Personalization Score    pcc=None
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V1
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=pcc: must not be blank
+    # Null
+    Generate Test Variables For Personalization Score    pcc=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=pcc: must not be blank
+
+FV_019 Verify That bookingDate Is Correct When Sending A Personalization Score Request
+    [Documentation]    Required For Both Get/Post Request
+    [Tags]    V1    V2    V2.2
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Personalization Score    booking_date=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=bookingDate: should be a valid date format - yyyyMMdd
+    # MM/DD/YYYY (Invalid Date Format)
+    Generate Test Variables For Personalization Score    booking_date=12/12/2018
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=bookingDate: should be a valid date format - yyyyMMdd
+    # Blank
+    Generate Test Variables For Personalization Score    booking_date=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=bookingDate: should be a valid date format - yyyyMMdd
+    # None
+    Generate Test Variables For Personalization Score    booking_date=None
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V1
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Comment    Verify Error Message When Version Is V3    400    error_code=INPUT_VALIDATION_ERROR    error_message=bookingDate: must not be blank
+    # Null
+    Comment    Generate Test Variables For Personalization Score    booking_date=null
+    Comment    Send Personalization Score Request
+    Comment    Verify Error Message When Version Is V3    400    error_code=INPUT_VALIDATION_ERROR    error_message=bookingDate: must not be blank
+
+FV_020 Verify That gdsProfileId Is Not Required When Sending A Personalization Score Request
+    [Tags]    V3    not-ready
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    gds_profile_id=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    gds_profile_id=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Personalization Score    gds_profile_id=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Personalization Score    gds_profile_id=null
+    Send Personalization Score Request
+    Verify Error Message When Version Is V3    error_status=400    error_code=INPUT_VALIDATION_ERROR    error_message=gdsProfileId: must not be null
+
+FV_021 Verify That cabinClass Is Not Required When Sending A Personalization Score Request
+    [Tags]    V3    not-ready
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Personalization Score    cabin_class=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    cabin_class=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Personalization Score    cabin_class=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Personalization Score    cabin_class=null
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_022 Verify That departureTime Is Not Required When Sending A Personalization Score Request
+    [Tags]    V3
+    # Letters/Numbers/Special Characters (Invalid Time Format)
+    Generate Test Variables For Personalization Score    dep_time=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureTime: should be a valid 24HR time format - HH:mm
+    # HH:MM AM/PM (Invalid Time Format)
+    Generate Test Variables For Personalization Score    dep_time=06:00PM
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureTime: should be a valid 24HR time format - HH:mm
+    # Blank
+    Generate Test Variables For Personalization Score    dep_time=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=departureTime: should be a valid 24HR time format - HH:mm
+    # None
+    Generate Test Variables For Personalization Score    dep_time=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Personalization Score    dep_time=null
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_023 Verify That arrivalTime Is Required When Sending A Personalization Score Request
+    [Tags]    V3    not-ready
+    # Letters/Numbers/Special Characters (Invalid Time Format)
+    Generate Test Variables For Personalization Score    arr_time=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalTime: should be a valid 24HR time format - HH:mm
+    # HH:MM AM/PM (Invalid Time Format)
+    Generate Test Variables For Personalization Score    arr_time=04:00PM
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalTime: should be a valid 24HR time format - HH:mm
+    # Blank
+    Generate Test Variables For Personalization Score    arr_time=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=INPUT_VALIDATION_ERROR    error_message=arrivalTime: should be a valid 24HR time format - HH:mm
+    # None
+    Generate Test Variables For Personalization Score    arr_date=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Personalization Score    arr_date=null
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_024 Verify That bookingPlatform Is Not Required When Sending A Personalization Score Request
+    [Tags]    V3
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Personalization Score    booking_platform=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    booking_platform=${EMPTY}
+    Send Personalization Score Request
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Personalization Score    booking_platform=None
+    Send Personalization Score Request
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Personalization Score    booking_platform=null
+    Send Personalization Score Request
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_025 Verify That bookingPlatformVersion Is Not Required When Sending A Personalization Score Request
+    [Tags]    V3
+    Generate Test Data For Features    app_id=MyCWT_Mobile    oag_value=false    cp_pass=false    default_tp=false
+    Clear Cache    personalizationConfig
+    Get Authorization Token
+    Create Test Data For Metadata
+    # Letters/Numbers/Special Characters(Invalid Date Format)
+    Generate Test Variables For Personalization Score    booking_platform_version=ABC 123 !@# $%^
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    booking_platform_version=${EMPTY}
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Personalization Score    booking_platform_version=None
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Personalization Score    booking_platform_version=null
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+
+FV_026 Verify That agentId Is Not Required When Sending A Personalization Score Request
+    [Tags]    V1    V2    V2.2    V3
+    Create Test Data For Metadata
+    # Letters/Special Characters/Numbers
+    Generate Test Variables For Personalization Score    agent_id=ABC !@# $% 123
+    Generate Test Variables And Data For Boost
+    Send Personalization Score Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Personalization Score    agent_id=${EMPTY}
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V1
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify The Personalization Score When Version Is V3
+    # None
+    Generate Test Variables For Personalization Score    agent_id=None
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V1
+    Verify The Personalization Score When Version Is V2
+    Verify The Personalization Score When Version Is V2.2
+    Verify The Personalization Score When Version Is V3
+    # Null
+    Generate Test Variables For Personalization Score    agent_id=null
+    Send Personalization Score Request
+    Verify The Personalization Score When Version Is V3

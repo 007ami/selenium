@@ -1,0 +1,53 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Get Regions
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Test Variable    ${endpoint}    ${context_path}-admin/regions
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+
+Verify Specific TravelPort Data
+    ${actual_response_item}    Evaluate    json.dumps('''${response.json()}''')    json
+    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'    1
+    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    Run Keyword And Continue On Failure    Should Be Equal    ${expected_result}    ${actual_response_item}
+
+Verify That Correct TravelPort Data Is Returned
+    [Arguments]    ${expected_result}    ${type}=array
+    Set Test Variable    ${expected_result}
+    ${expected_result}    Convert To String    ${expected_result}
+    Run Keyword And Continue On Failure    Run Keyword If    "${type}"=="array"    Verify TravelPort Data
+    ...    ELSE    Verify Specific TravelPort Data
+
+Verify That TravelPort Data Is Correct
+    ${result1}    Run Keyword And Return Status    Verify That Correct TravelPort Data Is Returned    [{'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}, {'countryCode': 'SG', 'countryName': 'Singapore'}, {'countryCode': 'KR', 'countryName': 'Korea, Republic Of'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]
+    ${result2}    Run Keyword And Return Status    Verify That Correct TravelPort Data Is Returned    [{'regionCode': 'APAC', 'regionName': 'Asia Pacific', 'countries': [{'countryCode': 'KR', 'countryName': 'Korea, Republic Of'}, {'countryCode': 'SG', 'countryName': 'Singapore'}, {'countryCode': 'PH', 'countryName': 'Philippines'}, {'countryCode': 'JP', 'countryName': 'Japan'}]},{'regionCode': 'EMEA', 'regionName': 'Europe, Middle East and Africa', 'countries': [{'countryCode': 'GB', 'countryName': 'United Kingdom'}]},{'regionCode': 'NORAM', 'regionName': 'North America', 'countries': [{'countryCode': 'US', 'countryName': 'United States'}]}]
+    Run Keyword And Continue On Failure    Run Keyword If    "${result1}" == "True" or "${result2}" == "True"    Log To Console    Validation PASSED:TravelPort Data Is Correct
+    ...    ELSE    Fail    Validation FAILED:TravelPort Data Is Incorrect
+
+Verify TravelPort Data
+    : FOR    ${actual_response_item}    IN    @{response.json()}
+    \    ${actual_response_item}    Evaluate    json.dumps('''${actual_response_item}''')    json
+    \    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'
+    \    ...    1
+    \    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    \    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    \    Log    ${actual_response_item}
+    \    Run Keyword And Continue On Failure    Should Contain    ${expected_result}    ${actual_response_item}

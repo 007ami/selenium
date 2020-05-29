@@ -1,0 +1,53 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Post Authenticate
+    [Arguments]    ${txn_id}=auto    ${username}=${${env}_sadmin_username}    ${password}=${${env}_sadmin_password}
+    Set Global Variable    ${endpoint}    ${context_path}-admin/authenticate
+    ${query_param_list}    Create Dictionary
+    Set Suite Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}    None
+    ${json_body}    Create Dictionary
+    Run Keyword If    "${username}"!="None"    Set To Dictionary    ${json_body}    username    ${username}
+    Run Keyword If    "${password}"!="None"    Set To Dictionary    ${json_body}    password    ${password}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    Set Global Variable    ${json_body}
+    Set Global Variable    ${username}
+    Set Global Variable    ${password}
+
+Reset Account Lockout In MongoDB
+    [Arguments]    ${user}=${${env}_sadmin_username}
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    : FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    ${connect_status}    Run Keyword And Return Status    Retrieve And Update One Mongodb Record    airPersonalization    users    {"username":"${user}"}
+    \    ...    {"$set":{"failedLoginAttempts" : 0}}
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+    Sleep    3
+
+Send Authenticate Post Request And Get Token
+    [Arguments]    ${username}=${${env}_sadmin_username}    ${password}=${${env}_sadmin_password}
+    Generate Test Variables For Post Authenticate    username=${username}    password=${password}
+    Wait Until Keyword Succeeds    3x    3 sec    Run Keywords    Send POST Request
+    ...    AND    Get Token
+    ...    AND    Should Not Be Empty    ${${env}_gw_token}
+
+Verify That Username And Token Is Returned
+    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${response.json()}    username    ${username}    Actual Value is not equal to the Expected Value
+    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${response.json()}    token    Token key is missing.
+    Run Keyword And Continue On Failure    Dictionary Should Contain Item    ${response.json()}    roles    ${${username}_role}    Actual Value is not equal to the Expected Value
+    ${token}    Get Json Value    ${response.content}    token
+    Run Keyword And Continue On Failure    Should Not Be Empty    ${token}

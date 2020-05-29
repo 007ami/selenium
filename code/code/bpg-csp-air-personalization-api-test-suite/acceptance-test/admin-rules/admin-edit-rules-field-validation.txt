@@ -1,0 +1,589 @@
+*** Settings ***
+Suite Setup       Send Authenticate Post Request And Get Token
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-rules.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That id Is Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Rule Id List
+    Generate Test Variables For Put Rules    rule_id_list=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4004    error_message=No Rule Exists.
+    # Blank
+    Generate Rule Id List
+    Generate Test Variables For Put Rules    rule_id_list=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4006    error_message=Rule Id not specified for Rule.
+    # None
+    Generate Rule Id List
+    Generate Test Variables For Put Rules    rule_id_list=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4006    error_message=Rule Id not specified for Rule.
+    # Null
+    Generate Rule Id List
+    Generate Test Variables For Put Rules    rule_id_list=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4006    error_message=Rule Id not specified for Rule.
+
+FV_016 Verify That sequence Is Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules    seq_num=0    ctu_guid=0:0
+    Send POST Request
+    Generate Test Variables For Post Rules    seq_num=1    ctu_guid=1:1
+    Send POST Request
+    Get Rule ID
+    # Letters/Special Characters
+    Generate Test Variables For Put Rules    seq_num=ABC !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    # Duplicate
+    Generate Test Variables For Put Rules    seq_num=0    ctu_guid=0:0
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Put Rules    seq_num=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    # None
+    Generate Test Variables For Put Rules    seq_num=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.required.sequence"]}}
+    # Null
+    Generate Test Variables For Put Rules    seq_num=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.required.sequence"]}}
+
+FV_002 Verify That name Is Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    rule_name=ABC 123 !@# $%^    ctu_guid=1:1
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Duplicate
+    Generate Rule Id List
+    Generate Test Variables For Post Rules    seq_num=1
+    Send POST Request
+    Get Rule ID
+    Generate Test Variables For Put Rules    seq_num=1    rule_name=ABC 123 !@# $%^    ctu_guid=0:0
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Put Rules    rule_name=${EMPTY}    ctu_guid=2:2
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.required.rule_name"]}}
+    # None
+    Generate Test Variables For Put Rules    rule_name=None    ctu_guid=2:2
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.required.rule_name"]}}
+    # Null
+    Generate Test Variables For Put Rules    rule_name=null    ctu_guid=2:2
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.required.rule_name"]}}
+
+FV_003 Verify That clientTopGUID Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    ctu_guid=ABC 123 !@# $%^    csu_guid=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.client_top"]}}
+    # Blank
+    Generate Test Variables For Put Rules    ctu_guid=${EMPTY}    csu_guid=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    ctu_guid=None    csu_guid=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    ctu_guid=null    csu_guid=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_004 Verify That clientTopName Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    ctu_name=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Put Rules    ctu_name=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    ctu_name=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    ctu_name=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_005 Verify That clientSubGUID Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    csu_guid=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.client_sub"]}}
+    # Blank
+    Generate Test Variables For Put Rules    csu_guid=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    csu_guid=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    csu_guid=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_006 Verify That clientSubName Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    csu_name=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Put Rules    csu_name=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    csu_name=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    csu_name=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_007 Verify That channel Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    channel=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.channel"]}}
+    # Blank
+    Generate Test Variables For Put Rules    channel=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    channel=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    channel=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_017 Verify That posRegion Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    pos_region=ABC 123 !@# $%^    pos_country=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pos"]}}
+    # Blank
+    Generate Test Variables For Put Rules    pos_region=${EMPTY}    pos_country=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    pos_region=None    pos_country=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    pos_region=null    pos_country=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_018 Verify That posCountry Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    pos_country=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pos"]}}
+    # Blank
+    Generate Test Variables For Put Rules    pos_country=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    pos_country=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    pos_country=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_008 Verify That originRegion Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    origin_region=ABC 123 !@# $%^    origin_country=None    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.origin"]}}
+    # Blank
+    Generate Test Variables For Put Rules    origin_region=${EMPTY}    origin_country=None    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    origin_region=None    origin_country=None    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    origin_region=null    origin_country=None    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_009 Verify That originCountry Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    origin_country=ABC 123 !@# $%^    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.origin"]}}
+    # Blank
+    Generate Test Variables For Put Rules    origin_country=${EMPTY}    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    origin_country=None    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    origin_country=null    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_019 Verify That originAirport Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    origin_airport=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.origin"]}}
+    # Blank
+    Generate Test Variables For Put Rules    origin_airport=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    origin_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    origin_airport=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_010 Verify That destinationRegion Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    destination_region=ABC 123 !@# $%^    destination_country=None    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.destination"]}}
+    # Blank
+    Generate Test Variables For Put Rules    destination_region=${EMPTY}    destination_country=None    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    destination_region=None    destination_country=None    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    destination_region=null    destination_country=None    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_011 Verify That destinationCountry Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    destination_country=ABC 123 !@# $%^    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.destination"]}}
+    # Blank
+    Generate Test Variables For Put Rules    destination_country=${EMPTY}    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    destination_country=None    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    destination_country=null    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_020 Verify That destinationAirport Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    destination_airport=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.destination"]}}
+    # Blank
+    Generate Test Variables For Put Rules    destination_airport=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    destination_airport=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    destination_airport=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_021 Verify That direction Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letter Aside from B And D
+    Generate Test Variables For Put Rules    direction=A
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.direction"]}}
+    # Number
+    Generate Test Variables For Put Rules    direction=1
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.direction"]}}
+    # Special Characters
+    Generate Test Variables For Put Rules    direction=!
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.direction"]}}
+    # Blank
+    Generate Test Variables For Put Rules    direction=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    direction=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    direction=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_012 Verify That isActive Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters (Strings)
+    Generate Test Variables For Put Rules    active=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    # Blank
+    Generate Test Variables For Put Rules    active=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    active=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    active=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_013 Verify That onOffInd Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters (Strings)
+    Generate Test Variables For Put Rules    on_off_ind=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    # Blank
+    Generate Test Variables For Put Rules    on_off_ind=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    on_off_ind=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Null
+    Generate Test Variables For Put Rules    on_off_ind=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_014 Verify That updatedBy Is Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    update_user=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Put Rules    update_user=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4003    error_message=UpdatedBy not specified for Rule.
+    # None
+    Generate Test Variables For Put Rules    update_user=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4003    error_message=UpdatedBy not specified for Rule.
+    # Null
+    Generate Test Variables For Put Rules    update_user=null
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=4003    error_message=UpdatedBy not specified for Rule.
+
+FV_015 Verify That txnId Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Put Rules    txn_id=ABC 123 !@# $%^
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Put Rules    txn_id=${EMPTY}
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Put Rules    txn_id=None
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_022 Verify That pcc Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters/Channel Desktop Amadeus
+    Generate Test Variables For Put Rules    pcc=ABC 123 !@# $%^    channel=DESKTOP_AMADEUS
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Letters/Numbers/Special Characters/Channel Desktop Sabre
+    Generate Test Variables For Put Rules    pcc=ABC 123 !@# $%^    channel=DESKTOP_SABRE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Letters/Numbers/Special Characters And Channel MYCWT_Mobile
+    Generate Test Variables For Put Rules    pcc=ABC 123 !@# $%^    channel=MYCWT_MOBILE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    # Letters/Numbers/Special Characters And Channel MYCWT_Web
+    Generate Test Variables For Put Rules    pcc=ABC 123 !@# $%^    channel=MYCWT_WEB
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    #pcc_Blank/Channel Desktop
+    Generate Test Variables For Put Rules    pcc=${EMPTY}    channel=DESKTOP_SABRE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    #pcc_None/Channel Desktop
+    Generate Test Variables For Put Rules    pcc=None    channel=DESKTOP_AMADEUS
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    #pcc_Null/Channel Desktop
+    Generate Test Variables For Put Rules    pcc=null    channel=DESKTOP_SABRE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+
+FV_023 Verify That agentId Is Not Required When Sending Edit Rule Put Request
+    Generate Rule Id List
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters/Channel Desktop Amadeus
+    Generate Test Variables For Put Rules    agent_id=ABC 123 !@# $%^    channel=DESKTOP_AMADEUS
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Letters/Numbers/Special Characters/Channel Desktop Sabre
+    Generate Test Variables For Put Rules    agent_id=ABC 123 !@# $%^    channel=DESKTOP_SABRE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    # Letters/Numbers/Special Characters And Channel MYCWT_Mobile
+    Generate Test Variables For Put Rules    agent_id=ABC 123 !@# $%^    channel=MYCWT_MOBILE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    # Letters/Numbers/Special Characters And Channel MYCWT_Web
+    Generate Test Variables For Put Rules    agent_id=ABC 123 !@# $%^    channel=MYCWT_WEB
+    Send PUT Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_response={"errors":{"1":["field.not.valid.pccagent_id.assoc.channel"]}}
+    #agentId Blank/Channel Desktop
+    Generate Test Variables For Put Rules    agent_id=${EMPTY}    channel=DESKTOP_SABRE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    #agentId None/Channel Desktop
+    Generate Test Variables For Put Rules    agent_id=None    channel=DESKTOP_AMADEUS
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200
+    #agentId Null/Channel Desktop
+    Generate Test Variables For Put Rules    agent_id=null    channel=DESKTOP_SABRE
+    Send PUT Request
+    Verify That Response Status Code Is Correct    200

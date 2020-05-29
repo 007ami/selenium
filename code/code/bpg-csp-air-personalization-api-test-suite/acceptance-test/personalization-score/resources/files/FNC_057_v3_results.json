@@ -1,0 +1,21 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "prefix",
+	"offlineAlgorithm": "offline_algorithm",
+	"onlineAlgorithm": "online_algorithm",
+	"personalizationApplied": pers_applied,
+	"systemPersonalized": false,
+	"result": {
+		"score": [],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"tpBoost": 0.7,
+			"cpBoost": 0.9,
+			"apBoost": 0.8,
+			"priceBoost": price,
+			"durationBoost": duration,
+			"numStopsBoost": num_stops,
+			"flightTimeBoost": flight_time
+		}
+	}
+}

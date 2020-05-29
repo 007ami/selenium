@@ -1,0 +1,158 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/lambda-cache-evict.txt
+Resource          ../resources/common.txt
+Resource          ../admin-caches/resources/admin-caches.txt
+
+*** Test Cases ***
+FV_001 Verify That caches Is Required When Sending Clear Cache Post Request
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=ABC 123 !@# $%^
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"errorCode\\":\\"INPUT_VALIDATION_ERROR\\",\\"errorMsg\\":\\"caches[0]: must match any of the following: tpMeta,posRegion,clientMappings,travelPortByAirport,travelPortByCity,personalizationConfig\\"}","statusCode":400,"instanceIP":
+    # Blank
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=${EMPTY}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response=An error occurred during JSON parsing
+    # None
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=None
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"Invalid request for Cache evict","statusCode":400}]}
+    # Null
+    Generate Test Variables For Post Lambda Cache Evict    cache_list=null
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"Invalid request for Cache evict","statusCode":400}]}
+
+FV_002 Verify That token Is Required When Sending Clear Cache Post Request
+    Send Login Post Request for Kong Lambda Endpoint
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Lambda Cache Evict    admin_token=ABC 123 !@# $%^
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"errorCode\\":\\"401\\",\\"errorMsg\\":\\"Unauthorized Access\\"}","statusCode":401,"instanceIP":
+    # Blank
+    Generate Test Variables For Post Lambda Cache Evict    admin_token=${EMPTY}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    500
+    Verify That Error Response Is Returned    error_response={"message":"An unexpected error occurred"}
+    # None
+    Generate Test Variables For Post Lambda Cache Evict    admin_token=None
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"No auth token in request","statusCode":401}]}
+    # Null
+    Generate Test Variables For Post Lambda Cache Evict    admin_token=null
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"No auth token in request","statusCode":401}]}
+
+FV_004 Verify That invokedBy Is Required When Sending Clear Cache Post Request
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Lambda Cache Evict    invoked_by=ABC 123 !@# $%^
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"result\\":\\"SUCCESS\\"}","statusCode":200,"instanceIP":
+    # Blank
+    Generate Test Variables For Post Lambda Cache Evict    invoked_by=${EMPTY}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    500
+    Verify That Error Response Is Returned    error_response={"message":"An unexpected error occurred"}
+    # None
+    Generate Test Variables For Post Lambda Cache Evict    invoked_by=None
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"result\\":\\"SUCCESS\\"}","statusCode":200,"instanceIP":
+    # Null
+    Generate Test Variables For Post Lambda Cache Evict    invoked_by=null
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"{\\"result\\":\\"SUCCESS\\"}","statusCode":200,"instanceIP":
+
+FV_005 Verify That clusterName Is Required When Sending Clear Cache Post Request
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Lambda Cache Evict    cluster_name=ABC 123 !@# $%^
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response=Cluster not found.
+    # Blank
+    Generate Test Variables For Post Lambda Cache Evict    cluster_name=${EMPTY}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    500
+    Verify That Error Response Is Returned    error_response={"message":"An unexpected error occurred"}
+    # None
+    Generate Test Variables For Post Lambda Cache Evict    cluster_name=None
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response=Cluster not found.
+    # Null
+    Generate Test Variables For Post Lambda Cache Evict    cluster_name=null
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response=Cluster not found.
+
+FV_006 Verify That serviceName Is Required When Sending Clear Cache Post Request
+    [Tags]    not-ready
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Lambda Cache Evict    service_name=ABC 123 !@# $%^
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response=service name must match ^[a-zA-Z0-9\\\\-_]+$
+    # Blank
+    Generate Test Variables For Post Lambda Cache Evict    service_name=${EMPTY}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    500
+    Verify That Error Response Is Returned    error_response={"message":"An unexpected error occurred"}
+    # None
+    Generate Test Variables For Post Lambda Cache Evict    service_name=None
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"No instances associated with ecs clusternull","statusCode":204}]}
+    # Null
+    Generate Test Variables For Post Lambda Cache Evict    service_name=null
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"No instances associated with ecs clusternull","statusCode":204}]}
+
+FV_007 Verify That cacheEvictUrl Is Required When Sending Clear Cache Post Request
+    [Tags]    not-ready
+    Send Authenticate Post Request And Get Token
+    Save Admin UI Token
+    Send Login Post Request for Kong Lambda Endpoint
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Post Lambda Cache Evict    cache_evict_url=ABC 123 !@# $%^
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response=Conversion = '^'
+    # Blank
+    Generate Test Variables For Post Lambda Cache Evict    cache_evict_url=${EMPTY}
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    500
+    Verify That Error Response Is Returned    error_response={"message":"An unexpected error occurred"}
+    # None
+    Generate Test Variables For Post Lambda Cache Evict    cache_evict_url=None
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"No instances associated with ecs clusternull","statusCode":204}]}
+    # Null
+    Generate Test Variables For Post Lambda Cache Evict    cache_evict_url=null
+    Send POST Request for Kong Lambda Endpoint
+    Verify That Response Status Code Is Correct    200
+    Verify That Error Response Is Returned    error_response={"caches":[{"response":"No instances associated with ecs clusternull","statusCode":204}]}

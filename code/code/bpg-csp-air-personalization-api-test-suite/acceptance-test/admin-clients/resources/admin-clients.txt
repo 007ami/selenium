@@ -1,0 +1,84 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Create Successs Stub For Client Data
+    [Arguments]    ${num_of_clients}=5    ${json_response}=${EMPTY}    ${client_hash_list}=${default_cp_hash}
+    ${client_hash_list}    Split String    ${client_hash_list}    |
+    @{client_sub_guid_list}    Create List
+    : FOR    ${client_hash_item}    IN    @{client_hash_list}
+    \    ${client_hash_item}    Split String    ${client_hash_item}    ::
+    \    Append To List    ${client_sub_guid_list}    ${client_hash_item[2]}
+    Set Test Variable    ${client_sub_guid_list}
+    Set Test Variable    ${csu_guid_list}    ${EMPTY}
+    Set Test Variable    ${json_response}    ${EMPTY}
+    Set Test Variable    ${ctr}    0
+    Set Test Variable    ${count}    0
+    : FOR    ${client_sub_guid_list_items}    IN    @{client_sub_guid_list}
+    \    ${csu_guid_list}    Set Variable    ${csu_guid_list}&ids=${client_sub_guid_list_items}
+    \    ${json_response}    Set Variable    ${json_response}{"ClientTopUnitGuid":"${count}:${ctr}","ClientTopUnitName":"ClientTop-test-${count}-${ctr}","ClientSubUnits":[{"ClientSubUnitGuid":"${client_sub_guid_list_items}","ClientSubUnitName":"CSU-Test_${count}-${ctr}","Country":{"CountryCode":"US","CountryName":"United States"}}]}
+    \    Remove Values From List    ${client_sub_guid_list}    ${client_sub_guid_list_items}
+    \    Set Test Variable    ${client_sub_guid_list}
+    \    ${ctr}    Evaluate    ${ctr}+1
+    \    ${count}    Evaluate    ${count}+1
+    \    Set Test Variable    ${ctr}
+    \    Set Test Variable    ${count}
+    \    ${csu_guid_list}    Remove String Using Regexp    ${csu_guid_list}    ^&
+    \    Set Test Variable    ${csu_guid_list}
+    \    ${json_response}    Replace String    ${json_response}    }{    },{
+    \    Set Test Variable    ${json_response}
+    \    Run Keyword If    "${ctr}"=="${num_of_clients}"    Run Keywords    Create Succsess Stub For Powerbase API
+    \    ...    AND    Set Test Variable    ${ctr}    0
+    \    ...    AND    Set Test Variable    ${csu_guid_list}    ${EMPTY}
+    \    ...    AND    Set Test Variable    ${json_response}    ${EMPTY}
+
+Generate Test Data For Client Sub Index
+    [Arguments]    ${part}=1234
+    ${default_client_list}    Split String    ${default_client_list}    |
+    : FOR    ${client_sub_item}    IN    @{default_client_list}
+    \    Set To Redis Agent Index    ${redis_connection}    INDEX::CLIENTSUB::${part}    ${client_sub_item}
+
+Generate Test Variables For Get Clients
+    [Arguments]    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${ctu_guid}=None    ${csu_guid}=None
+    ${endpoint}    Set Variable If    "${ctu_guid}" == "None" and "${csu_guid}" == "None"    ${context_path}-admin/clients    "${ctu_guid}" != "None" and "${csu_guid}" == "None"    ${context_path}-admin/clients/${ctu_guid}    "${ctu_guid}" != "None" and "${csu_guid}" != "None"
+    ...    ${context_path}-admin/clients/${ctu_guid}/subunits/${csu_guid}
+    Set Test Variable    ${endpoint}
+    ${query_param_list}    Create Dictionary
+    Set Test Variable    ${query_param_list}    None
+    Log    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${app_id}    None
+    Set Test Variable    ${prefix}    None
+
+Verify Client List
+    : FOR    ${actual_response_item}    IN    @{response.json()}
+    \    ${actual_response_item}    Evaluate    json.dumps('''${actual_response_item}''')    json
+    \    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'
+    \    ...    1
+    \    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    \    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    \    Run Keyword And Continue On Failure    Should Contain    ${expected_result}    ${actual_response_item}
+
+Verify Specific Client Data
+    ${actual_response_item}    Evaluate    json.dumps('''${response.json()}''')    json
+    Comment    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    \"{'id': .*, 'eligible'    \"{'eligible'    1
+    ${actual_response_item}    Replace String Using Regexp    ${actual_response_item}    'id': '.*?',\\s    ${EMPTY}    1
+    ${actual_response_item}    Remove String    ${actual_response_item}    \"
+    Run Keyword And Continue On Failure    Should Be Equal    ${expected_result}    ${actual_response_item}
+
+Verify That Correct Client Data Is Returned
+    [Arguments]    ${expected_result}    ${type}=array
+    Set Test Variable    ${expected_result}
+    ${expected_result}    Convert To String    ${expected_result}
+    Run Keyword And Continue On Failure    Run Keyword If    "${type}"=="array"    Verify Client List
+    ...    ELSE    Verify Specific Client Data

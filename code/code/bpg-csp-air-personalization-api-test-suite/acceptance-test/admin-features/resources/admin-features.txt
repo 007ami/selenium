@@ -1,0 +1,245 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Library           RedisLibrary
+Library           ../../../resources/RedisCustomLibrary.py
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Feature Id List
+    @{features_id_list}    Create List
+    Set Global Variable    @{features_id_list}
+
+Generate Features List
+    @{features_list}    Create List
+    Set Global Variable    @{features_list}
+
+Generate Test Variables For Delete Features
+    [Arguments]    ${features_id_list}=${features_id_list}    ${user}=User Test1    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ${features_id_list}    Convert To String    ${features_id_list}
+    ${features_id_list}    Remove String    ${features_id_list}    '
+    ${features_id_list}    Remove String    ${features_id_list}    [
+    ${features_id_list}    Remove String    ${features_id_list}    ]
+    ${features_id_list}    Remove String    ${features_id_list}    ${SPACE}
+    Set Suite Variable    ${features_id_list}
+    ${feature_ids}    Set Variable If    "${features_id_list}" != "None"    /${features_id_list}    ${EMPTY}
+    Set Suite Variable    ${endpoint}    ${context_path}-admin/features${feature_ids}
+    Set Suite Variable    ${json_body}    None
+    ${query_param_list}    Create Dictionary
+    Run Keyword If    "${user}"!="None"    Set To Dictionary    ${query_param_list}    user    ${user}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${query_param_list}
+    Set Suite Variable    ${feature_ids}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}
+    Set Suite Variable    ${user}
+
+Generate Test Variables For Get Features
+    [Arguments]    ${channel}=None    ${api_version}=None    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    Set Suite Variable    ${endpoint}    ${context_path}-admin/features
+    Set Suite Variable    ${json_body}    None
+    ${query_param_list}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    Run Keyword If    "${channel}"!="None"    Set To Dictionary    ${query_param_list}    channel    ${channel}
+    Run Keyword If    "${api_version}"!="None"    Set To Dictionary    ${query_param_list}    apiVersion    ${api_version}
+    Set Suite Variable    ${query_param_list}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}
+    Set Suite Variable    ${channel}
+    Set Suite Variable    ${api_version}
+    Set Suite Variable    ${app_id}    None
+    Set Suite Variable    ${prefix}    None
+
+Generate Test Variables For Get Personalization Score When Version Is V1
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A
+    Run Keyword If    "${version}"=="v1" or "${version}"=="${EMPTY}"    Generate Test Variables For Get Personalization Score    ${trv_guid}    ${csu_guid}    ${iss_country}    ${dep_date}
+    ...    ${arr_date}    ${origin}    ${destination}    ${origin_code_type}    ${destination_code_type}    ${app_id}
+    ...    ${txn_id}    ${token}    ${prefix}
+
+Generate Test Variables For Get Personalization Score When Version Is V2
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A
+    Run Keyword If    "${version}"=="v2"    Generate Test Variables For Get Personalization Score    ${trv_guid}    ${csu_guid}    ${iss_country}    ${dep_date}
+    ...    ${arr_date}    ${origin}    ${destination}    ${origin_code_type}    ${destination_code_type}    ${app_id}
+    ...    ${txn_id}    ${token}    ${prefix}
+
+Generate Test Variables For Get Personalization Score When Version Is V2.2
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A    ${version}=${version}    ${pcc}=None    ${booking_date}=None
+    Run Keyword If    "${version}"=="v2.2"    Generate Test Variables For Get Personalization Score    ${trv_guid}    ${csu_guid}    ${iss_country}    ${dep_date}
+    ...    ${arr_date}    ${origin}    ${destination}    ${origin_code_type}    ${destination_code_type}    ${app_id}
+    ...    ${txn_id}    ${token}    ${prefix}    ${version}    ${pcc}    ${booking_date}
+
+Generate Test Variables For Post Personalization Score When Version Is V3
+    [Arguments]    ${trv_guid}=S:0986    ${csu_guid}=B:456    ${iss_country}=US    ${dep_date}=20180912    ${arr_date}=20180913    ${origin}=JFK
+    ...    ${destination}=LHR    ${origin_code_type}=A    ${destination_code_type}=A    ${app_id}=MyCWT_Mobile    ${txn_id}=auto    ${token}=${${env}_gw_token}
+    ...    ${prefix}=A    ${version}=${version}    ${pcc}=1234    ${booking_date}=None    ${gds_profile_id}=123456    ${cabin_class}=F
+    ...    ${dep_time}=18:00    ${arr_time}=18:00    ${booking_platform}=MyCWT_Mobile    ${booking_platform_version}=v1
+    Run Keyword If    "${version}"=="v3"    Generate Test Variables For Post Personalization Score    ${gds_profile_id}    ${trv_guid}    ${origin}    ${destination}
+    ...    ${origin_code_type}    ${destination_code_type}    ${cabin_class}    ${dep_date}    ${dep_time}    ${arr_date}
+    ...    ${arr_time}    ${booking_date}    ${iss_country}    ${booking_platform}    ${booking_platform_version}    ${csu_guid}
+    ...    ${app_id}    ${prefix}    ${pcc}
+
+Generate Test Variables For Post Add Features
+    [Arguments]    ${channel}=MYCWT_MOBILE    ${api_version}=V1    ${oag_enabled}=true    ${cp_passthrough}=true    ${with_default_tp}=true    ${txn_id}=auto
+    ...    ${token}=${${env}_gw_token}
+    Set Suite Variable    ${endpoint}    ${context_path}-admin/features
+    Set Suite Variable    ${query_param_list}    None
+    ${json_body}    Create Dictionary
+    Run Keyword If    "${channel}"!="None"    Set To Dictionary    ${json_body}    channel    ${channel}
+    Run Keyword If    "${api_version}"!="None"    Set To Dictionary    ${json_body}    apiVersion    ${api_version}
+    Run Keyword If    "${oag_enabled}"!="None"    Set To Dictionary    ${json_body}    oagEnabled    ${oag_enabled}
+    Run Keyword If    "${cp_passthrough}"!="None"    Set To Dictionary    ${json_body}    cpPassThrough    ${cp_passthrough}
+    Run Keyword If    "${with_default_tp}"!="None"    Set To Dictionary    ${json_body}    withDefaultTP    ${with_default_tp}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    Set Suite Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Suite Variable    ${txn_id}
+    Set Suite Variable    ${token}
+    Set Suite Variable    ${channel}
+    Set Suite Variable    ${api_version}
+    Set Suite Variable    ${oag_enabled}
+    Set Suite Variable    ${cp_passthrough}
+    Set Suite Variable    ${with_default_tp}
+
+Generate Test Variables For Post Edit Features
+    [Arguments]    ${channel}=MYCWT_MOBILE    ${api_version}=v1    ${oag_enabled}=true    ${cp_passthrough}=true    ${with_default_tp}=true    ${txn_id}=auto
+    ...    ${token}=${${env}_gw_token}    ${features_id_list}=${features_id_list}    ${timestamp}=None
+    ${features_id_list_new}    Convert To String    ${features_id_list}
+    ${features_id_list_new}    Remove String    ${features_id_list_new}    '
+    ${features_id_list_new}    Remove String    ${features_id_list_new}    [
+    ${features_id_list_new}    Remove String    ${features_id_list_new}    ]
+    Set Test Variable    ${endpoint}    ${context_path}-admin/features
+    Set Test Variable    ${query_param_list}    None
+    ${json_body}    Create Dictionary
+    ${audit_log_body}    Create Dictionary
+    Run Keyword If    "${features_id_list}"!="None"    Set To Dictionary    ${json_body}    id    ${features_id_list_new}
+    Run Keyword If    "${channel}"!="None"    Set To Dictionary    ${json_body}    channel    ${channel}
+    Run Keyword If    "${api_version}"!="None"    Set To Dictionary    ${json_body}    apiVersion    ${api_version}
+    Run Keyword If    "${oag_enabled}"!="None"    Set To Dictionary    ${json_body}    oagEnabled    ${oag_enabled}
+    Run Keyword If    "${cp_passthrough}"!="None"    Set To Dictionary    ${json_body}    cpPassThrough    ${cp_passthrough}
+    Run Keyword If    "${with_default_tp}"!="None"    Set To Dictionary    ${json_body}    withDefaultTP    ${with_default_tp}
+    Run Keyword If    "${timestamp}"!="None"    Set To Dictionary    ${audit_log_body}    createdTimestamp    ${timestamp}
+    Run Keyword If    "${timestamp}"!="None"    Set To Dictionary    ${json_body}    auditLog    ${audit_log_body}
+    ${json_body}    evaluate    json.dumps(${json_body})    json
+    Set Test Variable    ${json_body}
+    Log    ${json_body}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${channel}
+    Set Test Variable    ${api_version}
+    Set Test Variable    ${oag_enabled}
+    Set Test Variable    ${cp_passthrough}
+    Set Test Variable    ${with_default_tp}
+
+Get Feature ID
+    [Arguments]    ${feature_index}=0
+    ${id}    Get Json Value    ${response.content}    $.feature.id
+    ${id}    Remove String    ${id}    "
+    Append To List    ${features_id_list}    ${id}
+    Set Test Variable    ${features_id_list}
+
+Redis Key Does Not Exist
+    [Arguments]    ${key}
+    ${exist}    Run Keyword And Return Status    Redis Key Should Be Exist    ${redis_connection}    ${key}
+    Should Be Equal    ${exist}    ${FALSE}
+
+Sort Features List
+    [Arguments]    ${sort_index_list}
+    @{new_features_list}    Create List
+    ${sort_index_list}    Split String    ${sort_index_list}    ,
+    : FOR    ${sort_index_list_item}    IN    @{sort_index_list}
+    \    ${features_item}    Get From List    ${features_list}    ${sort_index_list_item}
+    \    Append To List    ${new_features_list}    ${features_item}
+    Set Test Variable    ${features_list}    ${new_features_list}
+
+Verify Features List Is Correct
+    [Arguments]    ${features_list}=${features_list}
+    Set Test Variable    ${features_array}    ${response.json()}
+    Run Keyword And Continue On Failure    Lists Should Be Equal    ${features_array}    ${features_list}
+
+Verify List Values
+    [Arguments]    ${actual_list}    ${expected_list}
+    ${length_1}    Get Length    ${expected_list}
+    ${length_2}    Get Length    ${actual_list}
+    Run Keyword And Continue On Failure    Should Be Equal    ${length_1}    ${length_2}
+    : FOR    ${list_items}    IN    @{expected_list}
+    \    Run Keyword And Continue On Failure    List Should Contain Value    ${actual_list}    ${list_items}
+
+Verify Redis Set Data
+    [Arguments]    ${set_name_list}
+    ${set_name_list}    Split String    ${set_name_list}    |
+    : FOR    ${set_name_item}    IN    @{set_name_list}
+    \    ${redis_actual_data}    Get All Set Members    ${redis_connection}    ${set_name_item}
+    \    Log    ${redis_actual_data}
+    \    ${redis_expected_data}    Run Keyword If    "${set_name_item.__contains__('BOOST')}"=="True" or "${set_name_item.__contains__('TVLPORT')}"=="True"    Split String    ${${set_name_item}_data}    |
+    \    ...    ELSE    Set Variable    ${${set_name_item}_data}
+    \    Run Keyword And Continue On Failure    Verify List Values    ${redis_actual_data}    ${redis_expected_data}
+    \    Run Keyword If    "${set_name_item.__contains__('INDEX::BOOST')}"!="True"    Set Test Variable    ${${set_name_item}_data}    ${EMPTY}
+
+Verify Redis String Data
+    [Arguments]    ${string_name_list}
+    ${string_name_list}    Split String    ${string_name_list}    |
+    : FOR    ${string_name_item}    IN    @{string_name_list}
+    \    ${redis_actual_data}    Get From Redis    ${redis_connection}    ${string_name_item}
+    \    Log    ${redis_actual_data}
+    \    ${redis_actual_data}    Evaluate    json.loads('''${redis_actual_data}''')    json
+    \    Remove From Dictionary    ${redis_actual_data}    auditLog
+    \    Remove From Dictionary    ${${string_name_item}_data}    auditLog
+    \    Run Keyword And Continue On Failure    Dictionaries Should Be Equal    ${redis_actual_data}    ${${string_name_item}_data}
+
+Verify That Features Response For Post Request Is Correct
+    Append To List    ${features_list}    ${response.json()['feature']}
+    Log    ${response.json()['feature']}
+    ${json_body}    Replace String    ${json_body}    "true"    true
+    ${json_body}    Replace String    ${json_body}    "false"    false
+    ${json_body}    Evaluate    json.loads('''${json_body}''')    json
+    Set Test Variable    ${new_json_body}    ${json_body}
+    Run Keyword And Continue On Failure    Dictionary Should Contain Sub Dictionary    ${response.json()['feature']}    ${new_json_body}    Actual Value is not equal to the Expected Value
+    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${response.json()['feature']}    id
+    ${created_timestamp}    Get Json Value    ${response.content}    $.feature.auditLog.createdTimestamp
+    Run Keyword And Continue On Failure    Should Not Be Empty    ${created_timestamp}    Missing createdTimestamp
+    Set Test Variable    ${CONFIG::FEATURE::${channel.upper()}::${api_version} _data}    ${response.json()['feature']}
+    ${index_feature_list_exists}    Run Keyword And Return Status    Variable Should Exist    @{INDEX::CONFIG::FEATURE_data}
+    Run Keyword If    "${index_feature_list_exists}"=="False"    Set Test Variable    @{INDEX::CONFIG::FEATURE_data}    ${EMPTY}
+    Remove Values From List    ${INDEX::CONFIG::FEATURE_data}    ${EMPTY}
+    Append To List    ${INDEX::CONFIG::FEATURE_data}    CONFIG::FEATURE::${channel.upper()}::${api_version}
+
+Verify That Features Response For Put Request Is Correct
+    Append To List    ${features_list}    ${response.json()['feature']}
+    Log    ${response.json()['feature']}
+    ${json_body}    Replace String    ${json_body}    "true"    true
+    ${json_body}    Replace String    ${json_body}    "false"    false
+    ${json_body}    Evaluate    json.loads('''${json_body}''')    json
+    Set Test Variable    ${new_json_body}    ${json_body}
+    Remove From Dictionary    ${new_json_body}    auditLog
+    Run Keyword And Continue On Failure    Dictionary Should Contain Sub Dictionary    ${response.json()['feature']}    ${new_json_body}    Actual Value is not equal to the Expected Value
+    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${response.json()['feature']}    id
+    ${updated_timestamp}    Get Json Value    ${response.content}    $.feature.auditLog.updatedTimestamp
+    Run Keyword And Continue On Failure    Should Not Be Empty    ${updated_timestamp}    Missing updatedTimestamp
+    Set Test Variable    ${CONFIG::FEATURE::${channel.upper()}::${api_version} _data}    ${response.json()['feature']}
+    ${index_feature_list_exists}    Run Keyword And Return Status    Variable Should Exist    @{INDEX::CONFIG::FEATURE_data}
+    Run Keyword If    "${index_feature_list_exists}"=="False"    Set Test Variable    @{INDEX::CONFIG::FEATURE_data}    ${EMPTY}
+    Remove Values From List    ${INDEX::CONFIG::FEATURE_data}    ${EMPTY}
+    Append To List    ${INDEX::CONFIG::FEATURE_data}    CONFIG::FEATURE::${channel.upper()}::${api_version}
+
+Verify That Redis Is Empty
+    ${keys}    Get All Keys    ${redis_connection}
+    Log    ${keys}
+    Run Keyword And Continue On Failure    Should Be Empty    ${keys}

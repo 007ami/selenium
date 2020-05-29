@@ -1,0 +1,60 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resource/imports.txt
+Resource          ../../resource/common.txt
+
+*** Keywords ***
+Click Log Out Button
+    Click Object    ${logout_btn}
+
+Click Login Button
+    Click Object    ${login_btn}    \    false    button
+
+Reset Account Lockout In MongoDB
+    [Arguments]    ${user}=${${env}_sadmin_username}
+    ${ports_list}    Split String    ${${env}_mongo_ports_list}    |
+    :FOR    ${ports_list_item}    IN    @{ports_list}
+    \    Connect To Mongodb    ${${env}_mongo_connection}    ${ports_list_item}
+    \    ${connect_status}    Run Keyword And Return Status    Retrieve And Update One Mongodb Record    airPersonalization    users    {"username":"${user}"}
+    \    ...    {"$set":{"failedLoginAttempts" : 0}}
+    \    Log    ${connect_status}
+    \    Exit For Loop If    "${connect_status}"=="True"
+    Sleep    3
+
+Set Password
+    [Arguments]    ${password}=${valid_pword}
+    Set Object Text    ${pword_txt}    ${password}
+
+Set Username
+    [Arguments]    ${username}=${valid_uname}
+    Set Object Text    ${uname_txt}    ${username}
+
+Verify Page Error Is Displayed
+    [Arguments]    ${obj_id}    ${error_msg}    ${error_index}=1
+    Append To Environment Variable    [${error_index}]    ${obj_id}
+    Verify That Object Text Is Correct    ${obj_id}    ${error_msg}
+
+Verify That Log Out Is Successful
+    Sleep    2
+    Location Should Be    ${${env}_base_url}/portal/airapi/login
+    Verify That Object Does Not Exist    ${welcome_msg_lbl}    Element
+
+Verify That Login Error Is Displayed
+    [Arguments]    ${error_msg}
+    Verify That Object Text Is Correct    ${error_lbl}    ${error_msg}
+
+Verify That Login Successful Message Is Displayed
+    Sleep    2
+    Location Should Be    ${${env}_base_url}/portal/airapi/
+    Verify That Object Text Is Correct    ${welcome_msg_lbl}    Welcome! You are logged In
+
+Verify That Login Successful Message Is Not Displayed
+    Verify That Object Does Not Exist    ${welcome_msg_lbl}    Welcome Message Element
+
+Verify That Session Timeout Page Is Displayed
+    Location Should Be    ${${env}_base_url}/timeout

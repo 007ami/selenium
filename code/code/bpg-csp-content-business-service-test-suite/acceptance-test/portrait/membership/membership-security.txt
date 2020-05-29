@@ -1,0 +1,38 @@
+*** Settings ***
+Test Setup        Get Authorization Token
+Force Tags        security    regression
+Resource          ../../../resources/imports.txt
+Resource          resources/portrait-membership.txt
+Resource          ../../resources/common.txt
+
+*** Test Cases ***
+SEC_001 Verify That Error Handling Works When Invalid Token Is Used
+    Generate Test Variables For Get Portrait Membership    token=${invalid_token_1}
+    Send GET Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is invalid or has expired\",\"error\":\"invalid_token\"}
+
+SEC_002 Verify That Error Handling Works When Expired Token Is Used
+    [Tags]    not-ready
+    Generate Test Variables For Get Portrait Membership    token=${expired_token}
+    Send GET Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is invalid or has expired\",\"error\":\"invalid_token\"}
+
+SEC_003 Verify That Error Handling Works When Blank Token Is Used
+    Generate Test Variables For Get Portrait Membership    token=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is missing\",\"error\":\"invalid_request\"}
+
+SEC_004 Verify That Error Handling Works When Null Token Is Used
+    Generate Test Variables For Get Portrait Membership    token=null
+    Send GET Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is missing\",\"error\":\"invalid_request\"}
+
+SEC_005 Verify That Error Handling Works When No Token Is Used
+    Generate Test Variables For Get Portrait Membership    token=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    401
+    Verify That Error Response Is Returned    error_response={\"error_description\":\"The access token is missing\",\"error\":\"invalid_request\"}

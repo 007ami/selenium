@@ -1,0 +1,42 @@
+*** Settings ***
+Suite Setup       Get Authorization Token
+Force Tags        field_validation    regression
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+Resource          resources/policies-update.txt
+
+*** Test Cases ***
+FV_001 Verify That startTimeStamp Is Required When Sending Policies Update Request
+    # Format Check
+    Generate Test Variables For Policies Update To Get Request For CBS    startTimeStamp=ABC 123 !@#$%
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Invalid param value 'ABC 123 !@#$%' for 'StartTimestamp'"}
+    # Mandatory Check
+    ##Empty
+    Generate Test Variables For Policies Update To Get Request For CBS    startTimeStamp=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Invalid param value '' for 'StartTimestamp'"}
+    ##None
+    Generate Test Variables For Policies Update To Get Request For CBS    startTimeStamp=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Required Date parameter 'StartTimestamp' is not present"}
+
+FV_002 Verify That endTimeStamp Is Not Required When Sending Policies Update Request
+    Get Current Start Timestamp
+    # Format Check
+    Generate Test Variables For Policies Update To Get Request For CBS    endTimeStamp=ABC 123 !@#$%    startTimeStamp=2019-02-14 00:00:00.000
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Invalid param value 'ABC 123 !@#$%' for 'EndTimestamp'"}
+    ##Empty
+    Generate Test Variables For Policies Update To Get Request For CBS    endTimeStamp=${EMPTY}    startTimeStamp=2019-02-14 00:00:00.000
+    Send GET Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    POWERBASE    BAD_REQUEST    {"Error": "BAD_REQUEST", "Description": "Invalid param value '' for 'EndTimestamp'"}
+    ##None
+    Generate Test Variables For Policies Update To Get Request For CBS    endTimeStamp=None    startTimeStamp=${start_time_stamp}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200

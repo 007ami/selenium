@@ -1,0 +1,79 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "DATASET_prefix",
+	"result": {
+		"score": [{
+				"carrierCode": "AA",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 1.0,
+				"cpValue": 1.0,
+				"apScore": 0.3,
+				"cpScore": 0.3,
+				"totalScore": 0.6
+			}, {
+				"carrierCode": "AF",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 0.8333333333333334,
+				"cpValue": 0.2857142857142857,
+				"apScore": 0.25,
+				"cpScore": 0.085714296,
+				"totalScore": 0.33571428
+			}, {
+				"carrierCode": "AE",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 0.33333333333333337,
+				"cpValue": 0.4285714285714286,
+				"apScore": 0.10000001,
+				"cpScore": 0.12857144,
+				"totalScore": 0.22857144
+			}, {
+				"carrierCode": "AD",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 0.5,
+				"cpValue": 0.5714285714285714,
+				"apScore": 0.15,
+				"cpScore": 0.17142859,
+				"totalScore": 0.3214286
+			}, {
+				"carrierCode": "AC",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 0.6666666666666667,
+				"cpValue": 0.7142857142857143,
+				"apScore": 0.20000002,
+				"cpScore": 0.21428573,
+				"totalScore": 0.41428575
+			}, {
+				"carrierCode": "AB",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 0.0,
+				"cpValue": 0.8571428571428572,
+				"apScore": 0.0,
+				"cpScore": 0.25714287,
+				"totalScore": 0.25714287
+			}
+		],
+		"travelerPreference": trv_guid_trv_data,
+		"boost": {
+			"consumer": "MyCWT_Mobile",
+			"tpBoost": 0.5,
+			"cpBoost": 0.3,
+			"apBoost": 0.3,
+			"others": {
+				"Factor1": "test"
+			}
+		},
+		"meta": tp_meta_data
+	}
+}

@@ -1,0 +1,41 @@
+*** Settings ***
+Suite Setup       Initialize Test Environment For Admin API
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-clients.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FNC_001 All Details Of Client Are Successfully Retrieved
+    Generate Test Variables For Get Clients
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Correct Client Data Is Returned    [{'clientTopGUID': '2:2', 'clientTopName': 'ClientTop-test-2-2', 'subunits': [{'clientSubGUID': '16:3D69', 'clientSubName': 'CSU-Test_2-2', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '7:2', 'clientTopName': 'ClientTop-test-7-2', 'subunits': [{'clientSubGUID': '21:3I65', 'clientSubName': 'CSU-Test_7-2', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '4:4', 'clientTopName': 'ClientTop-test-4-4', 'subunits': [{'clientSubGUID': '18:3F62', 'clientSubName': 'CSU-Test_4-4', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '9:4', 'clientTopName': 'ClientTop-test-9-4', 'subunits': [{'clientSubGUID': '23:3K67', 'clientSubName': 'CSU-Test_9-4', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '3:3', 'clientTopName': 'ClientTop-test-3-3', 'subunits': [{'clientSubGUID': '17:3E61', 'clientSubName': 'CSU-Test_3-3', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '8:3', 'clientTopName': 'ClientTop-test-8-3', 'subunits': [{'clientSubGUID': '22:3J66', 'clientSubName': 'CSU-Test_8-3', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '1:1', 'clientTopName': 'ClientTop-test-1-1', 'subunits': [{'clientSubGUID': '15:3C68', 'clientSubName': 'CSU-Test_1-1', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '6:1', 'clientTopName': 'ClientTop-test-6-1', 'subunits': [{'clientSubGUID': '20:3H64', 'clientSubName': 'CSU-Test_6-1', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '0:0', 'clientTopName': 'ClientTop-test-0-0', 'subunits': [{'clientSubGUID': '14:3B67', 'clientSubName': 'CSU-Test_0-0', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]},{'clientTopGUID': '5:0', 'clientTopName': 'ClientTop-test-5-0', 'subunits': [{'clientSubGUID': '19:3G63', 'clientSubName': 'CSU-Test_5-0', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]}]
+
+FNC_002 All Details Of Specific Client Top Is Successfully Retrieved
+    [Tags]    data
+    Generate Test Variables For Get Clients    ctu_guid=2:2
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Correct Client Data Is Returned    {'clientTopGUID': '2:2', 'clientTopName': 'ClientTop-test-2-2', 'subunits': [{'clientSubGUID': '16:3D69', 'clientSubName': 'CSU-Test_2-2', 'country': {'countryCode': 'US', 'countryName': 'United States'}}]}    single
+
+FNC_003 All Details Of Specific Client Sub Is Successfully Retrieved
+    Generate Test Variables For Get Clients    ctu_guid=5:0    csu_guid=19:3G63
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Correct Client Data Is Returned    {'clientSubGUID': '19:3G63', 'clientSubName': 'CSU-Test_5-0', 'country': {'countryCode': 'US', 'countryName': 'United States'}}    single
+
+FNC_004 Response Contains The Same Transaction ID Supplied In The Request
+    Generate Test Variables For Get Clients    txn_id=ABCD12345
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+
+FNC_005 Response Contains A System Generated Transaction ID When Not Supplied In The Request
+    Generate Test Variables For Get Clients    txn_id=None
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct

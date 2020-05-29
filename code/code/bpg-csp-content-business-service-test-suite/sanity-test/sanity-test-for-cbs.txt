@@ -1,0 +1,116 @@
+*** Settings ***
+Test Setup        Get Authorization Token
+Force Tags        staging    sanity
+Resource          ../acceptance-test/aggregate/resources/aggregate.txt
+Resource          ../acceptance-test/ccr/CompositePolicyService/resources/ccr-composite-policy-service.txt
+Resource          ../acceptance-test/ccr/policies/resources/policies.txt
+Resource          ../acceptance-test/ccr/policies-air/resources/policies-air.txt
+Resource          ../acceptance-test/ccr/policies-update/resources/policies-update.txt
+Resource          ../acceptance-test/ccr/policies-hierarchy/resources/policies-hierarchy.txt
+Resource          ../acceptance-test/portrait/membership/resources/portrait-membership.txt
+
+*** Test Cases ***
+FNC_001 Aggregate API Response For Personalization, Composite And Portrait
+    [Tags]    personalization
+    Run Keyword And Continue On Failure    Run Keyword If    "${env}"=="staging"    Set Test Variable    ${${env}_csu_guid}    A:F226E
+    Generate Test Variables For Aggregate Get Request For CBS    details=CompositePolicy|Personalization|Portrait    systemUserGuid=A:2DD6B    teamId=419    csuGuid=${${env}_csu_guid}    clientAccNum=U1FVA    travTypeGuid=${${env}_travTypeGuid}
+    ...    tripTypeId=0    languageCode=en-GB    iss_country=US    origin=JFK    destination=LHR    GDSCode=1G
+    ...    departure_date=20190801    travelerGuid=${${env}_travelerGuid}    origin_code_type=A    destination_code_type=A    app_id=MYCWT_MOBILE
+    Send GET Request For Aggregate
+    Verify That Correct Status Code Are Returned For Aggregate    200
+    Verify Response Keys    Portrait|Personalization|ClientConfig    response=${agg_response.json()}
+
+FNC_002 CompositePolicyService Response
+    Generate Test Variables For Composite Policy Service Get Request For CBS    systemUserGuid=A:2DD6B    teamId=419    csuGuid=${${env}_csu_guid}    clientAccNum=U1FVA    travTypeGuid=${${env}_travTypeGuid}    tripTypeId=0
+    ...    languageCode=en-GB    origin=NYC    destination=SIN    GDSCode=1G    departure_date=20180101    travelerGuid=${${env}_travelerGuid}
+    Send GET Request
+    Comment    Run Keyword And Continue On Failure    Run Keyword If    "${env}"=="test"    Verify That Correct Status Code Are Returned    200
+    ...    ELSE    Verify That Correct Status Code Are Returned    206
+    Verify That Response Headers Are Correct
+    Verify Response Keys    AirParameter|AirVendor|CarVendor|City|Country|PolicyMessage|PortraitPreferredMembership|SupplierDealCode
+
+FNC_003 Policies Response
+    [Tags]    not-ready
+    Generate Test Variables For Policies To Get Request For CBS    csuGuid=A:807F6    cityCode=NYC    systemUserGuid=B:630    teamId=299    clientAccNum=112    travTypeGuid=14:2BB7
+    ...    tripTypeId=1    languageCode=en-GB    ALL=True
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify Response Keys    PolicyAirCabinDetails|PolicyAirMissedSavingsThresholdDetails|PolicyAirVendorDetails|PolicyCarTypeDetails|PolicyCarVendorDetails|PolicyCityDetails|PolicyCountryDetails|PolicyHotelCapRateDetails|PolicyHotelVendorDetails
+
+FNC_004 Policies Air Response
+    Generate Test Variables For Policies Air To Get Request For CBS    csuGuid=${${env}_csu_guid}    sourcesysCode=AU1    clientAccNum=U1FVA    systemUserGuid=A:2DD6B    teamId=419    travTypeGuid=A:5B696
+    ...    tripTypeId=1    languageCode=en-GB    ALL=True
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify Response Keys    ClientSubUnit|PolicyAirCabinItems|PolicyAirMissedSavingsThresholdItems|PolicyAirVendorItems|PolicyCityDetails|PolicyCountryDetails
+
+FNC_005 Policies Update Response
+    Get Authorization Token
+    Generate Test Variables For Policies Update To Get Request For CBS    startTimeStamp=2019-02-14 00:00:00.000    endTimeStamp=2019-02-20 00:00:00.000
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify Response Keys    PolicyUpdatesResponseItem
+
+FNC_006 Policies Hirarchy Response
+    Generate Test Variables For Policies Hierarchy Get Request For CBS
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify Response Keys    PolicyHierarchyList
+
+FNC_007 Content Personalization Response
+    [Tags]    personalization
+    Comment    Run Keyword And Continue On Failure    Run Keyword If    "${version}"!="v2.2"    Set Suite Variable    ${app_id}    DESKTOP_AMADEUS
+    ...    ELSE    Set Suite Variable    ${app_id}    MYCWT_MOBILE
+    Run Keyword And Continue On Failure    Run Keyword If    "${env}"=="staging"    Set Test Variable    ${${env}_csu_guid}    A:F226E
+    Generate Test Variables For Get Content Personalization Score    trv_guid=${${env}_travelerGuid}    csu_guid=${${env}_csu_guid}    app_id=MYCWT_MOBILE
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Response Keys And Values Are Not Empty    experimentGroupTypeCode|result|version
+    Verify That Response Keys And Values Are Not Empty    boost|meta|score|travelerPreference    ['result']
+    Verify That Response Keys And Values Are Not Empty    carrierCode|origin|destination|issuingCountry|apScore|cpScore|totalScore    ['result']['score'][0]
+
+FNC_008 Portrait Response
+    Generate Test Variables For Get Portrait Membership    trv_guid=${${env}_travelerGuid}
+    Send GET Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Portrait Response Is Not Empty    keys=None
+
+*** Keywords ***
+Verify Response Keys
+    [Arguments]    ${expected_keys}    ${response}=${response.json()}
+    ${expected_keys}    Split String    ${expected_keys}    |
+    ${keys}    Get Dictionary Keys    ${response}
+    Log    ${keys}
+    : FOR    ${expected_keys_items}    IN    @{expected_keys}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${response}    ${expected_keys_items}
+
+Verify That Response Keys And Values Are Not Empty
+    [Arguments]    ${keys}    ${json_obj}=${EMPTY}
+    [Documentation]    ${json_obj} - ["key1"]["key2"]...
+    ${keys}    Split String    ${keys}    |
+    Set Test Variable    ${keys}
+    Run Keyword If    "${version}"!="v1" or "${version}"!="${EMPTY}"    Remove Values From List    ${keys}    meta
+    ${actual_response}    Run Keyword If    "${json_obj}"!="${EMPTY}"    Set Variable    ${response.json()${json_obj}}
+    ...    ELSE    Set Variable    ${response.json()}
+    Set Test Variable    ${json_obj}
+    : FOR    ${keys_item}    IN    @{keys}
+    \    Run Keyword And Continue On Failure    Dictionary Should Contain Key    ${actual_response}    ${keys_item}
+    \    ${key_value}    Run Keyword And Continue On Failure    Get From Dictionary    ${actual_response}    ${keys_item}
+    \    ${key_value}    Run Keyword If    "${keys_item}"=="apScore" or "${keys_item}"=="cpScore" or "${keys_item}"=="totalScore" or "${keys_item}"=="isActive" or "${keys_item}"=="onOffInd" or "${keys_item}"=="total"    Convert To String    ${key_value}
+    \    ...    ELSE    Set Variable    ${key_value}
+    \    Continue For Loop If    "${endpoint}"=="/service/repo/airapi-admin/rules"
+    \    Run Keyword And Continue On Failure    Should Not Be Empty    ${key_value}    ${keys_item} is missing
+
+Verify That Portrait Response Is Not Empty
+    [Arguments]    ${keys}
+    [Documentation]    ${json_obj} - ["key1"]["key2"]...
+    Comment    ${keys}    Run Keyword If    "${keys}"!="None"    Split String    ${keys}    |
+    ...    ELSE    Set Test Variable    ${keys}
+    Set Test Variable    ${keys}
+    Run Keyword And Continue On Failure    Run Keyword If    "${keys}"=="None"    Should Not Be Empty    ${response.content}

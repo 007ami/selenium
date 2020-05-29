@@ -1,0 +1,123 @@
+*** Settings ***
+Test Setup        Reset Account Lockout In MongoDB    ${${env}_sadmin_username}
+Force Tags        functional    regression
+Resource          ../../resources/imports.txt
+Resource          resources/authenticate.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FNC_001 Token Is Successfully Retrieved Using Valid Username And Valid Password
+    #sadmin
+    Generate Test Variables For Post Authenticate    username=${${env}_sadmin_username}    password=${${env}_sadmin_password}
+    Send Post request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Username And Token Is Returned
+    #gsmadmin
+    Generate Test Variables For Post Authenticate    username=${${env}_gsmadmin_username}    password=${${env}_gsmadmin_password}
+    Send Post request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Username And Token Is Returned
+    #user
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=${${env}_user_password}
+    Send Post request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Username And Token Is Returned
+
+FNC_002 Token Is Not Retrieved Using Invalid Username And Valid Password
+    Generate Test Variables For Post Authenticate    username=invalid
+    Send Post request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+
+FNC_003 Token Is Not Retrieved Using Valid Username And Invalid Password
+    Generate Test Variables For Post Authenticate    password=invalid
+    Send Post request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+
+FNC_004 Token Is Not Retrieved Using Invalid Username And Invalid Password
+    Generate Test Variables For Post Authenticate    username=invalid    password=invalid
+    Send Post request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+
+FNC_005 Response Contains The Same Transaction ID Supplied In The Request
+    Generate Test Variables For Post Authenticate    txn_id=ABCD12345
+    Send POST Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Username And Token Is Returned
+
+FNC_006 Response Contains A System Generated Transaction ID When Not Supplied In The Request
+    Generate Test Variables For Post Authenticate    txn_id=None
+    Send POST Request
+    Verify That Correct Status Code Are Returned    200
+    Verify That Response Headers Are Correct
+    Verify That Username And Token Is Returned
+
+FNC_007 Account Is Locked Out After 3 Attempts
+    #1st Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=invalid
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #2nd Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=invalid
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #3rd Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=invalid
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #4th Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=invalid
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_LOCKOUT    error_message=Login account is locked out
+    #Resets Failed Attempt Manually
+    Reset Account Lockout In MongoDB    ${${env}_user_username}
+    #Resets Failed Attempt If Login Is Successful
+    #1st Success Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=${${env}_user_password}
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    #1st Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=invalid
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #2nd Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=invalid
+    Send POST Request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #1st Success Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}    password=${${env}_user_password}
+    Send POST Request
+    Verify That Response Status Code Is Correct    200
+    #1st Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}
+    Send Post request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #2nd Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}
+    Send Post request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #3rd Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}
+    Send Post request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_FAILED    error_message=Invalid Credentials
+    #4th Error Attempt
+    Generate Test Variables For Post Authenticate    username=${${env}_user_username}
+    Send Post request
+    Verify That Response Status Code Is Correct    400
+    Verify That Error Response Is Returned    error_code=AUTH_LOCKOUT    error_message=Login account is locked out
+    [Teardown]    Reset Account Lockout In MongoDB    ${${env}_user_username}

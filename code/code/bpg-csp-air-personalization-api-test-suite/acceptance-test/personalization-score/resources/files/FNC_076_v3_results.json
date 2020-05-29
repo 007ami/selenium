@@ -1,0 +1,39 @@
+{
+	"version": "exp_version",
+	"experimentGroupTypeCode": "prefix",
+	"offlineAlgorithm": "offline_algorithm",
+	"onlineAlgorithm": "online_algorithm",
+	"personalizationApplied": pers_applied,
+	"systemPersonalized": false,
+	"result": {
+		"score": [{
+				"marketingCarrierCode": "AA",
+				"origin": "origin",
+				"destination": "destination",
+				"issuingCountry": "iss_country",
+				"apValue": 1,
+				"cpValue": 0,
+				"apPolicyOrder": 1,
+				"apDerivedPolicyOrder": 1,
+				"apScore": 0.9,
+				"cpScore": 0.0,
+				"totalScore": 0.9,
+				"tpScore": 0.0,
+				"tpValue": 0.0,
+				"apFlag": true,
+				"cpFlag": false,
+				"tpFlag": false
+			}
+		],
+		"travelerPreference": default_trv_data,
+		"boost": {
+			"tpBoost": 0.5,
+			"cpBoost": 0.8,
+			"apBoost": 0.9,
+			"priceBoost": price,
+			"durationBoost": duration,
+			"numStopsBoost": num_stops,
+			"flightTimeBoost": flight_time
+		}
+	}
+}

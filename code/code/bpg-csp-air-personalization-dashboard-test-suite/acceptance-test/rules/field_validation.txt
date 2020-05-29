@@ -1,0 +1,385 @@
+*** Settings ***
+Suite Setup       Initialize Test Data For Upload API
+Test Teardown     Close All Browsers
+Resource          ../authentication/resource/authentication.txt
+Resource          resource/rules.txt
+Resource          ../../resource/imports.txt
+Resource          ../resource/common.txt
+
+*** Test Cases ***
+FNC_001 Verify Validation For Sequence Number
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    # Mandatory Field
+    Set Rule Name    Rule 1
+    Click Save Button
+    Verify Sequence Error Message
+    Set Sequence Number    1
+    Click Save Button
+    Verify Success Message
+    # Add with Decimal Values
+    Click Add Rule Button
+    Set Sequence Number    1.5
+    Set Rule Name    Rule 1
+    Click Save Button
+    Verify Sequence Error Message
+    #Modify Sequence Number
+    Clear Field    ${sequence_number_txt}
+    Click Save Button
+    Verify Sequence Error Message
+    # Add Sequence number with invalid values
+    Set Sequence Number    1.5
+    Click Save Button
+    Verify Sequence Error Message
+    # Verify Mandatory Fields Error Messages
+    Click Add Rule Button
+    Click Save Button
+    Verify Save Rule Error Message
+
+FNC_002 Verify Validation For Rules Name
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    # Mandatory Field
+    Click Add Rule Button
+    Set Sequence Number    2
+    Click Save Button
+    Verify Rule Name Error Message
+    Set Rule Name    Rules_Mandatory
+    Click Save Button
+    Verify Success Message
+    # Letters/Special Chracters
+    Delete Rules Collecton In MongoDB
+    Click Add Rule Button
+    Set Sequence Number    2
+    Set Rule Name    ABC! 123 @# $%^
+    Click Save Button
+    Verify Success Message
+    #Modify Rule Name
+    Click Edit Button    row_number=0
+    Clear Field    ${rule_name_txt}
+    Click Save Button
+    Verify Rule Name Error Message
+    #Verify Mandatory Field Error message In Modify
+    Clear Field    ${sequence_number_txt}|${rule_name_txt}
+    Click Save Button
+    Verify Save Rule Error Message
+
+FNC_003 Verify Validation For Channel
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    # Value Valid Channel
+    Set Sequence Number    1
+    Set Rule Name    Rule 1
+    Select Channel From Dropdown List    MYCWT_MOBILE
+    Click Save Button
+    Verify Success Message
+    # Check Search Channel By Name
+    Click Add Rule Button
+    Set Input Channel Name    CWT
+    Verify Channel Dropdown List    MYCWT_MOBILE|MYCWT_WEB
+    # Set Invalid Channel
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule 1
+    Set Input Channel Name    Test
+    Verify Channel Dropdown List    No items found
+
+FNC_005 Verify Validation For Client Top Guid
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Client Top Guid
+    Set Sequence Number    1
+    Set Rule Name    Rule Test 1
+    Select ClientTopGuid From Dropdown List    ClientTop-test-3-3 [3:3]
+    Click Save Button
+    Verify Success Message
+    #Search Client Top Guid By Valid Text
+    Click Add Rule Button
+    Set Input ClientTopGuid    Client
+    Verify ClientTopGuid Dropdown List    ClientTop-test-1-1 [1:1]|ClientTop-test-2-2 [2:2]|ClientTop-test-4-4 [4:4]|ClientTop-test-0-0 [0:0]|ClientTop-test-3-3 [3:3]|ClientTop-test-6-1 [6:1]|ClientTop-test-7-2 [7:2]|ClientTop-test-9-4 [9:4]|ClientTop-test-5-0 [5:0]|ClientTop-test-8-3 [8:3]
+    #Search Client Top Guid By Invalid Text
+    Click Add Rule Button
+    Set Input ClientTopGuid    Check
+    Verify ClientTopGuid Dropdown List    No items found
+
+FNC_007 Verify Validation For Client Sub Unit Guid
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Client Sub GUID
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Select ClientSubGuid From Dropdown List    CSU-Test_0-0 [14:3B67]
+    Click Save Button
+    Verify Success Message
+    #Search Client Sub Guid By Valid Text
+    Click Add Rule Button
+    Set Input ClientSubGuid    CSU
+    Verify ClientSubGuid Dropdown List    CSU-Test_1-1 [15:3C68]|CSU-Test_2-2 [16:3D69]|CSU-Test_4-4 [18:3F62]|CSU-Test_0-0 [14:3B67]|CSU-Test_3-3 [17:3E61]|CSU-Test_6-1 [20:3H64]|CSU-Test_7-2 [21:3I65]|CSU-Test_9-4 [23:3K67]|CSU-Test_5-0 [19:3G63]|CSU-Test_8-3 [22:3J66]
+    #Search Client Sub Guid By Invalid Text
+    Click Add Rule Button
+    Set Input ClientSubGuid    Client
+    Verify ClientSubGuid Dropdown List    No items found
+
+FNC_008 Verify Validation For POS Region
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Pos Region
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set POS Region    NAM
+    Click Save Button
+    Verify Success Message
+    #Verify Invalid Pos Region
+    Click Add Rule Button
+    Set Sequence Number    2
+    Set Rule Name    Rule Name 2
+    Set POS Region    NAMER
+    Click Save Button
+    Verify Save Rule Error Message    POS
+
+FNC_009 Verify Validation For POS Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Pos Country
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set POS Country    SG
+    Click Save Button
+    Verify Success Message
+    #Verify Invalid Pos Country
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set POS Country    IND
+    Click Save Button
+    Verify Save Rule Error Message    POS
+
+FNC_010 Verify Validation For Origin Region
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Origin Region
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Origin Region    NAM
+    Click Save Button
+    Verify Success Message
+    #Verify Invalid Origin Region
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Origin Region    Invalid Region
+    Click Save Button
+    Verify Save Rule Error Message    Origin
+
+FNC_011 Verify Validation For Origin Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Origin Country
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Origin Country    SG
+    Click Save Button
+    Verify Success Message
+    #Verify Invalid Origin Country
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Origin Country    Invalid Country
+    Click Save Button
+    Verify Save Rule Error Message    Origin
+
+FNC_012 Verify Validation For Origin Airport
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Origin Airport
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Origin Airport    JFK
+    Click Save Button
+    Verify Success Message
+    #Verify Valid Origin Airport
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Origin Airport    Invalid Airport
+    Click Save Button
+    Verify Save Rule Error Message    Origin
+
+FNC_013 Verify Validation For Destination Region
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Destination region
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Destination Region    APAC
+    Click Save Button
+    Verify Success Message
+    #Verify Invalid Destination region
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 2
+    Set Destination Region    Invalid Region
+    Click Save Button
+    Verify Save Rule Error Message    Destination
+
+FNC_014 Verify Validation For Destination Country
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Destination Country
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Destination Country    ph
+    Click Save Button
+    Verify Success Message
+    #Verify Valid Destination Country
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 2
+    Set Destination Country    Invalid Country
+    Click Save Button
+    Verify Save Rule Error Message    Destination
+
+FNC_015 Verify Validation For Destination Airport
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    #Verify Valid Destination Airport
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 1
+    Set Destination Airport    LHR
+    Click Save Button
+    Verify Success Message
+    #Verify Invalid Destination Airport
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule Name 2
+    Set Destination Airport    Invalid Airport
+    Click Save Button
+    Verify Save Rule Error Message    Destination
+
+FNC_016 Verify Validation For Direction
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    # Mandatory Field By Default Direction
+    Set Sequence Number    1
+    Set Rule Name    Rule 1
+    Verify Value From Direction Dropdown    D
+    Click Save Button
+    Verify Success Message
+    # Direction Is B
+    Click Add Rule Button
+    Set Sequence Number    2
+    Set Rule Name    Rule 2
+    Select Direction From Dropdown List    B
+    Click Save Button
+    Verify Success Message
+    # Direction Is D
+    Click Add Rule Button
+    Set Sequence Number    3
+    Set Rule Name    Rule 3
+    Select Channel From Dropdown List    ALL
+    Select Direction From Dropdown List    D
+    Click Save Button
+    Verify Success Message
+
+FNC_017 Verify Validation For PCC
+    Delete Rules Collecton In MongoDB
+    Open Browser And Navigate To Air Personalization Dashboard Page
+    Login To Dashboard
+    Navigate To Rules Page
+    Click Add Rule Button
+    # Letters/Numbers/Special Characters
+    Click Add Rule Button
+    Set Sequence Number    1
+    Set Rule Name    Rule 1
+    Select Channel From Dropdown List    DESKTOP_SABRE
+    Set PCC    ABC! 123 @# $%^
+    Click Save Button
+    Verify Success Message
+    # Non-Mandatory Field
+    Click Add Rule Button
+    Set Sequence Number    2
+    Set Rule Name    Rule 2
+    Select Channel From Dropdown List    DESKTOP_AMADEUS
+    Click Save Button
+    Verify Success Message
+    #Modify PCC to ALL
+    Click Edit Button    row_number=1
+    Clear Field    ${pcc_txt}
+    Set PCC    ALL
+    Click Save Button
+    Verify Success Message
+    #Modify Channel to ALL
+    Click Edit Button    row_number=1
+    Select Channel From Dropdown List    ALL
+    Click Save Button
+    Verify Success Message
+    #Add Invalid Channel And PCC
+    Click Add Rule Button
+    Set Sequence Number    3
+    Set Rule Name    Rule 3
+    Select Channel From Dropdown List    MYCWT_MOBILE
+    Set PCC    A1234
+    Click Save Button
+    Verify Save Rule Error Message    PCC/OID
+    #Modify Channel to MYCWT_WEB
+    Click Edit Button    row_number=2
+    Clear Field    ${pcc_txt}
+    Select Channel From Dropdown List    MYCWT_WEB
+    Click Save Button
+    Verify Success Message
+    #Modify PCC to Blank
+    Click Edit Button    row_number=1
+    Clear Field    ${pcc_txt}
+    Click Save Button
+    Verify Success Message
+    #Set PCC
+    Click Edit Button    row_number=1
+    Clear Field    ${pcc_txt}
+    Set PCC    A1234
+    Click Save Button
+    Verify Save Rule Error Message    PCC/OID
+    #Channel To All
+    Select Channel From Dropdown List    ALL
+    Click Save Button
+    Verify Save Rule Error Message    PCC/OID

@@ -1,0 +1,24 @@
+*** Settings ***
+Suite Setup       Send Authenticate Post Request And Get Token
+Force Tags        field_validation    regression
+Resource          ../../resources/imports.txt
+Resource          resources/admin-rules.txt
+Resource          ../resources/common.txt
+
+*** Test Cases ***
+FV_001 Verify That txnId Is Not Required When Sending Get Rule Get Request
+    Generate Test Variables For Post Rules
+    Send POST Request
+    Get Rule ID
+    # Letters/Numbers/Special Characters
+    Generate Test Variables For Download Rules    txn_id=ABC 123 !@# $%^
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # Blank
+    Generate Test Variables For Download Rules    txn_id=${EMPTY}
+    Send GET Request
+    Verify That Response Status Code Is Correct    200
+    # None
+    Generate Test Variables For Download Rules    txn_id=None
+    Send GET Request
+    Verify That Response Status Code Is Correct    200

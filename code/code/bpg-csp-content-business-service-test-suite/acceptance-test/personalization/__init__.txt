@@ -1,0 +1,5 @@
+*** Settings ***
+Suite Setup       Initialize Test Data For Score API
+Force Tags        personalization
+Resource          ../resources/common.txt
+Resource          resources/personalization.txt

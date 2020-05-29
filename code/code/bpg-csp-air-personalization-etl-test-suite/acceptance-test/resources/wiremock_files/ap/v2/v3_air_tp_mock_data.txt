@@ -1,0 +1,5 @@
+{"traveler_guid":"14:24AD648D","carrier":[{"code":"BD","value":0.3}]}
+{"traveler_guid":"15:22E99F7E","carrier":[{"code":"BE","value":0.9}]}
+{"traveler_guid":"16:20AE994F","carrier":[{"code":"BF","value":0.8}]}
+{"traveler_guid":"17:18E99A1G","carrier":[{"code":"BG","value":0.7}]}
+{"traveler_guid":"18:16E99F2H","carrier":[{"code":"BH","value":0.6}]}

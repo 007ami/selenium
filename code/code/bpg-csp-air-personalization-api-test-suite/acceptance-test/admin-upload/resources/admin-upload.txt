@@ -1,0 +1,88 @@
+*** Settings ***
+Library           String
+Library           json.decoder.JSONDecoder
+Library           Collections
+Library           DateTime
+Library           JSONLibrary
+Library           RequestsLibrary
+Resource          ../../../resources/imports.txt
+Resource          ../../resources/common.txt
+
+*** Keywords ***
+Generate Test Variables For Upload
+    [Arguments]    ${file}=default_rules.txt    ${txn_id}=auto    ${token}=${${env}_gw_token}    ${user}=User1
+    Set Test Variable    ${endpoint}    ${context_path}-admin/rules/upload
+    Set Test Variable    ${file}
+    ${uuid}    Generate UUID
+    ${txn_id}    Set Variable If    "${txn_id}" == "auto"    ${uuid}    ${txn_id}
+    Set Test Variable    ${txn_id}
+    Set Test Variable    ${token}
+    Set Test Variable    ${user}
+
+Send POST Request For Upload
+    [Arguments]    ${token}=${token}    ${file}=${file}    ${user}=${user}
+    Set Test Variable    ${ap_uri}    ${endpoint}
+    ${headers_list}    Create Dictionary
+    ${data}    Create Dictionary
+    ${file_data}    Run Keyword If    "${file}" == "${EMPTY}" or "${file}" == "null" or "${file}" == "None"    Set Variable    ${file}
+    ...    ELSE    Get Binary File    ${CURDIR}${/}..//files//${file}
+    ${files}    Create Dictionary
+    Run Keyword If    "${token}" == "null"    Set To Dictionary    ${headers_list}    Authorization=null
+    ...    ELSE IF    "${token}" != "None"    Set To Dictionary    ${headers_list}    Authorization=Bearer ${token}
+    Run Keyword If    "${txn_id}" == "null"    Set To Dictionary    ${headers_list}    txnId=null
+    ...    ELSE IF    "${txn_id}" != "None"    Set To Dictionary    ${headers_list}    txnId=${txn_id}
+    Run Keyword If    "${file}" == "null"    Set To Dictionary    ${files}    file=null
+    ...    ELSE IF    "${file}" != "None"    Set To Dictionary    ${files}    file=${file_data}
+    Run Keyword If    "${user}" == "null"    Set To Dictionary    ${data}    uploadUser=null
+    ...    ELSE IF    "${user}" != "None"    Set To Dictionary    ${data}    uploadUser=${user}
+    Log    ${headers_list}
+    ${environment_url}    Set Variable    ${${env}_base_url}
+    Create Session    AP    ${environment_url}    verify=true
+    ${response}    Run Keyword If    "${file}" != "None" and "${user}" != "None"    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    files=${files}    data=${data}
+    ...    ELSE IF    "${file}" != "None" and "${user}" == "None"    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    files=${files}
+    ...    ELSE IF    "${file}" == "None" and "${user}" != "None"    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    ...    data=${data}
+    ...    ELSE    Post Request    AP    ${ap_uri}    headers=${headers_list}
+    Set Suite Variable    ${response}
+    Log    ${response.content}
+    Log    ${response.status_code}
+    Sleep    2
+
+Verify Redis Rules List Value
+    [Arguments]    ${expected_redis_rules_list}
+    ${expected_redis_rules_list}    Split String    ${expected_redis_rules_list}    |
+    ${redis_actual_data}    Get All List Values    ${redis_connection}    RULES::${rules_meta_timestamp}
+    Log    ${redis_actual_data}
+    ${length_1}    Get Length    ${redis_actual_data}
+    ${length_2}    Get Length    ${expected_redis_rules_list}
+    Run Keyword And Continue On Failure    Should Be Equal    ${length_1}    ${length_2}
+    Set Test Variable    ${ctr}    0
+    : FOR    ${expected_redis_rules_list_item}    IN    @{expected_redis_rules_list}
+    \    Run Keyword And Continue On Failure    Should Be Equal    ${redis_actual_data[${ctr}]}    ${expected_redis_rules_list_item}
+    \    ${ctr}    Evaluate    ${ctr}+1
+
+Verify Redis Rules Meta Value
+    ${redis_actual_data}    Get From Redis    ${redis_connection}    RULE::META
+    Run Keyword And Continue On Failure    Should Not Be Empty    ${redis_actual_data}    Rules Meta Does Not Exists.
+    Log    ${redis_actual_data}
+    Set Test Variable    ${rules_meta_timestamp}    ${redis_actual_data}
+
+Verify That File Upload Response For Post Request Is Correct
+    [Arguments]    ${json_body}
+    ${json_body}    Evaluate    json.loads('''${json_body}''')    json
+    Run Keyword And Continue On Failure    Dictionaries Should Be Equal    ${response.json()}    ${json_body}    Actual Value is not equal to the Expected Value
+
+Verify Redis Rules List Value 2
+    [Arguments]    ${expected_redis_rules_list}
+    ${expected_redis_rules_list}    Split String    ${expected_redis_rules_list}    ;
+    ${redis_actual_data}    Get All List Values    ${redis_connection}    RULES::${rules_meta_timestamp}
+    Log    ${redis_actual_data}
+    ${length_1}    Get Length    ${redis_actual_data}
+    ${length_2}    Get Length    ${expected_redis_rules_list}
+    Run Keyword And Continue On Failure    Should Be Equal    ${length_1}    ${length_2}
+    Set Test Variable    ${ctr}    0
+    : FOR    ${expected_redis_rules_list_item}    IN    @{expected_redis_rules_list}
+    \    Run Keyword And Continue On Failure    Should Be Equal    ${redis_actual_data[${ctr}]}    ${expected_redis_rules_list_item}
+    \    ${ctr}    Evaluate    ${ctr}+1
